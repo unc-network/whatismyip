@@ -4,7 +4,7 @@
   */
 $(document).ready(function () {
 
-	$('[data-bs-toggle="collapse"]').click(function() {
+	$('#more-info [data-bs-toggle="collapse"]').click(function() {
 	  $(this).toggleClass( "active" );
 	  if ($(this).hasClass("active")) {
 	    $(this).text("Hide Information");

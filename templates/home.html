@@ -1,46 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
-
-<div class="row p-1">
-  <div class="col mb-3">
-    <h4 class="mb-3">Your IP address is:</h4>
+<div class="container">
+  <div class="row">
+    <div class="p-5 text-center">
+      <h2 class="mb-2">Your IP address is:</h2>
+    </div>
   </div>
-</div>
-<div class="row p-1">
-  <div id="address_box" class="col shadow-lg p-3 mb-3 rounded bg-primary d-none d-sm-block unc_ip">
-    <h1 id="address" class="display-4 text-center allowCopy">{{ context.address }}</h1>
+  <div class="row p-1">
+    <div id="address_box" class="col shadow-lg p-3 mb-3 rounded bg-primary d-none d-sm-block unc_ip">
+      <h1 id="address" class="display-4 text-center allowCopy">{{ context.address }}</h1>
+    </div>
+    <div id="address_box_sm" class="col shadow-lg p-3 mb-3 rounded bg-primary d-block d-sm-none unc_ip">
+      <h2 id="address" class="text-center allowCopy">{{ context.address }}</h2>
+    </div>
   </div>
-  <div id="address_box_sm" class="col shadow-lg p-3 mb-3 rounded bg-primary d-block d-sm-none unc_ip">
-    <h2 id="address" class="text-center allowCopy">{{ context.address }}</h2>
+  <div id="additional_ip" class="row p-1" style="display:none;">
+    <div class="col shadow-lg p-3 mb-5 rounded bg-primary d-none d-sm-block unc_ip">
+      <h1 id="address2" class="display-4 text-center allowCopy">loading...</h1>
+    </div>
+    <div class="col shadow-lg p-3 mb-5 rounded bg-primary d-block d-sm-none unc_ip">
+      <h2 id="address2_sm" class="text-center allowCopy">loading...</h2>
+    </div>
   </div>
-</div>
-<div id="additional_ip" class="row p-1" style="display:none;">
-  <div class="col shadow-lg p-3 mb-5 rounded bg-primary d-none d-sm-block unc_ip">
-    <h1 id="address2" class="display-4 text-center allowCopy">loading...</h1>
-  </div>
-  <div class="col shadow-lg p-3 mb-5 rounded bg-primary d-block d-sm-none unc_ip">
-    <h2 id="address2_sm" class="text-center allowCopy">loading...</h2>
-  </div>
-</div>
-<div class="row p-1">
-  <div class="col">
-    <p>Click the address to copy to your clipboard.</p>
-    <p><button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">Show More Information</button></p>
-    <div class="collapse" id="collapseExample">
-        <div class="card card-body">
-        <ul>
-          <li><strong>Campus VLAN:</strong> <span> blah </span></li>
-          <li><strong>Proxy IP:</strong> <span> {{ context.xfwd }} </span></li>
-          <li><strong>Remote Host:</strong> <span> {{ context.address }} </span></li>
-          <li><strong>Remote Port:</strong> <span> {{ context.port }} </span></li>
-          <li><strong>Request Method:</strong> <span> {{ context.method }} </span></li>
-          <li><strong>Server Protocol:</strong> <span> {{ context.protocol }} </span></li>
-          <li><strong>User Agent:</strong> <span> {{ context.agent }} </span></li>
-          {% for key, value in headers.items() %}
-          <li><strong>{{ key }}</strong> <span> {{ value }}</span></li>
-          {% endfor  %}
-        </ul>
-        <p><small>It took <?php echo round($time,3); ?> seconds to share this information.</small></p>
+  <div class="row p-1">
+    <div class="col">
+      <p>Click the address to copy to your clipboard.</p>
+      <p><button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" id="more-info">Show More Information</button></p>
+      <div class="collapse" id="collapseExample">
+          <div class="card card-body">
+          <ul>
+            <li><strong>Campus VLAN:</strong> <span> blah </span></li>
+            <li><strong>Proxy IP:</strong> <span> {{ context.xfwd }} </span></li>
+            <li><strong>Remote Host:</strong> <span> {{ context.address }} </span></li>
+            <li><strong>Remote Port:</strong> <span> {{ context.port }} </span></li>
+            <li><strong>Request Method:</strong> <span> {{ context.method }} </span></li>
+            <li><strong>Server Protocol:</strong> <span> {{ context.protocol }} </span></li>
+            <li><strong>User Agent:</strong> <span> {{ context.agent }} </span></li>
+            {% for key, value in headers.items() %}
+            <li><strong>{{ key }}</strong> <span> {{ value }}</span></li>
+            {% endfor  %}
+          </ul>
+          <p><small>It took <?php echo round($time,3); ?> seconds to share this information.</small></p>
+        </div>
       </div>
     </div>
   </div>
