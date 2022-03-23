@@ -1,0 +1,44 @@
+@charset "UTF-8";
+/*! 
+ * Rules for UNC
+ */
+body {
+  font-family: Georgia, serif;
+
+}
+
+.unc_ip {
+  font-family: TimesNewRoman, "Times New Roman", Times, Baskerville, Georgia, serif;
+  word-wrap: break-word;
+}
+
+.bg-primary {
+  color: #FFFFFF;
+  background-color: #4B9CD3 !important;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #4B9CD3;
+  border-color: #4B9CD3;
+}
+.btn-primary:hover {
+  color: #fff;
+  background-color: #318ac7;
+  border-color: #2e83bd;
+}
+.btn-primary:not(:disabled):not(.disabled):active, .btn-primary:not(:disabled):not(.disabled).active, .show > .btn-primary.dropdown-toggle {
+  color: #fff;
+  background-color: #4B9CD3;
+  border-color: #4B9CD3;
+}
+
+a {
+  color: #4B9CD3;
+  text-decoration: none;
+  background-color: transparent;
+}
+a:hover {
+  color: #2975a8;
+  text-decoration: underline;
+}
