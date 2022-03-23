@@ -37,6 +37,15 @@
             <li><strong>Request Method:</strong> <span> {{ context.method }} </span></li>
             <li><strong>Server Protocol:</strong> <span> {{ context.protocol }} </span></li>
             <li><strong>User Agent:</strong> <span> {{ context.agent }} </span></li>
+          </ul>
+          <p>environ</p>
+          <ul>
+            {% for key, value in environ.items() %}
+            <li><strong>{{ key }}</strong> <span> {{ value }}</span></li>
+            {% endfor  %}
+          </ul>
+          <p>headers</p>
+          <ul>
             {% for key, value in headers.items() %}
             <li><strong>{{ key }}</strong> <span> {{ value }}</span></li>
             {% endfor  %}

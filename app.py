@@ -18,6 +18,7 @@ def home():
 
     # variables from the request header
     headers = dict(request.headers)
+    environ = dict(request.environ)
     context['xfwd']     = request.environ.get("HTTP_X_FORWARDED_FOR")
     context['address']  = request.environ.get("REMOTE_ADDR")
     context['port']     = request.environ.get("REMOTE_PORT")
@@ -30,7 +31,7 @@ def home():
     else:
         print("not campus IP")
 
-    return render_template("home.html", context = context, headers = headers)
+    return render_template("home.html", context = context, headers = headers, environ = environ)
     
 @app.route("/hostinfo")
 def hostinfo():
