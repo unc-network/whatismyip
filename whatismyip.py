@@ -26,6 +26,9 @@ def home():
     context['protocol'] = request.environ.get("SERVER_PROTOCOL")
     context['agent']    = request.environ.get("HTTP_USER_AGENT")
 
+    xfwd = request.environ.get("HTTP_X_FORWARDED_FOR",'').split(',')
+    context['address'] = xfwd[0]
+
     if isCampusIP( context['address'] ):
         print("Campus IP")
     else:
