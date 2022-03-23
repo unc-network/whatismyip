@@ -1,7 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 
-from app import app
-from app.utils import *
+import os
+from utils import *
+
+app = Flask(__name__)
+
+# Routes
 
 @app.route("/")
 def home():
@@ -38,3 +42,4 @@ def hostinfo():
 @app.route("/about")
 def about():
     return render_template("about.html")
+
