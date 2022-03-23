@@ -1,7 +1,12 @@
-from flask import Flask, render_template, request, jsonify
-
 import os
+from flask import Flask, render_template, request, jsonify
+from dotenv import load_dotenv
 from utils import *
+
+# load dotenv in the base root
+APP_ROOT = os.path.join(os.path.dirname(__file__), '..')   # refers to application_top
+dotenv_path = os.path.join(APP_ROOT, '.env')
+load_dotenv(dotenv_path)
 
 app = Flask(__name__)
 
@@ -43,3 +48,7 @@ def hostinfo():
 def about():
     return render_template("about.html")
 
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
