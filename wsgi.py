@@ -10,7 +10,11 @@ WSGI config for project
 
 #sys.path.insert(0, '/var/www/hitme')
 
+import os
 from app import app as application
 
 if __name__ == "__main__":
-    application.run()
+    #application.run()
+    from wsgiref.simple_server import make_server
+    httpd = make_server('localhost', 8051, application)
+    httpd.serve_forever()
