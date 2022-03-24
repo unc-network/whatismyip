@@ -16,9 +16,11 @@ app = Flask(__name__)
 def home():
     context = {}
 
-    # variables from the request header
+    # variables to help debug
     headers = dict(request.headers)
     environ = dict(request.environ)
+
+    # get the request headers
     context['xfwd']     = request.environ.get("HTTP_X_FORWARDED_FOR")
     context['address']  = request.environ.get("REMOTE_ADDR")
     context['port']     = request.environ.get("REMOTE_PORT")
@@ -26,12 +28,15 @@ def home():
     context['protocol'] = request.environ.get("SERVER_PROTOCOL")
     context['agent']    = request.environ.get("HTTP_USER_AGENT")
 
-    xfwd = request.environ.get("HTTP_X_FORWARDED_FOR",'').split(',')
-    context['address'] = xfwd[0]
+    # CloudApps should have 2 xfwd addresses, the first is the client and second the load balancer
+    xfwd_list = request.environ.get("HTTP_X_FORWARDED_FOR",'').split(',')
+    address = xfwd_list[0]
+    if not address:
+        context['address'] = request.environ.get("REMOTE_ADDR")
 
-    if isCampusIP( context['address'] ):
+    if isCampusIP( address ):
         print("Campus IP")
-        network = getNetwork( context['address'] )
+        network = getNetwork( address )
     else:
         print("not campus IP")
         network = None

@@ -49,7 +49,7 @@ def getNetwork( ip ):
 		if (len(network_list) == 1):
 			return network_list[0]
 		else:
-			return []
+			return None
 
 	else:
-		return []
+		return None
