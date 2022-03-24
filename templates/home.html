@@ -27,9 +27,9 @@
     <div class="col-md">
       <p>Your Campus Network:</p>
       <ul class="list-group">
-        <li class="list-group-item">Network: {{ context.network_cidr }} {% if context.network_comment %}({{ context.network_comment }}){% endif %}</li>
+        <li class="list-group-item"><strong>Network:</strong> {{ context.network_cidr }} {% if context.network_comment %}({{ context.network_comment }}){% endif %}</li>
         {% if context.vlan_id %}
-        <li class="list-group-item">Vlan: {{ context.vlan_id }} ({{ context.vlan_name }})</li>
+        <li class="list-group-item"><strong>Vlan:</strong> {{ context.vlan_id }} ({{ context.vlan_name }})</li>
         {% endif %}
       </ul>
       {{ context.network }}
@@ -37,11 +37,9 @@
     <div class="col-md">
       <p>Your ISP:</p>
       <ul class="list-group">
-        <li class="list-group-item">ASN: {{ context.ipwhois.asn }}</li>
-        <li class="list-group-item">ISP: {{ context.ipwhois.asn_description }}</li>
-        <li class="list-group-item">Country: {{ context.ipwhois.asn_country_code }}</li>
-        <li class="list-group-item">State/Region: </li>
-        <li class="list-group-item">City: </li>
+        <li class="list-group-item"><strong>ASN:</strong> {{ context.ipwhois.asn }}</li>
+        <li class="list-group-item"><strong>ISP:</strong> {{ context.ipwhois.asn_description }}</li>
+        <li class="list-group-item"><strong>Country:</strong> {{ context.ipwhois.asn_country_code }}</li>
         {% for key, value in context.ipwhois.items() %}
         <li class="list-group-item"><strong>{{ key }}</strong> <span> {{ value }}</span></li>
         {% endfor %}
