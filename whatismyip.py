@@ -14,6 +14,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
+    """Display the base homepage with IP address information."""
     context = {}
 
     # variables to help debug
@@ -21,31 +22,41 @@ def home():
     environ = dict(request.environ)
 
     # get the request headers
-    context['xfwd']     = request.environ.get("HTTP_X_FORWARDED_FOR")
-    context['address']  = request.environ.get("REMOTE_ADDR")
-    context['port']     = request.environ.get("REMOTE_PORT")
-    context['method']   = request.environ.get("REQUEST_METHOD")
-    context['protocol'] = request.environ.get("SERVER_PROTOCOL")
-    context['agent']    = request.environ.get("HTTP_USER_AGENT")
+    forwarded_for   = request.environ.get("HTTP_X_FORWARDED_FOR",None)
+    remote_address  = request.environ.get("REMOTE_ADDR",None)
+    remote_port     = request.environ.get("REMOTE_PORT",None)
+    request_method  = request.environ.get("REQUEST_METHOD",None)
+    server_protocol = request.environ.get("SERVER_PROTOCOL",None)
+    user_agent      = request.environ.get("HTTP_USER_AGENT",None)
 
-    # CloudApps should have 2 xfwd addresses, the first is the client and second the load balancer
-    xfwd_list = request.environ.get("HTTP_X_FORWARDED_FOR",'').split(',')
-    address = xfwd_list[0]
-    context['address'] = address
-    if not address:
-        context['address'] = request.environ.get("REMOTE_ADDR")
-
-    if isCampusIP( address ):
-        print("Campus IP")
-        network = getNetwork( address )
+    # Parse out the actual client ip address from header data
+    if forwarded_for:
+        # Proxy was used, client IP should be first in the list
+        fwd_list = forwarded_for.split(',')
+        context['client_address'] = fwd_list.pop()
     else:
-        print("not campus IP")
-        network = None
+        # No proxy was used
+        context['client_address'] = remote_address
+
+    # collect information about the network for this address
+    network = getNetwork( context['client_address'] )
+    if network:
+        # collect network data to display
+        context['network'] = network
+        context['network_comment'] = network.get('comment',None)
+        context['network_type'] = network.get('extattrs',{}).get('Purpose',{}).get('value',None),
+
+        # collect vlan data to display
+        vlan = next(iter(network.get('vlans',[])))
+        context['vlan_id'] = vlan.get('id',None),
+        context['vlan_name'] = vlan.get('name',None),
 
     return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
     
 @app.route("/hostinfo")
 def hostinfo():
+    """Return JSON structure with IP address information."""
+
     data = {}
     data['xfwd']     = request.environ.get("HTTP_X_FORWARDED_FOR")
     data['address']  = request.environ.get("REMOTE_ADDR")
@@ -64,6 +75,7 @@ def hostinfo():
 
 @app.route("/about")
 def about():
+    """Display a basic webpage with about information."""
     return render_template("about.html")
 
 

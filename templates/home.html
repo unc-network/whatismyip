@@ -9,10 +9,10 @@
   <div class="row p-1">
     <div id="address_box" class="col shadow-lg p-3 mb-3 rounded bg-primary d-none d-sm-block unc_ip">
       <!--<h1 id="address" class="display-4 text-center allowCopy">{{ context.address }}</h1>-->
-      <h1 id="address" class="display-4 text-center allowCopy">{{ context.address }}</h1>
+      <h1 id="address" class="display-4 text-center allowCopy">{{ context.client_address }}</h1>
     </div>
     <div id="address_box_sm" class="col shadow-lg p-3 mb-3 rounded bg-primary d-block d-sm-none unc_ip">
-      <h2 id="address" class="text-center allowCopy">{{ context.address }}</h2>
+      <h2 id="address" class="text-center allowCopy">{{ context.client_address }}</h2>
     </div>
   </div>
   <div id="additional_ip" class="row p-1" style="display:none;">
@@ -22,6 +22,12 @@
     <div class="col shadow-lg p-3 mb-5 rounded bg-primary d-block d-sm-none unc_ip">
       <h2 id="address2_sm" class="text-center allowCopy">loading...</h2>
     </div>
+  </div>
+  <div class="row p-1">
+    <div class="col">
+      {{ context }}
+    </div>
+    <div class="col"></div>
   </div>
   <div class="row p-1">
     <div class="col">
