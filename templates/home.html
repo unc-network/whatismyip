@@ -40,9 +40,6 @@
         <li class="list-group-item"><strong>ASN:</strong> {{ context.ipwhois.asn }}</li>
         <li class="list-group-item"><strong>ISP:</strong> {{ context.ipwhois.asn_description }}</li>
         <li class="list-group-item"><strong>Country:</strong> {{ context.ipwhois.asn_country_code }}</li>
-        {% for key, value in context.ipwhois.items() %}
-        <li class="list-group-item"><strong>{{ key }}</strong> <span> {{ value }}</span></li>
-        {% endfor %}
       </ul>
       {{ context.ipwhois }}
     </div>
