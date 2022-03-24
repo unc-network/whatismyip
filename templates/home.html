@@ -111,6 +111,16 @@
             <td>{{ value }}</td>
           </tr>
           {% endfor %}
+          <tr>
+            <th></th>
+            <td></td>
+          </tr>
+          {% for key, value in context.iplocation.items() %}
+          <tr>
+            <th>{{ key }}<th>
+            <td>{{ value }}</td>
+          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>

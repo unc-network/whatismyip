@@ -102,3 +102,16 @@ def getAddressObjects( ip ):
 
 	else:
 		return {}
+
+def getIPLocation( ip ):
+	"""geolocate"""
+	ipaddr = ipaddress.ip_address(ip)
+
+	if not ipaddr.is_private:
+		api_url = "https://api.iplocation.net/?ip="
+		session = requests.Session()
+		response = session.get("{}{}".format(api_url,ip))
+		print("iplocation {}".format(response.json()))
+		return response.json()
+	else:
+		return {}

@@ -43,6 +43,10 @@ def home():
     #context['client_address'] = '75.183.206.183'
 
     # collect isp info
+    iplocation = getIPLocation( context['client_address'])
+    context['iplocation'] = iplocation
+
+    # collect isp info
     ipwhois = getISP( context['client_address'])
     context['ipwhois'] = ipwhois
 
