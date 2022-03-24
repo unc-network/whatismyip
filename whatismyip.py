@@ -31,6 +31,7 @@ def home():
 
     if isCampusIP( context['address'] ):
         print("Campus IP")
+        network = getNetwork( context['address'] )
     else:
         print("not campus IP")
 

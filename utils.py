@@ -1,3 +1,5 @@
+import os
+import requests
 
 # test ip if campus
 def isCampusIP( ip ):
@@ -17,3 +19,37 @@ def isCampusIP( ip ):
     if ip.startswith( prefix ):
         return True
   return False
+
+def getNetwork( ip ):
+	# find the network information for a given ip address
+	print("Check ip {}".format(ip))
+
+	if ( isCampusIP( ip ) ):
+		# Do the lookup only if we think this is a campus address
+		ib_server = os.environ.get('IB_SERVER')
+		ib_username = os.environ.get('IB_USERNAME')
+		ib_password = os.environ.get('IB_PASSWORD')
+		url = "https://{}/wapi/v2.10.5/{}".format(ib_server,'network')
+
+		session = requests.Session()
+		requests.packages.urllib3.disable_warnings()
+		params = {
+			'_return_fields': 'comment,network,network_view,members,extattrs,vlans.id,options',
+			'_inheritance': True,
+			'contains_address': ip,
+		}
+		#print("Using {} with {}".format(url,params))
+		response = session.get(url, params=params, auth=(ib_username, ib_password), verify=False)
+		if response.status_code != 200:
+			print("query failed {}".format(response))
+		else:
+			network_list = response.json()
+			print("got {}".format(network_list))
+
+		if (len(network_list) == 1):
+			return network_list[0]
+		else:
+			return []
+
+	else:
+		return []
