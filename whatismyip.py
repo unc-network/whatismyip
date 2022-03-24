@@ -39,6 +39,10 @@ def home():
         context['client_address'] = remote_address
     context['client_address'] = '172.17.32.38'
 
+    # collect isp info
+    ipwhois = getISP( context['client_address'])
+    context['ipwhois'] = ipwhois
+
     # collect information about the network for this address
     network = getNetwork( context['client_address'] )
     if network:

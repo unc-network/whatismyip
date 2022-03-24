@@ -1,5 +1,7 @@
 import os
 import requests
+import ipaddress
+from ipwhois import IPWhois
 
 # test ip if campus
 def isCampusIP( ip ):
@@ -19,6 +21,18 @@ def isCampusIP( ip ):
     if ip.startswith( prefix ):
         return True
   return False
+
+def getISP( ip ):
+	"""Lookup ISP information"""
+	ipaddr = ipaddress.ip_address(ip)
+
+	if not ipaddr.is_private:
+		obj = IPWhois( ip )
+		ret = obj.lookup_rdap()
+		print("Found {}".format(ret))
+		return ret
+	
+	return {}
 
 def getNetwork( ip ):
 	# find the network information for a given ip address
