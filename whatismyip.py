@@ -37,19 +37,22 @@ def home():
     else:
         # No proxy was used
         context['client_address'] = remote_address
+    context['client_address'] = '172.17.32.38'
 
     # collect information about the network for this address
     network = getNetwork( context['client_address'] )
     if network:
         # collect network data to display
-        context['network'] = network
+        context['network'] = network.get('network',None)
         context['network_comment'] = network.get('comment',None)
-        context['network_type'] = network.get('extattrs',{}).get('Purpose',{}).get('value',None),
+        context['network_type'] = network.get('extattrs',{}).get('Purpose',{}).get('value',None)
+        context['network_router'] = network.get('extattrs',{}).get('Router Device',{}).get('value',None)
 
         # collect vlan data to display
-        vlan = next(iter(network.get('vlans',[])))
-        context['vlan_id'] = vlan.get('id',None),
-        context['vlan_name'] = vlan.get('name',None),
+        vlan_list = network.get('vlans',None)
+        if vlan_list:
+            context['vlan_id'] = vlan_list[0].get('id',None),
+            context['vlan_name'] = vlan_list[0].get('name',None)
 
     return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
     
