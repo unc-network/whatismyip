@@ -38,6 +38,7 @@ def home():
         # No proxy was used
         context['client_address'] = remote_address
     #context['client_address'] = '152.2.198.50'
+    #context['client_address'] = '152.2.198.240'
     #context['client_address'] = '172.17.32.38'
 
     # collect isp info
@@ -61,9 +62,8 @@ def home():
             context['vlan_name'] = vlan_list[0].get('name',None)
 
     # Find any address objects
-    address_list = getAddressObjects( context['client_address'] )
-    if address_list:
-        context['address_list'] = address_list[0]
+    address_records = getAddressObjects( context['client_address'] )
+    context['address_records'] = address_records
 
     return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
     

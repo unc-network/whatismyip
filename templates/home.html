@@ -24,16 +24,43 @@
     </div>
   </div>
   <div class="row p-1">
-    {% if context.address_list %}
-    <div class="col-md">
-      <p>Your Address:</p>
-      <ul class="list-group">
-        <li class="list-group-item"><strong>Name:</strong> {% for name in context.address_list.names %}{{ name }}{% endfor %}</li>
-        <li class="list-group-item"><strong>MAC Address:</strong> {{ context.address_list.mac_address }}</li>
-        <li class="list-group-item"><strong>Status:</strong> {{ context.address_list.status }}</li>
-      </ul>
+    {% if context.address_records %}
+    <div class="col">
+      <p>Address Details:</p>
+      <table class="table table-sm table-responsive">
+        <tbody>
+          <tr>
+            <th>Name<th>
+            <td>{% for name in context.address_records.names %}{{ name }} {% endfor %}</td>
+          </tr>
+          <tr>
+            <th>MAC Address<th>
+            <td>{{ context.address_records.mac_address }}</td>
+          </tr>
+          <tr>
+            <th>Status<th>
+            <td>{{ context.address_records.status }}</td>
+          </tr>
+          <tr>
+            <th>Lease State<th>
+            <td>{{ context.address_records.lease_state }}</td>
+          </tr>
+          <tr>
+            <th>Username<th>
+            <td>{{ context.address_records.username }}</td>
+          </tr>
+          {% for key, value in context.address_records.items() %}
+          <tr>
+            <th>{{ key }}<th>
+            <td>{{ value }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
     {% endif %}
+  </div>
+  <div class="row p-1">
     {% if context.network_cidr %}
     <div class="col-md">
       <p>Your Network:</p>

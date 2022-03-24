@@ -85,7 +85,7 @@ def getAddressObjects( ip ):
 		requests.packages.urllib3.disable_warnings()
 		params = {
 			'network_view': 'default',
-			'_return_fields+': 'extattrs',
+			'_return_fields+': 'discovered_data,extattrs,fingerprint,ms_ad_user_data',
 			'ip_address': ip
 		}
 		response = session.get("{}ipv4address".format(url), params=params, auth=(ib_username, ib_password), verify=False)
@@ -95,7 +95,10 @@ def getAddressObjects( ip ):
 			address_list = response.json()
 			print("got {}".format(address_list))
 
-		return address_list
+		if (len(address_list) == 1):
+			return address_list[0]
+		else:
+			return {}
 
 	else:
-		return []
+		return {}
