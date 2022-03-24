@@ -24,7 +24,7 @@
     </div>
   </div>
   <div class="row p-1">
-    <div class="col">
+    <div class="col-md">
       <p>Your Campus Network:</p>
       <ul class="list-group">
         <li class="list-group-item">Network: {{ context.network }} {% if context.network_comment %}({{ context.network_comment }}){% endif %}</li>
@@ -33,7 +33,7 @@
         {% endif %}
       </ul>
     </div>
-    <div class="col">
+    <div class="col-md">
       <p>Your ISP:</p>
       <ul class="list-group">
         {% for key, value in context.ipwhois.items() %}
