@@ -31,6 +31,7 @@ def home():
     # CloudApps should have 2 xfwd addresses, the first is the client and second the load balancer
     xfwd_list = request.environ.get("HTTP_X_FORWARDED_FOR",'').split(',')
     address = xfwd_list[0]
+    context['address'] = address
     if not address:
         context['address'] = request.environ.get("REMOTE_ADDR")
 
