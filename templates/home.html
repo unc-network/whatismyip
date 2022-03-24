@@ -25,14 +25,20 @@
   </div>
   <div class="row p-1">
     <div class="col-md">
-      <p>Your Campus Network:</p>
+      <p>Your Address:</p>
+      <ul class="list-group">
+        <li class="list-group-item"><strong>Name:</strong> {% for name in context.address_list.names %}{{ name }}{% endfor %}</li>
+        <li class="list-group-item"><strong>MAC Address:</strong> {{ context.address_list.mac_address }}</li>
+        <li class="list-group-item"><strong>Status:</strong> {{ context.address_list.status }}</li>
+      </ul>
+    </div>
+    <div class="col-md">
+      <p>Your Network:</p>
       <ul class="list-group">
         <li class="list-group-item"><strong>Network:</strong> {{ context.network_cidr }} {% if context.network_comment %}({{ context.network_comment }}){% endif %}</li>
-        {% if context.vlan_id %}
-        <li class="list-group-item"><strong>Vlan:</strong> {{ context.vlan_id }} ({{ context.vlan_name }})</li>
-        {% endif %}
+        <li class="list-group-item"><strong>Network Type:</strong> {{ context.network_type }}</li>
+        <li class="list-group-item"><strong>Vlan:</strong> {% if context.vlan_id %}{{ context.vlan_id }} ({{ context.vlan_name }}){% endif %}</li>
       </ul>
-      {{ context.network }}
     </div>
     <div class="col-md">
       <p>Your ISP:</p>
@@ -41,13 +47,10 @@
         <li class="list-group-item"><strong>ISP:</strong> {{ context.ipwhois.asn_description }}</li>
         <li class="list-group-item"><strong>Country:</strong> {{ context.ipwhois.asn_country_code }}</li>
       </ul>
-      {{ context.ipwhois }}
     </div>
   </div>
   <div class="row p-1">
     <div class="col">
-      <p>Click the address to copy to your clipboard.</p>
-      {{ context }}
       <p><button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" id="more-info">Show More Information</button></p>
       <div class="collapse" id="collapseExample">
           <div class="card card-body">
