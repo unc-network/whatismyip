@@ -33,7 +33,7 @@ def home():
     if forwarded_for:
         # Proxy was used, client IP should be first in the list
         fwd_list = forwarded_for.split(',')
-        context['client_address'] = fwd_list.pop()
+        context['client_address'] = fwd_list[0]
     else:
         # No proxy was used
         context['client_address'] = remote_address
