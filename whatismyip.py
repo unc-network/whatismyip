@@ -34,8 +34,9 @@ def home():
         network = getNetwork( context['address'] )
     else:
         print("not campus IP")
+        network = None
 
-    return render_template("home.html", context = context, headers = headers, environ = environ)
+    return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
     
 @app.route("/hostinfo")
 def hostinfo():
