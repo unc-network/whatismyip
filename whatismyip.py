@@ -37,7 +37,6 @@ def home():
     else:
         # No proxy was used
         context['client_address'] = remote_address
-    context['client_address'] = '172.17.32.38'
 
     # collect isp info
     ipwhois = getISP( context['client_address'])
