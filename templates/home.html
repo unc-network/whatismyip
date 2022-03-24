@@ -105,6 +105,12 @@
             <th>Country<th>
             <td>{{ context.ipwhois.asn_country_code }}</td>
           </tr>
+          {% for key, value in context.ipwhois.items() %}
+          <tr>
+            <th>{{ key }}<th>
+            <td>{{ value }}</td>
+          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
