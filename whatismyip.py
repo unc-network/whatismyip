@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request, jsonify, make_response
 from dotenv import load_dotenv
 from utils import *
+from dns import resolver, reversename
 
 # load dotenv in the base root
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')   # refers to application_top
@@ -41,6 +42,15 @@ def home():
     #context['client_address'] = '152.2.198.240'
     #context['client_address'] = '172.17.32.38'
     #context['client_address'] = '75.183.206.183'
+
+    # collect dns data
+    #reverse_addr = reversename.from_address( context['client_address'] )
+    #try:
+    #    dns_response = resolver.query(reverse_addr, "PTR")
+    #    for val in dns_response:
+    #        print("PTR {}".format(val.to_text()))
+    #except:
+    #    print("reverse DNS lookup failed")
 
     # collect isp info
     iplocation = getIPLocation( context['client_address'])

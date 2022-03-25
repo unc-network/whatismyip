@@ -48,7 +48,6 @@
   <div class="row row-cols-1 row-cols-md-2 g-4 p-1">
     <div class="col">
 
-      {% if context.address_records %}
       <div class="card shadow">
         <div class="card-body">
           <h5 class="card-title">Address Details</h5>
@@ -56,6 +55,7 @@
           <div class="table-responsive">
             <table class="table table-sm">
               <tbody>
+                {% if context.address_records %}
                 <tr>
                   <th>Name</th>
                   <td>
@@ -68,22 +68,22 @@
                 </tr>
                 {% if context.address_records.mac_address %}
                 <tr>
-                  <th>MAC Address</th>>
+                  <th>MAC Address</th>
                   <td>{{ context.address_records.mac_address }}</td>
                 </tr>
                 {% endif %}
                 {% if 'LEASE' in context.address_records.types %}
                 <tr>
-                  <th>DHCP Lease</th>>
+                  <th>DHCP Lease</th>
                   <td>{{ context.address_records.lease_state }}</td>
                 </tr>
                 <tr>
-                  <th>Username</th>>
+                  <th>Username</th>
                   <td>{{ context.address_records.username }}</td>
                 </tr>
                 {% endif %}
                 <tr>
-                  <th>Status</th>>
+                  <th>Status</th>
                   <td>{{ context.address_records.status }}</td>
                 </tr>
                 {% for key, value in context.address_records.items() %}
@@ -92,17 +92,16 @@
                   <td>{{ value }}</td>
                 </tr> -->
                 {% endfor %}
+                {% endif %}
               </tbody>
             </table>
           </div>
         </div>
       </div>
-      {% endif %}
 
     </div>
     <div class="col">
 
-      {% if context.network_cidr %}
       <div class="card shadow">
         <div class="card-body">
           <h5 class="card-title">Network Details</h5>
@@ -110,26 +109,32 @@
           <div class="table-responsive">
           <table class="table table-sm">
             <tbody>
-              {% if context.vlan_id %}
-              <tr>
-                <th>Vlan</th>
-                <td>{{ context.vlan_id }} "{{ context.vlan_name }}"</td>
-              </tr>
-              {% endif %}
-              <tr>
-                <th>Network</th>
-                <td>{{ context.network_cidr }} {% if context.network_comment %}({{ context.network_comment }}){% endif %}</td>
-              </tr>
-              {% if context.network_type %}
-              <tr>
-                <th>Usage</th>
-                <td>{{ context.network_type }}</td>
-              </tr>
+              {% if context.network_cidr %}
+                {% if context.vlan_id %}
+                <tr>
+                  <th>Vlan</th>
+                  <td>{{ context.vlan_id }} "{{ context.vlan_name }}"</td>
+                </tr>
+                {% endif %}
+                <tr>
+                  <th>Network</th>
+                  <td>{{ context.network_cidr }} {% if context.network_comment %}({{ context.network_comment }}){% endif %}</td>
+                </tr>
+                {% if context.network_type %}
+                <tr>
+                  <th>Usage</th>
+                  <td>{{ context.network_type }}</td>
+                </tr>
+                {% endif %}
               {% endif %}
               {% if context.iplocation.isp %}
               <tr>
                 <th>ISP</th>
                 <td>{{ context.iplocation.isp }}</td>
+              </tr>
+              <tr>
+                <th>Country</th>
+                <td>{{ context.iplocation.country_name }}</td>
               </tr>
               {% endif %}
               {% for key, value in context.network.items() %}
@@ -138,44 +143,6 @@
                 <td>{{ value }}</td>
               </tr> -->
               {% endfor %}
-            </tbody>
-          </table>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-
-    </div>
-    <div class="col">
-
-      {% if context.ipwhois.asn %}
-      <div class="card shadow">
-        <div class="card-body">
-          <h5 class="card-title">ISP Details</h5>
-          <h6 class="card-subtitle mb-2 text-muted">internet</h6>
-          <div class="table-responsive">
-          <table class="table table-sm table-responsive">
-            <tbody>
-              <tr>
-                <th>ISP</th>>
-                <td>{{ context.iplocation.isp }}</td>
-              </tr>
-              <tr>
-                <th>Country</th>>
-                <td>{{ context.iplocation.country_name }}</td>
-              </tr>
-              <tr>
-                <th>ASN</th>>
-                <td>{{ context.ipwhois.asn }}</td>
-              </tr>
-              <tr>
-                <th>ISP</th>>
-                <td>{{ context.ipwhois.asn_description }}</td>
-              </tr>
-              <tr>
-                <th>Country</th>>
-                <td>{{ context.ipwhois.asn_country_code }}</td>
-              </tr>
               {% for key, value in context.ipwhois.items() %}
               <!-- <tr>
                 <th>{{ key }}</th>
@@ -193,10 +160,10 @@
           </div>
         </div>
       </div>
-      {% endif %}
 
     </div>
   </div>
+
   <div class="row p-1">
     <div class="col">
       <p><button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" id="more-info">Show More Information</button></p>
