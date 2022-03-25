@@ -46,8 +46,9 @@
     </div>
   </div>
   <div class="row row-cols-1 row-cols-md-2 g-4 p-1">
-    <div class="col">
 
+    {% if context.address_records %}
+    <div class="col">
       <div class="card shadow">
         <div class="card-body">
           <h5 class="card-title">Address Details</h5>
@@ -66,6 +67,12 @@
                     </ul>
                   </td>
                 </tr>
+                {% for key, value in context.address_records.extattrs.items() %}
+                <tr>
+                  <th>{{ key }}</th>
+                  <td>{{ value.value }}</td>
+                </tr>
+                {% endfor %}
                 {% if context.address_records.mac_address %}
                 <tr>
                   <th>MAC Address</th>
@@ -98,14 +105,14 @@
           </div>
         </div>
       </div>
-
     </div>
-    <div class="col">
+    {% endif %}
 
+    <div class="col">
       <div class="card shadow">
         <div class="card-body">
           <h5 class="card-title">Network Details</h5>
-          <h6 class="card-subtitle mb-2 text-muted">campus network</h6>
+          <h6 class="card-subtitle mb-2 text-muted">Campus IPAM information</h6>
           <div class="table-responsive">
           <table class="table table-sm">
             <tbody>
@@ -126,6 +133,12 @@
                   <td>{{ context.network_type }}</td>
                 </tr>
                 {% endif %}
+                {% for key, value in context.network.extattrs.items() %}
+                <tr>
+                  <th>{{ key }}</th>
+                  <td>{{ value.value }}</td>
+                </tr>
+                {% endfor %}
               {% endif %}
               {% if context.iplocation.isp %}
               <tr>
@@ -160,8 +173,8 @@
           </div>
         </div>
       </div>
-
     </div>
+
   </div>
 
   <div class="row p-1">
