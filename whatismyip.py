@@ -2,7 +2,8 @@ import os
 from flask import Flask, render_template, request, jsonify, make_response
 from dotenv import load_dotenv
 from utils import *
-from dns import resolver, reversename
+#from dns import resolver, reversename
+from user_agents import parse
 
 # load dotenv in the base root
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')   # refers to application_top
@@ -28,7 +29,7 @@ def home():
     remote_port     = request.environ.get("REMOTE_PORT",None)
     request_method  = request.environ.get("REQUEST_METHOD",None)
     server_protocol = request.environ.get("SERVER_PROTOCOL",None)
-    user_agent      = request.environ.get("HTTP_USER_AGENT",None)
+    http_user_agent      = request.environ.get("HTTP_USER_AGENT",None)
 
     # Parse out the actual client ip address from header data
     if forwarded_for:
@@ -39,10 +40,15 @@ def home():
         # No proxy was used
         context['client_address'] = remote_address
     #context['client_address'] = '152.2.198.50'
+    #context['client_address'] = '152.2.198.224'
     #context['client_address'] = '152.2.198.240'
     #context['client_address'] = '152.23.198.240'
     #context['client_address'] = '172.17.32.38'
     #context['client_address'] = '75.183.206.183'
+
+    # collect device information
+    user_agent = parse(http_user_agent)
+    context['user_device'] = str(user_agent)
 
     # collect dns data
     #reverse_addr = reversename.from_address( context['client_address'] )

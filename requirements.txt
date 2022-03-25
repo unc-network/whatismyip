@@ -5,3 +5,4 @@ requests
 
 ipaddress
 ipwhois
+user-agents

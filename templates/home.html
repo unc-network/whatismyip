@@ -207,6 +207,15 @@
     <p><button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" id="more-info">Show More Information</button></p>
     <div class="collapse" id="collapseExample">
         <div class="card shadow card-body">
+        <div class="table-responsive">
+        <table class="table table-sm">
+          <tbody>
+            <tr>
+              <th>User Agent</th>
+              <td>{{ context.user_device }}</td>
+            </tr>
+          </tbody>
+        </table>
         <p>environ</p>
         <ul class="list-group">
           {% for key, value in environ.items() %}
