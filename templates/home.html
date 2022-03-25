@@ -45,28 +45,32 @@
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">Address Details</h5>
-          <h6 class="card-subtitle mb-2 text-muted">campus address</h6>
+          <h6 class="card-subtitle mb-2 text-muted">Campus IPAM information</h6>
           <table class="table table-sm">
             <tbody>
               <tr>
                 <th>Name<th>
                 <td>{% for name in context.address_records.names %}{{ name }} {% endfor %}</td>
               </tr>
+              {% if context.address_records.mac_address %}
               <tr>
                 <th>MAC Address<th>
                 <td>{{ context.address_records.mac_address }}</td>
               </tr>
+              {% endif %}
+              {% if 'LEASE' in context.address_records.types %}
               <tr>
-                <th>Status<th>
-                <td>{{ context.address_records.status }}</td>
-              </tr>
-              <tr>
-                <th>Lease State<th>
+                <th>DHCP Lease<th>
                 <td>{{ context.address_records.lease_state }}</td>
               </tr>
               <tr>
                 <th>Username<th>
                 <td>{{ context.address_records.username }}</td>
+              </tr>
+              {% endif %}
+              <tr>
+                <th>Status<th>
+                <td>{{ context.address_records.status }}</td>
               </tr>
               {% for key, value in context.address_records.items() %}
               <!-- <tr>
