@@ -211,12 +211,16 @@
         <table class="table table-sm">
           <tbody>
             <tr>
-              <th>User Agent</th>
+              <th>User Device</th>
               <td>{{ context.user_device }}</td>
+            </tr>
+            <tr>
+              <th>User Agent</th>
+              <td>{{ headers['User-Agent'] }}</td>
             </tr>
           </tbody>
         </table>
-        <p>environ</p>
+        <!-- <p>environ</p>
         <ul class="list-group">
           {% for key, value in environ.items() %}
           <li class="list-group-item"><strong>{{ key }}</strong> <span> {{ value }}</span></li>
@@ -227,7 +231,7 @@
           {% for key, value in headers.items() %}
           <li class="list-group-item"><strong>{{ key }}</strong> <span> {{ value }}</span></li>
           {% endfor  %}
-        </ul>
+        </ul> -->
       </div>
     </div>
   </div>
