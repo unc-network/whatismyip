@@ -49,6 +49,9 @@ def home():
     # collect device information
     user_agent = parse(http_user_agent)
     context['user_device'] = str(user_agent)
+    # context['user_browser'] = "{} {}".format(user_agent.browser.family,user_agent.browser.version_string)
+    # context['user_os'] = "{} {}".format(user_agent.os.family,user_agent.os.version_string)
+    #context['user_device'] = "{} {}".format(user_agent.device.brand,user_agent.device.model)
 
     # collect dns data
     #reverse_addr = reversename.from_address( context['client_address'] )

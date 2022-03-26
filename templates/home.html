@@ -57,7 +57,7 @@
     <div class="card shadow">
       <div class="card-body">
         <h5 class="card-title">Address Details</h5>
-        <h6 class="card-subtitle mb-2 text-muted">Campus IPAM information</h6>
+        <!-- <h6 class="card-subtitle mb-2 text-muted">Campus IPAM information</h6> -->
         <div class="table-responsive">
           <table class="table table-sm">
             <tbody>
@@ -125,7 +125,7 @@
     <div class="card shadow">
       <div class="card-body">
         <h5 class="card-title">Network Details</h5>
-        <h6 class="card-subtitle mb-2 text-muted">Campus IPAM information</h6>
+        <!-- <h6 class="card-subtitle mb-2 text-muted">Campus IPAM information</h6> -->
         <div class="table-responsive">
         <table class="table table-sm">
           <tbody>
@@ -204,19 +204,28 @@
 
 <div class="row p-1 mt-2">
   <div class="col">
-    <p><button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" id="more-info">Show More Information</button></p>
-    <div class="collapse" id="collapseExample">
-        <div class="card shadow card-body">
-        <div class="table-responsive">
+    <!-- <p><button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" id="more-info">Show More Information</button></p> -->
+    <!-- <div class="collapse" id="collapseExample"> -->
+     <div class="card shadow card-body">
+      <h5 class="card-title">Client Details</h5>
+      <div class="table-responsive">
         <table class="table table-sm">
           <tbody>
             <tr>
-              <th>User Device</th>
-              <td>{{ context.user_device }}</td>
-            </tr>
-            <tr>
               <th>User Agent</th>
               <td>{{ headers['User-Agent'] }}</td>
+            </tr>
+            <!-- <tr>
+              <th>Browser</th>
+              <td>{{ context.user_browser }}</td>
+            </tr> -->
+            <!-- <tr>
+              <th>OS</th>
+              <td>{{ context.user_os }}</td>
+            </tr> -->
+            <tr>
+              <th>Device</th>
+              <td>{{ context.user_device }}</td>
             </tr>
           </tbody>
         </table>
