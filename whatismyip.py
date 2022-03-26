@@ -11,7 +11,12 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 app = Flask(__name__)
-app.secret_key = 't3s_BnHh1hhYEBC3cwU8Lw'   # Good for dev
+app.secret_key = os.getenv(
+    'FLASK_SECRET_KEY',
+    # safe value used for development when FLASK_SECRET_KEY might not be set
+    '9e4@&tw46$l31)zrqe3wi+-slqm(ruvz&se0^%9#6(_w3ui!c0'
+)
+
 
 # Routes
 
