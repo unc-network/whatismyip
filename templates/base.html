@@ -16,14 +16,16 @@
 	<body>
 
 		<!-- Navbar -->
-		<nav class="navbar navbar-expand-lg navbar-light bg-light">
+		<nav class="navbar navbar-expand-lg navbar-dark navbar-unc">
 			<div class="container">
-				<a href="{{ url_for('home') }}" class="navbar-brand">
+				<a href="https://www.unc.edu" class="navbar-brand">
+					<span class="d-none d-md-inline unc-title">The University <em>of</em> North Carolina <em>at</em> Chapel Hill</span>
+					<!-- <img src="{{ url_for('static', filename='images/UNCwebsite_textreatment_white.png') }}" class="d-inline-block" alt="Logo" "> -->
 					<!--<img src="{{ url_for('static', filename='images/Old_Well_mark.png') }}" class="d-block d-sm-none" alt="Old Well Logo" width="45" style="opacity: .8">
 					<img src="{{ url_for('static', filename='images/Information-Technology-Services_logo.png') }}" class="d-none d-sm-block d-inline-block align-text-top" alt="Logo" style="width:400px;">-->
 					<!--<img src="{{ url_for('static', filename='images/Information Technology Services_logo_white_h.png') }}" class="d-none d-sm-block" alt="Logo" style="width:300px;">-->
-					<img src="{{ url_for('static', filename='images/Old_Well_mark.png') }}" class="d-inline-block" alt="Old Well Logo" width="45" style="opacity: .8">
-					<span class="brand-text">What is my IP?</span>
+					<!-- <img src="{{ url_for('static', filename='images/Old_Well_mark.png') }}" class="d-inline-block" alt="Old Well Logo" width="45" style="opacity: .8"> -->
+					<!-- <span class="brand-text">What is my IP?</span> -->
 				</a>
 
 				<button class="navbar-toggler" type="button"
@@ -38,10 +40,10 @@
 				<div class="collapse navbar-collapse justify-content-end" id="navbarNav">
 					<ul class="navbar-nav mr-auto">
 						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('about') }}">About</a>
+							<a class="nav-link" href="{{ url_for('home') }}">Home</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="https://uncch.service-now.com/sp?id=kb_article_view&sysparm_article=KB0011001">Help</a>
+							<a class="nav-link" href="{{ url_for('about') }}">About</a>
 						</li>
 					</ul>
 				</div>

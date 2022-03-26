@@ -17,6 +17,38 @@ body {
   background-color: #4B9CD3 !important;
 }
 
+.unc-title {
+  float: left;
+  text-transform: uppercase;
+  padding-left: 8px;
+  font-size: .9em;
+  font-family: "Times New Roman",serif;;
+}
+/* Modify the background color */
+.navbar-unc {
+  background-color: #4B9CD3;
+}
+.bg-unc-blue {
+  background-color: #4B9CD3;
+}
+.bg-unc-link-blue {
+  background-color: #007FAE;
+}
+.bg-unc-navy {
+  background-color: #13294B;
+}
+
+/* Modify brand and text color */
+.navbar-unc .navbar-brand,
+.navbar-unc .navbar-text {
+  color: #FFFFFF;
+}
+
+/* Modify link color */
+.navbar-unc .nav-link {
+  color: #FFFFFF!important;
+}
+
 .btn-primary {
   color: #fff;
   background-color: #4B9CD3;
