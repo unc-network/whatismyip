@@ -29,8 +29,29 @@ $(document).ready(function () {
 		});
 	});
 
+	function gethostinfo() {
+		var address = $('#address').text();
+		$('#additional_ip').show()
+		// Make AJAX call to the API to get the ipv4 address
+		$.ajax({
+			type: "GET",
+			url: "/hostinfo.php",
+			dataType: "json",
+			success: function (result, status, xhr) {
+				//console.log(result);
+				$('#address2').text(result["address"]);
+				$('#address2_sm').text(result["address"]);
+			},
+			error: function (xhr, status, error) {
+				console.log(error);
+			}
+		});
+	}
+
 	var address = $('#address').text();
 	//console.log(address);
+
+	//gethostinfo();
 
 	if (address.indexOf(':') != -1) {
 		$('#additional_ip').show()
