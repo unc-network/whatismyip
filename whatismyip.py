@@ -98,24 +98,46 @@ def home():
 
     return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
     
-@app.route("/hostinfo")
+@app.route("/hostinfo.php")
 def hostinfo():
     """Return JSON structure with IP address information."""
 
-    data = {}
-    data['xfwd']     = request.environ.get("HTTP_X_FORWARDED_FOR")
-    data['address']  = request.environ.get("REMOTE_ADDR")
-    data['port']     = request.environ.get("REMOTE_PORT")
-    data['method']   = request.environ.get("REQUEST_METHOD")
-    data['protocol'] = request.environ.get("SERVER_PROTOCOL")
-    data['agent']    = request.environ.get("HTTP_USER_AGENT")
-    data['network']  = ''
+    # build the main data dictionary
+    data = {
+        'forwarded_for':   request.environ.get("HTTP_X_FORWARDED_FOR",''),
+        'remote_address':  request.environ.get("REMOTE_ADDR",''),
+        'remote_port':     request.environ.get("REMOTE_PORT",''),
+        'request_method':  request.environ.get("REQUEST_METHOD",''),
+        'server_protocol': request.environ.get("SERVER_PROTOCOL",''),
+        'user_agent':      request.environ.get("HTTP_USER_AGENT",''),
+        'network': '',
+    }
     
+    # Parse out the actual client ip address from header data
+    if data['forwarded_for']:
+        # Proxy was used
+        fwd_list = data['forwarded_for'].split(',')
+        data['address'] = fwd_list[0]   # the original client should be the first ip
+    else:
+        # No proxy was used
+        data['address'] = data['remote_address']
+    #data['address'] = '152.2.198.50'
+    #context['client_address'] = '152.2.198.224'
+    #context['client_address'] = '152.2.198.240'
+    #context['client_address'] = '152.23.198.240'
+    #context['client_address'] = '172.17.32.38'
+    #context['client_address'] = '75.183.206.183'
+
+    # collect information about the network for this address
+    network = getNetwork( data['address'] )
+    data['network'] = network
+
+    # build the json response
     message = jsonify(data)
     response = make_response(message)
-    response.headers.add("Access-Control-Allow-Origin", "http://whatismyip.unc.edu:5000")
-    response.headers.add('Access-Control-Allow-Headers', "GET")
-    response.headers.add('Access-Control-Allow-Methods', "origin, x-requested-with, content-type, accept")
+    #response.headers.add("Access-Control-Allow-Origin", "http://whatismyip.unc.edu:5000")
+    #response.headers.add('Access-Control-Allow-Headers', "GET")
+    #response.headers.add('Access-Control-Allow-Methods', "origin, x-requested-with, content-type, accept")
     return response
 
 @app.route("/about")
