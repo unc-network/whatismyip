@@ -71,10 +71,10 @@ def getNetwork( ip ):
 		#print("Using {} with {}".format(url,params))
 		response = session.get("{}network".format(url), params=params, auth=(ib_username, ib_password), verify=False)
 		if response.status_code != 200:
-			print("query failed {}".format(response))
+			app.logger.warning("query failed {}".format(response))
 		else:
 			network_list = response.json()
-			print("got {}".format(network_list))
+			app.logger.debug("network details: {}".format(network_list))
 
 		if (len(network_list) == 1):
 			executionTime = (time.time() - startTime)
@@ -119,10 +119,10 @@ def getAddressObjects( ip ):
 		}
 		response = session.get("{}ipv4address".format(url), params=params, auth=(ib_username, ib_password), verify=False)
 		if response.status_code != 200:
-			print("query failed {}".format(response))
+			app.logger.warn("ipv4address query failed {}".format(response))
 		else:
 			address_list = response.json()
-			print("got {}".format(address_list))
+			app.logger.debug("ipv4address details: {}".format(address_list))
 
 		if (len(address_list) == 1):
 			executionTime = (time.time() - startTime)
@@ -155,10 +155,17 @@ def getIPLocation( ip ):
 		api_url = "https://api.iplocation.net/?ip="
 		session = requests.Session()
 		response = session.get("{}{}".format(api_url,ip))
-		print("iplocation {}".format(response.json()))
-		executionTime = (time.time() - startTime)
-		app.logger.debug("getIPLocation complete in {} seconds".format(executionTime))
-		return response.json()
+		if response.status_code != 200:
+			app.logger.warn("iplocation query failed {}".format(response))
+			executionTime = (time.time() - startTime)
+			app.logger.debug("getIPLocation complete in {} seconds".format(executionTime))
+			return {}
+		else:
+			iplocation = response.json()
+			app.logger.debug("iplocation details: {}".format( iplocation ))
+			executionTime = (time.time() - startTime)
+			app.logger.debug("getIPLocation complete in {} seconds".format(executionTime))
+			return iplocation
 	else:
 		executionTime = (time.time() - startTime)
 		app.logger.debug("getIPLocation complete in {} seconds".format(executionTime))
