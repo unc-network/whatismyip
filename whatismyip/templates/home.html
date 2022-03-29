@@ -172,14 +172,18 @@
               <th style="width: 20%;">User-Agent</th>
               <td>{{ headers['User-Agent'] }}</td>
             </tr>
-            <!-- <tr>
-              <th>Browser</th>
-              <td>{{ context.user_browser }}</td>
-            </tr> -->
-            <!-- <tr>
-              <th>OS</th>
-              <td>{{ context.user_os }}</td>
-            </tr> -->
+            {% for key, value in headers.items() %}
+            <tr>
+              <th>{{ key }}</th>
+              <td>{{ value }}</td>
+            </tr>
+            {% endfor %}
+            {% for key, value in environ.items() %}
+            <tr>
+              <th>{{ key }}</th>
+              <td>{{ value }}</td>
+            </tr>
+            {% endfor %}
             <tr>
               <th>Device</th>
               <td>{{ context.user_device }}</td>

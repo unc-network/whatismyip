@@ -1,14 +1,16 @@
 import os
 import requests
+import time
 import ipaddress
-from ipwhois import IPWhois
+#from ipwhois import IPWhois
 
 from flask import current_app as app
 
 
-# test ip if campus
 def isCampusIP( ip ):
-	app.logger.debug("isCampusIP {}".format(ip))
+	# Check if the IP address is in a campus block.
+	# If so, further testing can take place.
+
 	prefixes = [ 
 	'152.2.','152.19.','152.23.',
 	'172.16.','172.17.','172.18.','172.19.',
@@ -26,30 +28,37 @@ def isCampusIP( ip ):
 			return True
 	return False
 
-def getISP( ip ):
-	"""Lookup ISP information"""
-	ipaddr = ipaddress.ip_address(ip)
-	app.logger.debug("getISP {}".format(ip))
+# def getISP( ip ):
+# 	# Lookup ISP information
 
-	if not ipaddr.is_private:
-		obj = IPWhois( ip )
-		ret = obj.lookup_rdap()
-		print("Found {}".format(ret))
-		return ret
+# 	ipaddr = ipaddress.ip_address(ip)
+# 	app.logger.debug("getISP {}".format(ip))
+
+# 	if not ipaddr.is_private:
+# 		obj = IPWhois( ip )
+# 		ret = obj.lookup_rdap()
+# 		print("Found {}".format(ret))
+# 		return ret
 	
-	return {}
+# 	return {}
 
 def getNetwork( ip ):
-	# find the network information for a given ip address
-	print("Check ip {}".format(ip))
+	# Find the network for this address in IPAM.
+	startTime = time.time()
 	app.logger.debug("getNetwork {}".format(ip))
+
+	# make sure we have a valid ip address
+	try:
+		ipaddr = ipaddress.ip_address(ip)
+	except ValueError:
+		app.logger.warn("{} is not a valid ip address".format(ip))
+		return {}
 
 	if ( isCampusIP( ip ) ):
 		# Do the lookup only if we think this is a campus address
 		ib_server = os.environ.get('IB_SERVER')
 		ib_username = os.environ.get('IB_USERNAME')
 		ib_password = os.environ.get('IB_PASSWORD')
-		#url = "https://{}/wapi/v2.10.5/{}".format(ib_server,'network')
 		url = "https://{}/wapi/v2.10.5/".format(ib_server)
 
 		session = requests.Session()
@@ -68,18 +77,31 @@ def getNetwork( ip ):
 			print("got {}".format(network_list))
 
 		if (len(network_list) == 1):
+			executionTime = (time.time() - startTime)
+			app.logger.debug("getNetwork complete in {} seconds".format(executionTime))
 			return network_list[0]
 		else:
+			executionTime = (time.time() - startTime)
+			app.logger.debug("getNetwork complete in {} seconds".format(executionTime))
 			return {}
 
 	else:
+		executionTime = (time.time() - startTime)
+		app.logger.debug("getNetwork complete in {} seconds".format(executionTime))
 		return {}
 
 
 def getAddressObjects( ip ):
-	"""Find Infoblox records"""
-	print("Check ip {}".format(ip))
+	# Find Infoblox records
+	startTime = time.time()
 	app.logger.debug("getAddressObjects {}".format(ip))
+
+	# make sure we have a valid ip address
+	try:
+		ipaddr = ipaddress.ip_address(ip)
+	except ValueError:
+		app.logger.warn("{} is not a valid ip address".format(ip))
+		return {}
 
 	if ( isCampusIP( ip ) ):
 		# Do the lookup only if we think this is a campus address
@@ -103,23 +125,41 @@ def getAddressObjects( ip ):
 			print("got {}".format(address_list))
 
 		if (len(address_list) == 1):
+			executionTime = (time.time() - startTime)
+			app.logger.debug("getAddressObject complete in {} seconds".format(executionTime))
 			return address_list[0]
 		else:
+			executionTime = (time.time() - startTime)
+			app.logger.debug("getAddressObject complete in {} seconds".format(executionTime))
 			return {}
 
 	else:
+		executionTime = (time.time() - startTime)
+		app.logger.debug("getAddressObject complete in {} seconds".format(executionTime))
 		return {}
 
 def getIPLocation( ip ):
-	"""geolocate"""
-	ipaddr = ipaddress.ip_address(ip)
+	# Get location data for the IP
+	startTime = time.time()
 	app.logger.info("getIPLocation {}".format(ip))
 
+	# make sure we have a valid ip address
+	try:
+		ipaddr = ipaddress.ip_address(ip)
+	except ValueError:
+		app.logger.warn("{} is not a valid ip address".format(ip))
+		return {}
+
 	if not ipaddr.is_private:
+		# Do not attempt this with private IP addresses
 		api_url = "https://api.iplocation.net/?ip="
 		session = requests.Session()
 		response = session.get("{}{}".format(api_url,ip))
 		print("iplocation {}".format(response.json()))
+		executionTime = (time.time() - startTime)
+		app.logger.debug("getIPLocation complete in {} seconds".format(executionTime))
 		return response.json()
 	else:
+		executionTime = (time.time() - startTime)
+		app.logger.debug("getIPLocation complete in {} seconds".format(executionTime))
 		return {}
