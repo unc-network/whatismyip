@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, request, jsonify, make_response, send_from_directory
 from dotenv import load_dotenv
 from user_agents import parse
 
@@ -151,9 +151,14 @@ def hostinfo():
 
 @app.route("/about")
 def about():
-    """Display a basic webpage with about information."""
+    # Display a basic webpage with about information.
     return render_template("about.html")
 
+@app.route('/robots.txt')
+@app.route('/sitemap.xml')
+def static_from_root():
+    # Support basic robots and sitemap files
+    return send_from_directory(app.static_folder, request.path[1:])
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
