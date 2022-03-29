@@ -47,7 +47,7 @@ def home():
     else:
         # No proxy was used
         context['client_address'] = remote_address
-    context['client_address'] = '152.2.198.50'
+    #context['client_address'] = '152.2.198.50'
     #context['client_address'] = '152.2.198.224'
     #context['client_address'] = '152.2.198.240'
     #context['client_address'] = '152.23.198.240'
