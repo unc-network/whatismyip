@@ -54,7 +54,7 @@ def home():
     #context['client_address'] = '152.23.198.240'
     #context['client_address'] = '172.17.32.38'
     #context['client_address'] = '75.183.206.183'
-    app.logger.info("Finding information for {} with forwarded_for {}".format( context['client_address'], forwarded_for ))
+    app.logger.info("web finding information for {} with forwarded_for {}".format( context['client_address'], forwarded_for ))
 
     # collect device information
     user_agent = parse(http_user_agent)
@@ -132,7 +132,7 @@ def hostinfo():
     #context['client_address'] = '152.23.198.240'
     #context['client_address'] = '172.17.32.38'
     #context['client_address'] = '75.183.206.183'
-    app.logger.debug("Finding information for {}".format( data['address'] ))
+    app.logger.info("hostinfo finding information for {} with forwarded_for {}".format( data['client_address'], data['forwarded_for'] ))
 
     # collect information about the network for this address
     network = getNetwork( data['address'] )
