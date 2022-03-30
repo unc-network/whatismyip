@@ -141,7 +141,7 @@ def getAddressObjects( ip ):
 def getIPLocation( ip ):
 	# Get location data for the IP
 	startTime = time.time()
-	app.logger.info("getIPLocation {}".format(ip))
+	app.logger.debug("getIPLocation {}".format(ip))
 
 	# make sure we have a valid ip address
 	try:
