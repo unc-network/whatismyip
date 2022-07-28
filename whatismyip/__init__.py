@@ -1,5 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify, make_response, send_from_directory
+from flask_cors import CORS
+from flask_fontawesome import FontAwesome
 from dotenv import load_dotenv
 from user_agents import parse
 import logging
@@ -19,7 +21,11 @@ if app.config["ENV"] == "production":
     app.config.from_object("config.ProductionConfig")
 else:
     app.config.from_object("config.DevelopmentConfig")
-app.logger.setLevel(logging.INFO)
+app.logger.setLevel(logging.DEBUG)
+#app.logger.setLevel(logging.INFO)
+
+CORS(app, resources={r"/hostinfo": {"origins": ["https://whatismyip.unc.edu"]}})
+fa = FontAwesome(app)
 
 # Routes
 
@@ -54,6 +60,9 @@ def home():
     #context['client_address'] = '152.23.198.240'
     #context['client_address'] = '172.17.32.38'
     #context['client_address'] = '75.183.206.183'
+    #context['client_address'] = '2610:28:3091:1000:2::a'
+    #context['client_address'] = '2610:28:3090:1000::d6:e1'
+    #context['client_address'] = '2603:6081:7041:8101:cd13:7d19:ae:20ed'
     app.logger.info("web finding information for {} with forwarded_for {}".format( context['client_address'], forwarded_for ))
 
     # collect device information
@@ -103,6 +112,7 @@ def home():
 
     return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
     
+@app.route("/hostinfo")
 @app.route("/hostinfo.php")
 def hostinfo():
     """Return JSON structure with IP address information."""
@@ -132,18 +142,26 @@ def hostinfo():
     #context['client_address'] = '152.23.198.240'
     #context['client_address'] = '172.17.32.38'
     #context['client_address'] = '75.183.206.183'
+    #data['client_address'] = '2610:28:3091:1000:2::a'
+    #data['address'] = '2610:28:3090:1000::d6:e1'
+    #context['client_address'] = '2603:6081:7041:8101:cd13:7d19:ae:20ed'
     app.logger.info("hostinfo finding information for {} with forwarded_for {}".format( data['address'], data['forwarded_for'] ))
+
+    # collect isp info
+    iplocation = getIPLocation( data['address'])
+    data['iplocation'] = iplocation
 
     # collect information about the network for this address
     network = getNetwork( data['address'] )
     data['network'] = network
 
+    # Find any address objects
+    address_records = getAddressObjects( data['address'] )
+    data['address_records'] = address_records
+
     # build the json response
     message = jsonify(data)
     response = make_response(message)
-    #response.headers.add("Access-Control-Allow-Origin", "http://whatismyip.unc.edu:5000")
-    #response.headers.add('Access-Control-Allow-Headers', "GET")
-    #response.headers.add('Access-Control-Allow-Methods', "origin, x-requested-with, content-type, accept")
     return response
 
 @app.route("/health")

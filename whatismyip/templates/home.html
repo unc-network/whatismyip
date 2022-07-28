@@ -4,20 +4,38 @@
   <div class="col">
     <div class="card bg-primary shadow">
       <div class="card-body">
-        <div id="address_box" class="unc-ip">
-          <h1 id="address" class="display-4 text-center allowCopy mb-0">{{ context.client_address }}</h1>
+
+        <div id="address_box" class="row unc-ip">
+          <div class="col-md-10 offset-md-1 text-center">
+            <h1 id="address" class="display-4 text-center mb-0">{{ context.client_address }}</h1>
+          </div>
+          <div class="col-md-1 text-end">
+            <button onclick="copyAddress(address)" class="btn btn-link" aria-label="Copy IP Address">
+              <i class="fa fa-copy text-white" aria-hidden="true"> </i>
+            </button>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
 </div>
-<div class="row p-1" style="display:none;">
+<div id="second_address_section" class="row p-1" style="display:none;">
   <div class="col">
     <div class="card bg-primary shadow">
       <div class="card-body">
-        <div id="additional_ip" class="unc-ip">
-          <h1 id="address2" class="display-4 text-center allowCopy mb-0">loading...</h1>
+
+        <div id="additional_ip" class="row unc-ip">
+          <div class="col-md-10 offset-md-1 text-center">
+            <h1 id="address2" class="display-4 text-center mb-0">loading...</h1>
+          </div>
+          <div class="col-md-1 text-end">
+            <button onclick="copyAddress(address2)" class="btn btn-link" aria-label="Copy IP Address">
+              <i class="fa fa-copy text-white" aria-hidden="true"> </i>
+            </button>
+          </div>
         </div>
+
       </div>
     </div>
   </div>

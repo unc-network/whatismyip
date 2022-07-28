@@ -61,6 +61,7 @@ def getNetwork( ip ):
 		ib_password = os.environ.get('IB_PASSWORD')
 		url = "https://{}/wapi/v2.10.5/".format(ib_server)
 
+		app.logger.info("Checking for address info")
 		session = requests.Session()
 		requests.packages.urllib3.disable_warnings()
 		params = {
@@ -68,8 +69,14 @@ def getNetwork( ip ):
 			'_inheritance': True,
 			'contains_address': ip,
 		}
+		if ipaddr.version == 6:
+			object_type = 'ipv6network'
+		else:
+			object_type = 'network'
 		#print("Using {} with {}".format(url,params))
-		response = session.get("{}network".format(url), params=params, auth=(ib_username, ib_password), verify=False)
+		#response = session.get("{}network".format(url), params=params, auth=(ib_username, ib_password), verify=False)
+		response = session.get("{}{}".format(url,object_type), params=params, auth=(ib_username, ib_password), verify=False)
+		app.logger.debug("{}".format(response))
 		if response.status_code != 200:
 			app.logger.warning("query failed {}".format(response))
 		else:
@@ -117,12 +124,18 @@ def getAddressObjects( ip ):
 			'_return_fields+': 'discovered_data,extattrs,fingerprint,ms_ad_user_data',
 			'ip_address': ip
 		}
-		response = session.get("{}ipv4address".format(url), params=params, auth=(ib_username, ib_password), verify=False)
+		if ipaddr.version == 6:
+			object_type = 'ipv6address'
+		else:
+			object_type = 'ipv4address'
+		#response = session.get("{}ipv4address".format(url), params=params, auth=(ib_username, ib_password), verify=False)
+		response = session.get("{}{}".format(url,object_type), params=params, auth=(ib_username, ib_password), verify=False)
+		app.logger.debug("{}".format(response))
 		if response.status_code != 200:
-			app.logger.warn("ipv4address query failed {}".format(response))
+			app.logger.warn("{} query failed {}".format(object_type,response))
 		else:
 			address_list = response.json()
-			app.logger.debug("ipv4address details: {}".format(address_list))
+			app.logger.debug("{} details: {}".format(object_type,address_list))
 
 		if (len(address_list) == 1):
 			executionTime = (time.time() - startTime)

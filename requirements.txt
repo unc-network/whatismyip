@@ -3,6 +3,8 @@ gunicorn
 python-dotenv
 requests
 
+flask-cors
+flask-fontawesome
 ipaddress
 ipwhois
 user-agents
