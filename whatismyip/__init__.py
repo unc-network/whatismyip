@@ -7,7 +7,7 @@ from user_agents import parse
 import logging
 
 from whatismyip.utils import *
-#from dns import resolver, reversename
+from dns import resolver, reversename
 #from whatismyip import views
 
 # load dotenv in the base root
@@ -21,6 +21,7 @@ if app.config["ENV"] == "production":
 else:
     app.config.from_object("config.DevelopmentConfig")
 app.logger.setLevel(logging.INFO)
+#app.logger.setLevel(logging.DEBUG)
 
 CORS(app, resources={r"/hostinfo": {"origins": ["https://whatismyip.unc.edu"]}})
 fa = FontAwesome(app)
@@ -53,7 +54,7 @@ def home():
     else:
         # No proxy was used
         context['client_address'] = remote_address
-    #context['client_address'] = '152.2.198.50'
+    context['client_address'] = '152.2.198.50'
     #context['client_address'] = '152.2.198.224'
     #context['client_address'] = '152.2.198.240'
     #context['client_address'] = '152.23.198.240'
@@ -72,13 +73,13 @@ def home():
     #context['user_device'] = "{} {}".format(user_agent.device.brand,user_agent.device.model)
 
     # collect dns data
-    #reverse_addr = reversename.from_address( context['client_address'] )
-    #try:
+    # reverse_addr = reversename.from_address( context['client_address'] )
+    # try:
     #    dns_response = resolver.query(reverse_addr, "PTR")
     #    for val in dns_response:
-    #        print("PTR {}".format(val.to_text()))
-    #except:
-    #    print("reverse DNS lookup failed")
+    #        app.logger.debug("PTR {}".format(val.to_text()))
+    # except:
+    #    app.logger.warn("reverse DNS lookup failed")
 
     # collect isp info
     iplocation = getIPLocation( context['client_address'])
@@ -111,8 +112,8 @@ def home():
 
     return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
     
-@app.route("/hostinfo")
 @app.route("/hostinfo.php")
+@app.route("/hostinfo")
 def hostinfo():
     """Return JSON structure with IP address information."""
 
