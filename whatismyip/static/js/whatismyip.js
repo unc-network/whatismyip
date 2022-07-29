@@ -8,7 +8,7 @@ function copyAddress(id_of_address) {
 	const text = $(id_of_address).text()
 	try {
 		navigator.clipboard.writeText(text)
-		console.log("Copied the address: " + text);
+		//console.log("Copied the address: " + text);
 	} catch (err) {
 		console.error('Failed to copy the address!', err)
 	}
@@ -32,6 +32,8 @@ $(document).ready(function () {
 	// 	});
 	// });
 
+	//$('[data-toggle="tooltip"]').tooltip();
+
 	/* extract the default ip detected */
 	var address = $('#address').text();
 
@@ -40,7 +42,7 @@ $(document).ready(function () {
 		// Make AJAX call to the API to get the ipv4 address
 		$.ajax({
 			type: "GET",
-			url: "https://ipv4.whatismyip.unc.edu/hostinfo",
+			url: "https://whatismyipv4.unc.edu/hostinfo",
 			//url: "http://whatismyipv4.unc.edu:5000/hostinfo",
 			//url: "http://127.0.0.1:5000/hostinfo",
 			dataType: "json",
