@@ -46,9 +46,10 @@ def home():
 
     # Parse out the actual client ip address from header data
     if forwarded_for:
-        # Proxy was used, client IP should be first in the list
-        fwd_list = forwarded_for.split(',')
-        context['client_address'] = fwd_list[0]
+        # # Proxy was used, client IP should be first in the list
+        # fwd_list = forwarded_for.split(',')
+        # context['client_address'] = fwd_list[0]
+        context['client_address'] = getForwardedAddress( forwarded_for )
     else:
         # No proxy was used
         context['client_address'] = remote_address
@@ -129,8 +130,9 @@ def hostinfo():
     # Parse out the actual client ip address from header data
     if data['forwarded_for']:
         # Proxy was used
-        fwd_list = data['forwarded_for'].split(',')
-        data['address'] = fwd_list[0]   # the original client should be the first ip
+        # fwd_list = data['forwarded_for'].split(',')
+        # data['address'] = fwd_list[0]   # the original client should be the first ip
+        data['address'] = getForwardedAddress( data['forwarded_for'] )
     else:
         # No proxy was used
         data['address'] = data['remote_address']

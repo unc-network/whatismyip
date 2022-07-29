@@ -42,6 +42,18 @@ def isCampusIP( ip ):
 	
 # 	return {}
 
+def getForwardedAddress( forwarded_for ):
+	# A proxy will populate the X-Forwarded-For header, so find the client
+	fwd_list = forwarded_for.split(',')
+	if len(fwd_list) > 2:
+		# multiple proxy detected, only trust the last 2 for campus
+		# the last for cloudapps and second to last for client
+		client_address = fwd_list[-2] 
+	else:
+		# normal: the last for cloudapps and second to last for client
+		client_address = fwd_list[0]
+	return client_address
+
 def getNetwork( ip ):
 	# Find the network for this address in IPAM.
 	startTime = time.time()
