@@ -182,12 +182,6 @@
       <div class="table-responsive">
         <table class="table table-sm">
           <tbody>
-            {% if headers['X-Forwarded-For'] %}
-            <tr>
-              <th style="width: 20%;">X-Forwarded-For</th>
-              <td>{{ headers['X-Forwarded-For'] }}</td>
-            </tr>
-            {% endif %}
             <tr>
               <th style="width: 20%;">User-Agent</th>
               <td>{{ headers['User-Agent'] }}</td>
@@ -196,6 +190,12 @@
               <th>Device</th>
               <td>{{ context.user_device }}</td>
             </tr>
+            {% if headers['X-Forwarded-For'] %}
+            <tr>
+              <th style="width: 20%;">X-Forwarded-For</th>
+              <td>{{ headers['X-Forwarded-For'] }}</td>
+            </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
