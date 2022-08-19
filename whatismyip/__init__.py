@@ -150,7 +150,7 @@ def hostinfo():
     app.logger.info("hostinfo finding information for {} with forwarded_for {}".format( data['address'], data['forwarded_for'] ))
 
     # collect dns data
-    reverse_addr = reversename.from_address( data['client_address'] )
+    reverse_addr = reversename.from_address( data['address'] )
     try:
        dns_response = resolver.query(reverse_addr, "PTR")
        for val in dns_response:
