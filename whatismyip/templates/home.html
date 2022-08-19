@@ -42,22 +42,23 @@
 </div>
 <div class="row p-1 my-3">
   <div class="col">
-    <p>This is the IP address used by your computer when accessing campus resources.
+    <p>
     {% if context.network_cidr %}
       {% if context.network_type %}
         {% if 'VPN' in context.network_type %}
-        It is part of a campus VPN network.
+          Your IP address is part of a campus VPN network.
         {% elif 'Wireless' in context.network_type %}
-        It is part of the campus wireless network.
+          Your IP address is part of the campus wireless network.
         {% else %}
-        It is part of a local campus network.
+          Your IP address is part of a local campus network.
         {% endif %}
       {% else %}
-      It is part of a local campus network.
+        Your IP address is part of a local campus network.
       {% endif %}
     {% else %}
-    It is off-campus and part of the public Internet.
+      Your IP address is off campus and part of the public Internet.
     {% endif %}
+    It is used by your computer when accessing campus resources.
     </p>
   </div>
 </div>
