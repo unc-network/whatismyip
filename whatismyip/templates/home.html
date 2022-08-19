@@ -63,7 +63,6 @@
 </div>
 <div class="row row-cols-1 row-cols-xl-2 g-4 p-1">
 
-  {% if context.address_records %}
   <div class="col">
 
     <div class="card shadow">
@@ -72,6 +71,10 @@
         <div class="table-responsive">
           <table class="table table-sm">
             <tbody>
+              <tr>
+                <th>Address</th>
+                <td>{{ context.client_address }}</td>
+              </tr>
               {% if context.address_records %}
               <tr>
                 <th style="width: 20%;">Name</th>
@@ -119,7 +122,6 @@
     </div>
 
   </div>
-  {% endif %}
 
   <div class="col">
     <div class="card shadow">
@@ -157,6 +159,11 @@
                 <td>{{ context.network.extattrs['Cost Center'].value }}</td>
               </tr>
               {% endif %}
+            {% else %}
+              <tr>
+                <th>Network</th>
+                <td>Off Campus</td>
+              </tr>
             {% endif %}
             {% if context.iplocation.isp %}
             <tr>
@@ -210,10 +217,10 @@
      <div class="card shadow card-body">
       <p class="text-center">
         <span class="px-2"><b>Other Tools:</b></span>
-        <a target="_blank" href="https://www.google.com/search?q=what+is+my+ip" class="btn btn-secondary">Google's "What is my ip?"</a>
-        <a target="_blank" href="http://nperf.net.unc.edu" class="btn btn-secondary">Campus Speed Test</a>
-        <a target="_blank" href="https://speedtest.net" class="btn btn-secondary">Internet Speed Test</a>
-        <a target="_blank" href="https://www.dnsleaktest.com" class="btn btn-secondary">DNS leak test</a>
+        <a target="_blank" href="https://www.google.com/search?q=what+is+my+ip" class="btn btn-primary">Google's "What is my ip?"</a>
+        <a target="_blank" href="http://nperf.net.unc.edu" class="btn btn-primary">Campus Speed Test</a>
+        <a target="_blank" href="https://speedtest.net" class="btn btn-primary">Internet Speed Test</a>
+        <a target="_blank" href="https://www.dnsleaktest.com" class="btn btn-primary">DNS leak test</a>
       </p>
     </div>
   </div>
