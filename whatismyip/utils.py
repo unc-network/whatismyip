@@ -44,7 +44,7 @@ def isCampusIP( ip ):
 
 def getForwardedAddress( forwarded_for ):
 	# A proxy will populate the X-Forwarded-For header, so find the client
-	proxy_detected = False
+	proxy_detected = None
 	fwd_list = forwarded_for.split(',')
 	if len(fwd_list) > 2:
 		# multiple proxy detected, only trust the last 2 for campus

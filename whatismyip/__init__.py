@@ -126,7 +126,8 @@ def hostinfo():
         'request_method':  request.environ.get("REQUEST_METHOD",''),
         'server_protocol': request.environ.get("SERVER_PROTOCOL",''),
         'user_agent':      request.environ.get("HTTP_USER_AGENT",''),
-        'network': '',
+        'network':         '',
+        'proxy_detected':  None,
     }
     
     # Parse out the actual client ip address from header data
