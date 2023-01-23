@@ -181,7 +181,12 @@ def getIPLocation( ip ):
 		# Do not attempt this with private IP addresses
 		api_url = "https://api.iplocation.net/?ip="
 		session = requests.Session()
-		response = session.get("{}{}".format(api_url,ip))
+		try:
+			response = session.get("{}{}".format(api_url,ip), timeout=3)
+		except requests.ReadTimeout:
+			# Something went wrong, return no data
+			app.logger.warn("unable to query location api")
+			return {}
 		if response.status_code != 200:
 			app.logger.warn("iplocation query failed {}".format(response))
 			executionTime = (time.time() - startTime)
