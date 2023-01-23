@@ -167,6 +167,8 @@ def getAddressObjects( ip ):
 
 def getIPLocation( ip ):
 	# Get location data for the IP
+	# Currently using https://iplocation.net
+	# Other options: https://ipapi.co/
 	startTime = time.time()
 	app.logger.debug("getIPLocation {}".format(ip))
 
