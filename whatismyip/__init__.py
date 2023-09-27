@@ -65,7 +65,7 @@ def home():
     #context['client_address'] = '2610:28:3091:1000:2::a'
     #context['client_address'] = '2610:28:3090:1000::d6:e1'
     #context['client_address'] = '2603:6081:7041:8101:cd13:7d19:ae:20ed'
-    app.logger.info("web finding information for {} with forwarded_for {}".format( context['client_address'], forwarded_for ))
+    app.logger.info(f"web finding information for {context['client_address']} with forwarded_for {forwarded_for}")
 
     # collect device information
     user_agent = parse(http_user_agent)
@@ -108,7 +108,7 @@ def home():
         try:
             dns_response = resolver.query(reverse_addr, "PTR")
             for val in dns_response:
-                app.logger.debug("PTR {}".format(val.to_text()))
+                app.logger.debug(f"PTR {val.to_text()}")
             context['ptr'] = val.to_text()
         except:
             app.logger.warn("reverse DNS lookup failed")
@@ -151,14 +151,14 @@ def hostinfo():
     #data['client_address'] = '2610:28:3091:1000:2::a'
     #data['address'] = '2610:28:3090:1000::d6:e1'
     #context['client_address'] = '2603:6081:7041:8101:cd13:7d19:ae:20ed'
-    app.logger.info("hostinfo finding information for {} with forwarded_for {}".format( data['address'], data['forwarded_for'] ))
+    app.logger.info(f"hostinfo finding information for {data['address']} with forwarded_for {data['forwarded_for']}")
 
     # collect dns data
     reverse_addr = reversename.from_address( data['address'] )
     try:
         dns_response = resolver.query(reverse_addr, "PTR")
         for val in dns_response:
-            app.logger.debug("PTR {}".format(val.to_text()))
+            app.logger.debug(f"PTR {val.to_text()}")
         data['ptr'] = val.to_text()
     except:
         app.logger.warn("reverse DNS lookup failed")
