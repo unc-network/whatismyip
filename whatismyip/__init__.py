@@ -24,10 +24,9 @@ if app.config["ENV"] == "production":
     app.config.from_object("config.ProductionConfig")
 else:
     app.config.from_object("config.DevelopmentConfig")
+
 logger = create_logger(app)
 logger.setLevel(logging.INFO)
-#app.logger.setLevel(logging.DEBUG)
-
 
 CORS(app, resources={r"/hostinfo": {"origins": ["https://whatismyip.unc.edu"]}})
 fa = FontAwesome(app)
@@ -116,7 +115,7 @@ def home():
             for val in dns_response:
                 logger.debug(f"PTR {val.to_text()}")
             context['ptr'] = val.to_text()
-        except Exception:
+        except dns.exception.DNSException:
             logger.warning("reverse DNS lookup failed")
 
     #return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
@@ -166,7 +165,7 @@ def hostinfo():
         for val in dns_response:
             logger.debug(f"PTR {val.to_text()}")
         data['ptr'] = val.to_text()
-    except Exception:
+    except dns.exception.DNSException:
         logger.warning("reverse DNS lookup failed")
 
     # collect isp info

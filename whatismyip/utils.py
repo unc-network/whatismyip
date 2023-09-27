@@ -5,6 +5,7 @@ import os
 import time
 import ipaddress
 import requests
+import urllib3
 #from ipwhois import IPWhois
 
 from flask import current_app as app
@@ -81,7 +82,8 @@ def get_network( ip ):
 
         app.logger.info("Checking for address info")
         session = requests.Session()
-        requests.packages.urllib3.disable_warnings()
+        # requests.packages.urllib3.disable_warnings()
+        urllib3.disable_warnings(category = urllib3.exceptions.InsecureRequestWarning)
         params = {
             '_return_fields': 'comment,network,network_view,members,extattrs,vlans.id,options',
             '_inheritance': True,
@@ -105,15 +107,21 @@ def get_network( ip ):
             execution_time = time.time() - start_time
             app.logger.debug(f"get_network complete in {execution_time} seconds")
             return network_list[0]
-        else:
-            execution_time = time.time() - start_time
-            app.logger.debug(f"get_network complete in {execution_time} seconds")
-            return {}
-
-    else:
+        # else:
+        #     execution_time = time.time() - start_time
+        #     app.logger.debug(f"get_network complete in {execution_time} seconds")
+        #     return {}
         execution_time = time.time() - start_time
         app.logger.debug(f"get_network complete in {execution_time} seconds")
         return {}
+
+    # else:
+    #     execution_time = time.time() - start_time
+    #     app.logger.debug(f"get_network complete in {execution_time} seconds")
+    #     return {}
+    execution_time = time.time() - start_time
+    app.logger.debug(f"get_network complete in {execution_time} seconds")
+    return {}
 
 
 def get_address_objects( ip ):
@@ -136,7 +144,8 @@ def get_address_objects( ip ):
         url = f"https://{ib_server}/wapi/v2.10.5/"
 
         session = requests.Session()
-        requests.packages.urllib3.disable_warnings()
+        # requests.packages.urllib3.disable_warnings()
+        urllib3.disable_warnings(category = urllib3.exceptions.InsecureRequestWarning)
         params = {
             'network_view': 'default',
             '_return_fields+': 'discovered_data,extattrs,fingerprint,ms_ad_user_data',
@@ -159,15 +168,21 @@ def get_address_objects( ip ):
             execution_time = time.time() - start_time
             app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
             return address_list[0]
-        else:
-            execution_time = time.time() - start_time
-            app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
-            return {}
-
-    else:
+        # else:
+        #     execution_time = time.time() - start_time
+        #     app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
+        #     return {}
         execution_time = time.time() - start_time
         app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
         return {}
+
+    # else:
+    #     execution_time = time.time() - start_time
+    #     app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
+    #     return {}
+    execution_time = time.time() - start_time
+    app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
+    return {}
 
 def get_ip_location( ip ):
     """ 
@@ -195,18 +210,19 @@ def get_ip_location( ip ):
             # Something went wrong, return no data
             app.logger.warn("unable to query location api")
             return {}
+
         if response.status_code != 200:
             app.logger.warn(f"iplocation query failed {response}")
             execution_time = time.time() - start_time
             app.logger.debug(f"get_ip_location complete in {execution_time} seconds")
             return {}
-        else:
-            iplocation = response.json()
-            app.logger.debug(f"iplocation details: {iplocation}")
-            execution_time = time.time() - start_time
-            app.logger.debug(f"get_ip_location complete in {execution_time} seconds")
-            return iplocation
-    else:
+
+        iplocation = response.json()
+        app.logger.debug(f"iplocation details: {iplocation}")
         execution_time = time.time() - start_time
         app.logger.debug(f"get_ip_location complete in {execution_time} seconds")
-        return {}
+        return iplocation
+
+    execution_time = time.time() - start_time
+    app.logger.debug(f"get_ip_location complete in {execution_time} seconds")
+    return {}
