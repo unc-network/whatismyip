@@ -117,7 +117,7 @@ def home():
                 logger.debug(f"PTR {val.to_text()}")
             context['ptr'] = val.to_text()
         except Exception:
-            logger.warn("reverse DNS lookup failed")
+            logger.warning("reverse DNS lookup failed")
 
     #return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
     return render_template("home.html", context = context, headers = headers)
@@ -167,7 +167,7 @@ def hostinfo():
             logger.debug(f"PTR {val.to_text()}")
         data['ptr'] = val.to_text()
     except Exception:
-        logger.warn("reverse DNS lookup failed")
+        logger.warning("reverse DNS lookup failed")
 
     # collect isp info
     iplocation = get_ip_location( data['address'])
