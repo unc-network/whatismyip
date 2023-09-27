@@ -1,13 +1,13 @@
 import os
+import logging
 from flask import Flask, render_template, request, jsonify, make_response, send_from_directory
 from flask_cors import CORS
 from flask_fontawesome import FontAwesome
 from dotenv import load_dotenv
 from user_agents import parse
-import logging
+from dns import resolver, reversename
 
 from whatismyip.utils import *
-from dns import resolver, reversename
 #from whatismyip import views
 
 # load dotenv in the base root
@@ -50,7 +50,7 @@ def home():
         # # Proxy was used, client IP should be first in the list
         # fwd_list = forwarded_for.split(',')
         # context['client_address'] = fwd_list[0]
-        context['client_address'], context['proxy_detected'] = getForwardedAddress( forwarded_for )
+        context['client_address'], context['proxy_detected'] = get_forwarded_address( forwarded_for )
     else:
         # No proxy was used
         context['client_address'] = remote_address
@@ -75,7 +75,7 @@ def home():
     #context['user_device'] = "{} {}".format(user_agent.device.brand,user_agent.device.model)
 
     # collect isp info
-    iplocation = getIPLocation( context['client_address'])
+    iplocation = get_ip_location( context['client_address'])
     context['iplocation'] = iplocation
 
     # collect isp info
@@ -84,7 +84,7 @@ def home():
     # app.logger.debug("Parsed ip whois")
 
     # collect information about the network for this address
-    network = getNetwork( context['client_address'] )
+    network = get_network( context['client_address'] )
     context['network'] = network
     if network:
         # collect network data to display
@@ -100,7 +100,7 @@ def home():
             context['vlan_name'] = vlan_list[0].get('name',None)
 
     # Find any address objects
-    address_records = getAddressObjects( context['client_address'] )
+    address_records = get_address_objects( context['client_address'] )
     context['address_records'] = address_records
     if not address_records:
         # collect dns data if we don't have Infoblox address data
@@ -138,7 +138,7 @@ def hostinfo():
         # Proxy was used
         # fwd_list = data['forwarded_for'].split(',')
         # data['address'] = fwd_list[0]   # the original client should be the first ip
-        data['address'], data['proxy_detected'] = getForwardedAddress( data['forwarded_for'] )
+        data['address'], data['proxy_detected'] = get_forwarded_address( data['forwarded_for'] )
     else:
         # No proxy was used
         data['address'] = data['remote_address']
@@ -164,15 +164,15 @@ def hostinfo():
         app.logger.warn("reverse DNS lookup failed")
 
     # collect isp info
-    iplocation = getIPLocation( data['address'])
+    iplocation = get_ip_location( data['address'])
     data['iplocation'] = iplocation
 
     # collect information about the network for this address
-    network = getNetwork( data['address'] )
+    network = get_network( data['address'] )
     data['network'] = network
 
     # Find any address objects
-    address_records = getAddressObjects( data['address'] )
+    address_records = get_address_objects( data['address'] )
     data['address_records'] = address_records
 
     # build the json response

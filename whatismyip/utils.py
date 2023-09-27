@@ -1,3 +1,6 @@
+"""
+Utility functions
+"""
 import os
 import requests
 import time
@@ -8,10 +11,11 @@ from flask import current_app as app
 
 
 def is_campus_ip( ip ):
-    # Check if the IP address is in a campus block.
-    # If so, further testing can take place.
+    """ 
+    Check if the IP address is in a campus block. If so, further testing can take place.
+    """
 
-    prefixes = [ 
+    prefixes = [
     '152.2.','152.19.','152.23.',
     '172.16.','172.17.','172.18.','172.19.',
     '172.20.','172.21.','172.22.','172.23.',
@@ -39,7 +43,7 @@ def is_campus_ip( ip ):
 # 		ret = obj.lookup_rdap()
 # 		print("Found {}".format(ret))
 # 		return ret
-    
+
 # 	return {}
 
 def get_forwarded_address( forwarded_for ):
@@ -68,7 +72,7 @@ def get_network( ip ):
         app.logger.warn(f"{ip} is not a valid ip address")
         return {}
 
-    if ( is_campus_ip( ip ) ):
+    if is_campus_ip( ip ):
         # Do the lookup only if we think this is a campus address
         ib_server = os.environ.get('IB_SERVER')
         ib_username = os.environ.get('IB_USERNAME')
@@ -97,17 +101,17 @@ def get_network( ip ):
             network_list = response.json()
             app.logger.debug(f"network details: {network_list}")
 
-        if (len(network_list) == 1):
-            execution_time = (time.time() - start_time)
+        if len(network_list) == 1:
+            execution_time = time.time() - start_time
             app.logger.debug(f"get_network complete in {execution_time} seconds")
             return network_list[0]
         else:
-            execution_time = (time.time() - start_time)
+            execution_time = time.time() - start_time
             app.logger.debug(f"get_network complete in {execution_time} seconds")
             return {}
 
     else:
-        execution_time = (time.time() - start_time)
+        execution_time = time.time() - start_time
         app.logger.debug(f"get_network complete in {execution_time} seconds")
         return {}
 
@@ -124,7 +128,7 @@ def get_address_objects( ip ):
         app.logger.warn(f"{ip} is not a valid ip address")
         return {}
 
-    if ( is_campus_ip( ip ) ):
+    if is_campus_ip( ip ):
         # Do the lookup only if we think this is a campus address
         ib_server = os.environ.get('IB_SERVER')
         ib_username = os.environ.get('IB_USERNAME')
@@ -151,17 +155,17 @@ def get_address_objects( ip ):
             address_list = response.json()
             app.logger.debug(f"{object_type} details: {address_list}")
 
-        if (len(address_list) == 1):
-            execution_time = (time.time() - start_time)
+        if len(address_list) == 1:
+            execution_time = time.time() - start_time
             app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
             return address_list[0]
         else:
-            execution_time = (time.time() - start_time)
+            execution_time = time.time() - start_time
             app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
             return {}
 
     else:
-        execution_time = (time.time() - start_time)
+        execution_time = time.time() - start_time
         app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
         return {}
 
@@ -191,16 +195,16 @@ def get_ip_location( ip ):
             return {}
         if response.status_code != 200:
             app.logger.warn(f"iplocation query failed {response}")
-            execution_time = (time.time() - start_time)
+            execution_time = time.time() - start_time
             app.logger.debug(f"get_ip_location complete in {execution_time} seconds")
             return {}
         else:
             iplocation = response.json()
             app.logger.debug(f"iplocation details: {iplocation}")
-            execution_time = (time.time() - start_time)
+            execution_time = time.time() - start_time
             app.logger.debug(f"get_ip_location complete in {execution_time} seconds")
             return iplocation
     else:
-        execution_time = (time.time() - start_time)
+        execution_time = time.time() - start_time
         app.logger.debug(f"get_ip_location complete in {execution_time} seconds")
         return {}
