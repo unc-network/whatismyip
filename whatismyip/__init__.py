@@ -115,7 +115,7 @@ def home():
 
     #return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
     return render_template("home.html", context = context, headers = headers)
-    
+
 @app.route("/hostinfo.php")
 @app.route("/hostinfo")
 def hostinfo():
@@ -132,7 +132,7 @@ def hostinfo():
         'network':         '',
         'proxy_detected':  None,
     }
-    
+
     # Parse out the actual client ip address from header data
     if data['forwarded_for']:
         # Proxy was used
@@ -156,12 +156,12 @@ def hostinfo():
     # collect dns data
     reverse_addr = reversename.from_address( data['address'] )
     try:
-       dns_response = resolver.query(reverse_addr, "PTR")
-       for val in dns_response:
-           app.logger.debug("PTR {}".format(val.to_text()))
-       data['ptr'] = val.to_text()
+        dns_response = resolver.query(reverse_addr, "PTR")
+        for val in dns_response:
+            app.logger.debug("PTR {}".format(val.to_text()))
+        data['ptr'] = val.to_text()
     except:
-       app.logger.warn("reverse DNS lookup failed")
+        app.logger.warn("reverse DNS lookup failed")
 
     # collect isp info
     iplocation = getIPLocation( data['address'])
