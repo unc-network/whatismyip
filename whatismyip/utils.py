@@ -59,13 +59,13 @@ def getForwardedAddress( forwarded_for ):
 def getNetwork( ip ):
     # Find the network for this address in IPAM.
     startTime = time.time()
-    app.logger.debug("getNetwork {}".format(ip))
+    app.logger.debug(f"getNetwork {ip}")
 
     # make sure we have a valid ip address
     try:
         ipaddr = ipaddress.ip_address(ip)
     except ValueError:
-        app.logger.warn("{} is not a valid ip address".format(ip))
+        app.logger.warn(f"{ip} is not a valid ip address")
         return {}
 
     if ( isCampusIP( ip ) ):
@@ -73,7 +73,7 @@ def getNetwork( ip ):
         ib_server = os.environ.get('IB_SERVER')
         ib_username = os.environ.get('IB_USERNAME')
         ib_password = os.environ.get('IB_PASSWORD')
-        url = "https://{}/wapi/v2.10.5/".format(ib_server)
+        url = f"https://{ib_server}/wapi/v2.10.5/"
 
         app.logger.info("Checking for address info")
         session = requests.Session()
@@ -89,39 +89,39 @@ def getNetwork( ip ):
             object_type = 'network'
         #print("Using {} with {}".format(url,params))
         #response = session.get("{}network".format(url), params=params, auth=(ib_username, ib_password), verify=False)
-        response = session.get("{}{}".format(url,object_type), params=params, auth=(ib_username, ib_password), verify=False)
-        app.logger.debug("{}".format(response))
+        response = session.get(f"{url}{object_type}", params=params, auth=(ib_username, ib_password), verify=False)
+        app.logger.debug(f"{response}")
         if response.status_code != 200:
-            app.logger.warning("query failed {}".format(response))
+            app.logger.warning(f"query failed {response}")
         else:
             network_list = response.json()
-            app.logger.debug("network details: {}".format(network_list))
+            app.logger.debug(f"network details: {network_list}")
 
         if (len(network_list) == 1):
             executionTime = (time.time() - startTime)
-            app.logger.debug("getNetwork complete in {} seconds".format(executionTime))
+            app.logger.debug(f"getNetwork complete in {executionTime} seconds")
             return network_list[0]
         else:
             executionTime = (time.time() - startTime)
-            app.logger.debug("getNetwork complete in {} seconds".format(executionTime))
+            app.logger.debug(f"getNetwork complete in {executionTime} seconds")
             return {}
 
     else:
         executionTime = (time.time() - startTime)
-        app.logger.debug("getNetwork complete in {} seconds".format(executionTime))
+        app.logger.debug(f"getNetwork complete in {executionTime} seconds")
         return {}
 
 
 def getAddressObjects( ip ):
     # Find Infoblox records
     startTime = time.time()
-    app.logger.debug("getAddressObjects {}".format(ip))
+    app.logger.debug(f"getAddressObjects {ip}")
 
     # make sure we have a valid ip address
     try:
         ipaddr = ipaddress.ip_address(ip)
     except ValueError:
-        app.logger.warn("{} is not a valid ip address".format(ip))
+        app.logger.warn(f"{ip} is not a valid ip address")
         return {}
 
     if ( isCampusIP( ip ) ):
@@ -129,7 +129,7 @@ def getAddressObjects( ip ):
         ib_server = os.environ.get('IB_SERVER')
         ib_username = os.environ.get('IB_USERNAME')
         ib_password = os.environ.get('IB_PASSWORD')
-        url = "https://{}/wapi/v2.10.5/".format(ib_server)
+        url = f"https://{ib_server}/wapi/v2.10.5/"
 
         session = requests.Session()
         requests.packages.urllib3.disable_warnings()
@@ -143,26 +143,26 @@ def getAddressObjects( ip ):
         else:
             object_type = 'ipv4address'
         #response = session.get("{}ipv4address".format(url), params=params, auth=(ib_username, ib_password), verify=False)
-        response = session.get("{}{}".format(url,object_type), params=params, auth=(ib_username, ib_password), verify=False)
-        app.logger.debug("{}".format(response))
+        response = session.get(f"{url}{object_type}", params=params, auth=(ib_username, ib_password), verify=False)
+        app.logger.debug(f"{response}")
         if response.status_code != 200:
-            app.logger.warn("{} query failed {}".format(object_type,response))
+            app.logger.warn(f"{object_type} query failed {response}")
         else:
             address_list = response.json()
-            app.logger.debug("{} details: {}".format(object_type,address_list))
+            app.logger.debug(f"{object_type} details: {address_list}")
 
         if (len(address_list) == 1):
             executionTime = (time.time() - startTime)
-            app.logger.debug("getAddressObject complete in {} seconds".format(executionTime))
+            app.logger.debug(f"getAddressObject complete in {executionTime} seconds")
             return address_list[0]
         else:
             executionTime = (time.time() - startTime)
-            app.logger.debug("getAddressObject complete in {} seconds".format(executionTime))
+            app.logger.debug(f"getAddressObject complete in {executionTime} seconds")
             return {}
 
     else:
         executionTime = (time.time() - startTime)
-        app.logger.debug("getAddressObject complete in {} seconds".format(executionTime))
+        app.logger.debug(f"getAddressObject complete in {executionTime} seconds")
         return {}
 
 def getIPLocation( ip ):
@@ -170,13 +170,13 @@ def getIPLocation( ip ):
     # Currently using https://iplocation.net
     # Other options: https://ipapi.co/
     startTime = time.time()
-    app.logger.debug("getIPLocation {}".format(ip))
+    app.logger.debug(f"getIPLocation {ip}")
 
     # make sure we have a valid ip address
     try:
         ipaddr = ipaddress.ip_address(ip)
     except ValueError:
-        app.logger.warn("{} is not a valid ip address".format(ip))
+        app.logger.warn(f"{ip} is not a valid ip address")
         return {}
 
     if not ipaddr.is_private:
@@ -184,23 +184,23 @@ def getIPLocation( ip ):
         api_url = "https://api.iplocation.net/?ip="
         session = requests.Session()
         try:
-            response = session.get("{}{}".format(api_url,ip), timeout=3)
+            response = session.get(f"{api_url}{ip}", timeout=3)
         except requests.ReadTimeout:
             # Something went wrong, return no data
             app.logger.warn("unable to query location api")
             return {}
         if response.status_code != 200:
-            app.logger.warn("iplocation query failed {}".format(response))
+            app.logger.warn(f"iplocation query failed {response}")
             executionTime = (time.time() - startTime)
-            app.logger.debug("getIPLocation complete in {} seconds".format(executionTime))
+            app.logger.debug(f"getIPLocation complete in {executionTime} seconds")
             return {}
         else:
             iplocation = response.json()
-            app.logger.debug("iplocation details: {}".format( iplocation ))
+            app.logger.debug(f"iplocation details: {iplocation}")
             executionTime = (time.time() - startTime)
-            app.logger.debug("getIPLocation complete in {} seconds".format(executionTime))
+            app.logger.debug(f"getIPLocation complete in {executionTime} seconds")
             return iplocation
     else:
         executionTime = (time.time() - startTime)
-        app.logger.debug("getIPLocation complete in {} seconds".format(executionTime))
+        app.logger.debug(f"getIPLocation complete in {executionTime} seconds")
         return {}
