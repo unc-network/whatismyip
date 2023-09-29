@@ -16,6 +16,14 @@ class Config():   # pylint: disable=too-few-public-methods
         '9e4@&tw46$l31)zrqe3wi+-slqm(ruvz&se0^%9#6(_w3ui!c0'
     )
 
+    SERVER_URL = 'http://127.0.0.1:5000'
+    IPV4_SERVER_URL = 'http://127.0.0.1:5000'
+
+    # Infoblox data
+    IB_SERVER = 'http://127.0.0.1'
+    IB_USERNAME = 'admin'
+    IB_PASSWORD = 'infoblox'
+
 class ProductionConfig(Config): # pylint: disable=too-few-public-methods
     """
     Production flask config

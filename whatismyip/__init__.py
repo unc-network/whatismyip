@@ -4,7 +4,7 @@ Basic App
 import os
 import logging
 from flask import Flask, render_template, request, jsonify, make_response, send_from_directory
-from flask.logging import create_logger
+#from flask.logging import create_logger
 from flask_cors import CORS
 from flask_fontawesome import FontAwesome
 from dotenv import load_dotenv
@@ -21,19 +21,21 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 app = Flask(__name__)
-if app.config["ENV"] == "production":
-    app.config.from_object("config.ProductionConfig")
-else:
-    app.config.from_object("config.DevelopmentConfig")
+app.config.from_object("config.Config")
+app.config.from_prefixed_env()
 
-logger = create_logger(app)
-logger.setLevel(logging.INFO)
+#logger = create_logger(app)
+#logger.setLevel(logging.INFO)
 
-CORS(app, resources={r"/hostinfo": {"origins": ["https://whatismyip.unc.edu"]}})
+# Dual stack clients need to access both the v6 and v4 versions of this site.
+# Allow the https v6 site to call the https v4 version of the api.
+# CORS(app, resources={r"/hostinfo": {"origins": ["https://whatismyip.unc.edu"]}})
+CORS(app, resources={r"/hostinfo": {"origins": [ app.config['SERVER_URL'] ]}})
+app.logger.debug("Server url v4/v6 is {} and v4 only is {}".format( app.config['SERVER_URL'], app.config['IPV4_SERVER_URL']))
+
 fa = FontAwesome(app)
 
 # Routes
-
 @app.route("/")
 def home():
     """Display the base homepage with IP address information."""
@@ -68,10 +70,10 @@ def home():
     #context['client_address'] = '75.183.206.183'
     #context['client_address'] = '198.85.230.11'
     #context['client_address'] = '198.85.230.124'
-    #context['client_address'] = '2610:28:3091:1000:2::a'
+    context['client_address'] = '2610:28:3091:1000:2::a'
     #context['client_address'] = '2610:28:3090:1000::d6:e1'
     #context['client_address'] = '2603:6081:7041:8101:cd13:7d19:ae:20ed'
-    logger.info(f"web finding information for {context['client_address']} with forwarded_for {forwarded_for}")  # pylint: disable=line-too-long, logging-fstring-interpolation
+    app.logger.info(f"web finding information for {context['client_address']} with forwarded_for {forwarded_for}")  # pylint: disable=line-too-long, logging-fstring-interpolation
 
     # collect device information
     user_agent = parse(http_user_agent)
@@ -114,10 +116,14 @@ def home():
         try:
             dns_response = resolver.query(reverse_addr, "PTR")
             for val in dns_response:
-                logger.debug(f"PTR {val.to_text()}")    # pylint: disable=logging-fstring-interpolation
+                app.logger.debug(f"PTR {val.to_text()}")    # pylint: disable=logging-fstring-interpolation
                 context['ptr'] = val.to_text()
         except dns.exception.DNSException:
-            logger.warning("reverse DNS lookup failed")
+            app.logger.info(f"reverse DNS lookup failed on {reverse_addr}")
+
+    # Add the ipv4 version of the test site if it is needed
+    # context['ipv4_url'] = 'https://whatismyipv4.unc.edu'
+    context['ipv4_url'] = app.config['IPV4_SERVER_URL']
 
     #return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
     return render_template("home.html", context = context, headers = headers)
@@ -157,17 +163,17 @@ def hostinfo():
     #data['client_address'] = '2610:28:3091:1000:2::a'
     #data['address'] = '2610:28:3090:1000::d6:e1'
     #context['client_address'] = '2603:6081:7041:8101:cd13:7d19:ae:20ed'
-    logger.info(f"hostinfo finding information for {data['address']} with forwarded_for {data['forwarded_for']}")   # pylint: disable=line-too-long, logging-fstring-interpolation
+    app.logger.info(f"hostinfo finding information for {data['address']} with forwarded_for {data['forwarded_for']}")   # pylint: disable=line-too-long, logging-fstring-interpolation
 
     # collect dns data
     reverse_addr = reversename.from_address( data['address'] )
     try:
         dns_response = resolver.query(reverse_addr, "PTR")
         for val in dns_response:
-            logger.debug(f"PTR {val.to_text()}")    # pylint: disable=logging-fstring-interpolation
+            app.logger.debug(f"PTR {val.to_text()}")    # pylint: disable=logging-fstring-interpolation
             data['ptr'] = val.to_text()
     except dns.exception.DNSException:
-        logger.warning("reverse DNS lookup failed")
+        app.logger.warning("reverse DNS lookup failed")
 
     # collect isp info
     iplocation = get_ip_location( data['address'])

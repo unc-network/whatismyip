@@ -20,7 +20,7 @@
     </div>
   </div>
 </div>
-<div id="second_address_section" class="row p-1" style="display:none;">
+<div id="second_address_section" class="row p-1" style="display:none;" data-test_url="{{ context.ipv4_url }}">
   <div class="col">
     <div class="card bg-primary shadow">
       <div class="card-body">
@@ -61,7 +61,7 @@
     It is used by your client when accessing campus resources.
     </p>
     <p id="v6_help_text" style="display:none;">
-      A dual stacked configuration (IPv6 and IPv4) was detected.  You can use the <a href="https://whatismyipv4.unc.edu">IPv4 version of the What is my IP? site</a> to ignore your IPv6 address.
+      A dual stacked configuration (IPv6 and IPv4) was detected.  You can use the <a href="{{ context.ipv4_url }}">IPv4 version of the What is my IP? site</a> to ignore your IPv6 address.
     </p>
   </div>
 </div>

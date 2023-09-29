@@ -1,7 +1,6 @@
 """
 Utility functions
 """
-import os
 import time
 import ipaddress
 import requests
@@ -75,9 +74,9 @@ def get_network( ip_address ):
 
     if is_campus_ip( ip_address ):
         # Do the lookup only if we think this is a campus address
-        ib_server = os.environ.get('IB_SERVER')
-        ib_username = os.environ.get('IB_USERNAME')
-        ib_password = os.environ.get('IB_PASSWORD')
+        ib_server = app.config['IB_SERVER']
+        ib_username = app.config['IB_USERNAME']
+        ib_password = app.config['IB_PASSWORD']
         url = f"https://{ib_server}/wapi/v2.10.5/"
 
         app.logger.info("Checking for address info")
@@ -138,9 +137,9 @@ def get_address_objects( ip_address ):
 
     if is_campus_ip( ip_address ):
         # Do the lookup only if we think this is a campus address
-        ib_server = os.environ.get('IB_SERVER')
-        ib_username = os.environ.get('IB_USERNAME')
-        ib_password = os.environ.get('IB_PASSWORD')
+        ib_server = app.config['IB_SERVER']
+        ib_username = app.config['IB_USERNAME']
+        ib_password = app.config['IB_PASSWORD']
         url = f"https://{ib_server}/wapi/v2.10.5/"
 
         session = requests.Session()

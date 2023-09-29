@@ -38,12 +38,13 @@ $(document).ready(function () {
 	var address = $('#address').text();
 
 	if (address.indexOf(':') != -1) {
+		var test_url = $('#second_address_section').data('test_url')
 		$('#second_address_section').show()
+
 		// Make AJAX call to the API to get the ipv4 address
 		$.ajax({
 			type: "GET",
-			url: "https://whatismyipv4.unc.edu/hostinfo",
-			//url: "http://127.0.0.1:5000/hostinfo",
+			url: test_url + "/hostinfo",
 			dataType: "json",
 			success: function (result, status, xhr) {
 				//console.log(result);
