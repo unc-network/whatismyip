@@ -18,9 +18,15 @@ This is a simple Flask application to provide a basic "What is my IP?" kind of w
 ### Executing program
 
 * How to run the program
+
 * Step-by-step bullets
 ```
-code blocks for commands
+flask --app whatismyip run
+```
+
+* Step-by-step bullets
+```
+gunicorn --config config.py whatismyip:app
 ```
 
 ## Help
