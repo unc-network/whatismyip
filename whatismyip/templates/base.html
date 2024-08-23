@@ -8,7 +8,7 @@
     <meta name="robots" content="index, follow" />
     <title>What is my IP?</title>
 
-	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+	<link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
 
 	<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}"> -->
     <!-- Font Awesome -->
@@ -89,7 +89,7 @@
 				</div>
 				<div class="row mb-5">
 					<div class="col-md-6">
-						<img src="{{ url_for('static', filename='images/Information-Technology-Services_logo.png') }}" class="d-none d-sm-inline align-text-top" alt="Logo" style="width:273px;">
+						<img src="{{ url_for('static', filename='img/Information-Technology-Services_logo.png') }}" class="d-none d-sm-inline align-text-top" alt="Logo" style="width:273px;">
 					</div>
 					<div class="col-md-6 text-end">
 						<p><small>Copyright &copy; <script>document.write(new Date().getFullYear())</script> - Information Technology Services</small></p>
@@ -101,8 +101,6 @@
 		<!-- MDB -->
 		<script type="text/javascript" src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>
 		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
-		<!-- <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script> -->
-		<!-- <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script> -->
 		{% block javascript %}
 		{% endblock %}
  </body>

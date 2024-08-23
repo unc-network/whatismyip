@@ -2,9 +2,7 @@
 Basic App
 """
 import os
-import logging
 from flask import Flask, render_template, request, jsonify, make_response, send_from_directory
-#from flask.logging import create_logger
 from flask_cors import CORS
 from flask_fontawesome import FontAwesome
 from dotenv import load_dotenv
@@ -43,36 +41,25 @@ def home():
 
     # variables to help debug
     headers = dict(request.headers)
-    # environ = dict(request.environ)
 
     # get the request headers
     forwarded_for   = request.environ.get("HTTP_X_FORWARDED_FOR",None)
     remote_address  = request.environ.get("REMOTE_ADDR",None)
-    # remote_port     = request.environ.get("REMOTE_PORT",None)
-    # request_method  = request.environ.get("REQUEST_METHOD",None)
-    # server_protocol = request.environ.get("SERVER_PROTOCOL",None)
-    http_user_agent      = request.environ.get("HTTP_USER_AGENT",None)
+    remote_port     = request.environ.get("REMOTE_PORT",None)
+    request_method  = request.environ.get("REQUEST_METHOD",None)
+    server_protocol = request.environ.get("SERVER_PROTOCOL",None)
+    http_user_agent = request.environ.get("HTTP_USER_AGENT",None)
 
     # Parse out the actual client ip address from header data
     if forwarded_for:
-        # # Proxy was used, client IP should be first in the list
-        # fwd_list = forwarded_for.split(',')
-        # context['client_address'] = fwd_list[0]
-        context['client_address'], context['proxy_detected'] = get_forwarded_address( forwarded_for )   # pylint: disable=line-too-long
+        # Proxy was used, client IP should be first in the list
+        client_address, proxy_detected = get_forwarded_address( forwarded_for )   # pylint: disable=line-too-long
     else:
         # No proxy was used
-        context['client_address'] = remote_address
-    #context['client_address'] = '152.2.198.50'
-    #context['client_address'] = '152.2.198.224'
-    #context['client_address'] = '152.2.198.240'
-    #context['client_address'] = '152.23.198.240'
-    #context['client_address'] = '172.17.32.38'
-    #context['client_address'] = '75.183.206.183'
-    #context['client_address'] = '198.85.230.11'
-    #context['client_address'] = '198.85.230.124'
-    #context['client_address'] = '2610:28:3091:1000:2::a'
-    #context['client_address'] = '2610:28:3090:1000::d6:e1'
-    #context['client_address'] = '2603:6081:7041:8101:cd13:7d19:ae:20ed'
+        client_address = remote_address
+        proxy_detected = None
+    context['client_address'] = os.getenv('CLIENT_ADDRESS', client_address)
+    context['proxy_detected'] = os.getenv('PROXY_DETECTED', proxy_detected)
     app.logger.info(f"web finding information for {context['client_address']} with forwarded_for {forwarded_for}")  # pylint: disable=line-too-long, logging-fstring-interpolation
 
     # collect device information
