@@ -164,7 +164,11 @@ def get_address_objects( ip_address ):
             address_list = response.json()
             app.logger.debug(f"{object_type} details: {address_list}")
 
-        if len(address_list) == 1:
+        if address_list is None:
+            execution_time = time.time() - start_time
+            app.logger.debug(f"getAddressObject NONE complete in {execution_time} seconds")
+            return {}
+        elif len(address_list) == 1:
             execution_time = time.time() - start_time
             app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
             return address_list[0]
