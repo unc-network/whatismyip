@@ -1,63 +1,29 @@
-# This file is a template, and might need editing before it works on your project.
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/ee/development/cicd/templates.html
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Python.gitlab-ci.yml
+image: python:3.11
 
-# Official language image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/python/tags/
-image: python:latest
+stages:
+  - lint
+  - test
 
-# Change pip's cache directory to be inside the project directory since we can
-# only cache local items.
-variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-
-# Pip's cache doesn't store the python packages
-# https://pip.pypa.io/en/stable/topics/caching/
-#
-# If you want to also cache the installed packages, you have to install
-# them in a virtualenv and cache it as well.
-cache:
-  paths:
-    - .cache/pip
-    - venv/
-
-before_script:
-  - python --version  # For debugging
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
-
-test:
+black_formatting_check:
+  stage: lint
+  variables:
+    WORKDIR: "." # Directory to check, defaults to root
+  before_script:
+    - pip install black
   script:
-    #- python setup.py test
-    - pip install tox flake8  # you can also use tox
-    - tox -e py,flake8
+    # Run black in check mode: fails if changes are needed
+    - black "$WORKDIR" --check --verbose --diff --color
+  cache: [] # Prevents caching for this job, ensuring a fresh run
 
-run:
+run_tests:
+  stage: test # Assign this job to the 'test' stage
   script:
-    - python setup.py bdist_wheel
-    # an alternative approach is to install and run:
-    - pip install dist/*
-    # run the command here
-  artifacts:
-    paths:
-      - dist/*.whl
-
-pages:
-  script:
-    - pip install sphinx sphinx-rtd-theme
-    - cd doc
-    - make html
-    - mv build/html/ ../public/
-  artifacts:
-    paths:
-      - public
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-deploy:
-  stage: deploy
-  script: echo "Define your deployment script!"
-  environment: production
+    - pip install -r requirements.txt # Install project dependencies
+    # Run your tests using pytest, unittest, or another test runner
+    - pytest # or `python -m unittest discover tests`
+  # Optional: Store test results as artifacts for review in GitLab UI
+  # artifacts:
+  #   paths:
+  #     - coverage.xml
+  #   reports:
+  #     cobertura: coverage.xml
