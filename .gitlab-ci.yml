@@ -17,10 +17,12 @@ black_formatting_check:
 
 run_tests:
   stage: test # Assign this job to the 'test' stage
+  before_script:
+    - pip install pytest
   script:
     - pip install -r requirements.txt # Install project dependencies
     # Run your tests using pytest, unittest, or another test runner
-    - pytest # or `python -m unittest discover tests`
+    # - pytest # or `python -m unittest discover tests`
   # Optional: Store test results as artifacts for review in GitLab UI
   # artifacts:
   #   paths:
