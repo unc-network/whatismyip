@@ -1,45 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row p-1">
-  <div class="col">
-    <div class="card bg-primary shadow">
-      <div class="card-body">
-
-        <div id="address_box" class="row unc-ip">
-          <div class="col-md-10 offset-md-1 text-center">
-            <h1 id="address" class="display-4 text-center mb-0">{{ context.client_address }}</h1>
-          </div>
-          <div class="col-md-1 text-end">
-            <button onclick="copyAddress(address)" class="btn" aria-label="Copy IP Address">
-              <i class="fa fa-copy text-white" data-toggle="tooltip" title="copy to clipboard" aria-hidden="true"> </i>
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</div>
-<div id="second_address_section" class="row p-1" style="display:none;" data-test_url="{{ context.ipv4_url }}">
-  <div class="col">
-    <div class="card bg-primary shadow">
-      <div class="card-body">
-
-        <div id="additional_ip" class="row unc-ip">
-          <div class="col-md-10 offset-md-1 text-center">
-            <h1 id="address2" class="display-4 text-center mb-0">loading...</h1>
-          </div>
-          <div class="col-md-1 text-end">
-            <button onclick="copyAddress(address2)" class="btn" aria-label="Copy IP Address">
-              <i class="fa fa-copy text-white" data-toggle="tooltip" title="copy to clipboard" aria-hidden="true"> </i>
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</div>
 <div class="row p-1 my-3">
   <div class="col">
     <p>
@@ -65,6 +25,47 @@
     </p>
   </div>
 </div>
+<div class="row p-1 my-3">
+  <div class="col">
+    <div class="card bg-primary shadow">
+      <div class="card-body">
+
+        <div id="address_box" class="row unc-ip">
+          <div class="col-md-10 offset-md-1 text-center">
+            <h1 id="address" class="display-4 text-center mb-0">{{ context.client_address }}</h1>
+          </div>
+          <div class="col-md-1 text-end">
+            <button onclick="copyAddress(address)" class="btn" aria-label="Copy IP Address">
+              <i class="fa fa-copy text-white" data-toggle="tooltip" title="copy to clipboard" aria-hidden="true"> </i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div id="second_address_section" class="row p-1 my-3" style="display:none;" data-test_url="{{ context.ipv4_url }}">
+  <div class="col">
+    <div class="card bg-primary shadow">
+      <div class="card-body">
+
+        <div id="additional_ip" class="row unc-ip">
+          <div class="col-md-10 offset-md-1 text-center">
+            <h1 id="address2" class="display-4 text-center mb-0">loading...</h1>
+          </div>
+          <div class="col-md-1 text-end">
+            <button onclick="copyAddress(address2)" class="btn" aria-label="Copy IP Address">
+              <i class="fa fa-copy text-white" data-toggle="tooltip" title="copy to clipboard" aria-hidden="true"> </i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row row-cols-1 row-cols-xl-2 g-4 p-1">
 
   <div class="col">
