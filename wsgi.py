@@ -1,6 +1,7 @@
 """
 WSGI config for project
 """
+
 # import os
 # from dotenv import load_dotenv
 

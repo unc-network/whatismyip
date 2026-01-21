@@ -26,13 +26,17 @@
 
 	<!-- Site Specific -->
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/whatismyip.css') }}">
+
 	{{ fontawesome_html () }}
+
+	<!-- UNC Utility Bar -->
+	<script type="text/javascript" id="unc-ub-script" data-color="blue" src="https://unc.edu/web-assets/utility-bar/utility-bar.min.js"></script>
  </head>
  <body>
 	<body>
 
 		<!-- Navbar -->
-		<nav class="navbar navbar-expand-lg navbar-dark navbar-unc">
+		<!-- <nav class="navbar navbar-expand-lg navbar-dark navbar-unc">
 			<div class="container">
 				<a href="https://www.unc.edu" class="navbar-brand">
 					<span class="d-none d-md-inline unc-title">The University <em>of</em> North Carolina <em>at</em> Chapel Hill</span>
@@ -53,16 +57,16 @@
 						<li class="nav-item">
 							<a class="nav-link" href="{{ url_for('home') }}">Home</a>
 						</li>
-						<!-- <li class="nav-item">
+						<li class="nav-item">
 							<a class="nav-link" href="{{ url_for('hostinfo') }}">API</a>
-						</li> -->
+						</li>
 						<li class="nav-item">
 							<a class="nav-link" href="{{ url_for('about') }}">About</a>
 						</li>
 					</ul>
 				</div>
 			</div>
-		</nav>
+		</nav> -->
 
 		<!-- Main Content -->
 		<main role="main">
@@ -70,7 +74,7 @@
 				<div class="row">
 					<div class="col">
 					  <div class="py-5 text-center fst-italic unc-page-title">
-						<h2 class="mb-2">What is my IP address?</h2>
+						<h1 class="mb-2">What is my IP?</h1>
 					  </div>
 					</div>
 				  </div>
@@ -87,11 +91,17 @@
 						<div class="border-top my-5"></div>
 					</div>
 				</div>
-				<div class="row mb-5">
-					<div class="col-md-6">
-						<img src="{{ url_for('static', filename='img/Information-Technology-Services_logo.png') }}" class="d-none d-sm-inline align-text-top" alt="Logo" style="width:273px;">
+				<div class="row mb-3">
+					<div class="col">
+						<h5>About "What is my IP?"</h5>
+						<p><small>This site is hosted on the campus network and provided by <a href="https://its.unc.edu/">Information Technology Services</a>
+							as a network diagnostic tool.  The IP addresses reported are those visible to campus applications
+							such as addresses provided by the campus VPN service.  Further information is available from the help site in the 
+							<a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=263">Determine Client IP Address</a> help article.
 					</div>
-					<div class="col-md-6 text-end">
+				</div>
+				<div class="row mb-5">
+					<div class="col">
 						<p><small>Copyright &copy; <script>document.write(new Date().getFullYear())</script> - Information Technology Services</small></p>
 					</div>
 				</div>
