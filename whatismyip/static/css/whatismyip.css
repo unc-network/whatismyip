@@ -4,11 +4,13 @@
  */
 body {
   /*font-family: Georgia, serif;*/
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; */
+  font-family: "Open Sans",Helvetica,Arial,sans-serif;
 }
 
 .unc-ip {
-  font-family: TimesNewRoman, "Times New Roman", Times, Baskerville, Georgia, serif;
+  /* font-family: TimesNewRoman, "Times New Roman", Times, Baskerville, Georgia, serif; */
+  font-family: "Open Sans",Helvetica,Arial,sans-serif;
   word-wrap: break-word;
 }
 
