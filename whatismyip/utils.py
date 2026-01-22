@@ -247,8 +247,8 @@ def get_ip_location(ip_address):
         # api_url = f"https://ipapi.co/{ip_address}/json/"
         session = requests.Session()
         try:
-            response = session.get(f"{api_url}{ip_address}", timeout=3)
-            # response = session.get(api_url, timeout=3)
+            # response = session.get(f"{api_url}{ip_address}", timeout=3)
+            response = session.get(api_url, timeout=3)
         except requests.ReadTimeout:
             # Something went wrong, return no data
             app.logger.warn("unable to query location api")

@@ -81,8 +81,15 @@ $(document).ready(function () {
 			url: test_url + "/hostinfo",
 			dataType: "json",
 			success: function (result, status, xhr) {
+				$('#second_address_section').show()
 				$('#connect-ipv6').text("Successful " + result["address"]);
 				console.log(result);
+				$('#address2').text(result["address"]);
+
+				// Populate 2nd address's details
+				$('#address2-details').show();
+				$('#address2-address').text(result["address"]);
+				$('#address2-ptr').text(result["ptr"]);
 			},
 			error: function (xhr, status, error) {
 				$('#connect-ipv6').text("Failure");
