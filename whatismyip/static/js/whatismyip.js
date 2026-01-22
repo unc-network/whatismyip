@@ -41,7 +41,8 @@ $(document).ready(function () {
 	if (address.indexOf(':') != -1) {
 		// default is IPv6 connection
 		$('#connect-default').text("IPv6");
-		$('#connect-ipv6').text("Supported " + address);
+		$('#connect-ipv6').text("Supported");
+		$('#connect-ipv4').text("Testing...");
 
 		// var test_url = $('#second_address_section').data('test_url')
 		var test_url = $('#connect-test').data('ipv4_url')
@@ -53,7 +54,7 @@ $(document).ready(function () {
 			url: test_url + "/hostinfo",
 			dataType: "json",
 			success: function (result, status, xhr) {
-				$('#connect-ipv4').text("Supported " + result["address"]);
+				$('#connect-ipv4').text("Supported");
 				console.log("Host check from " + result["address"]);
 				$('#address2').text(result["address"]);
 				$('#v6_help_text').show();
@@ -71,7 +72,8 @@ $(document).ready(function () {
 	} else {
 		// default is IPv4 connection
 		$('#connect-default').text("IPv4");
-		$('#connect-ipv4').text("Supported " + address);
+		$('#connect-ipv4').text("Supported");
+		$('#connect-ipv6').text("Testing...");
 
 		// Make AJAX call to the API to get the ipv6 address
 		var test_url = $('#connect-test').data('ipv6_url')
@@ -81,7 +83,7 @@ $(document).ready(function () {
 			dataType: "json",
 			success: function (result, status, xhr) {
 				$('#second_address_section').show()
-				$('#connect-ipv6').text("Supported " + result["address"]);
+				$('#connect-ipv6').text("Supported");
 				console.log("Host check from " + result["address"]);
 				$('#address2').text(result["address"]);
 
