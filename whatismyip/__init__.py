@@ -38,11 +38,7 @@ app.config.from_prefixed_env()
 # Allow the https v6 site to call the https v4 version of the api.
 # CORS(app, resources={r"/hostinfo": {"origins": ["https://whatismyip.unc.edu"]}})
 CORS(app, resources={r"/hostinfo": {"origins": [app.config["SERVER_URL"]]}})
-app.logger.debug(
-    "Server url v4/v6 is {} and v4 only is {}".format(
-        app.config["SERVER_URL"], app.config["IPV4_SERVER_URL"]
-    )
-)
+app.logger.debug(f"URL: dual stack {app.config['SERVER_URL']}, ipv4-only {app.config['IPV4_SERVER_URL']}, ipv6-only {app.config['IPV6_SERVER_URL']}")
 
 fa = FontAwesome(app)
 
@@ -51,7 +47,7 @@ fa = FontAwesome(app)
 @app.route("/")
 def home():
     """Display the base homepage with IP address information."""
-    context = {}
+    data = {}
 
     # variables to help debug
     headers = dict(request.headers)
@@ -74,76 +70,89 @@ def home():
         # No proxy was used
         client_address = remote_address
         proxy_detected = None
-    context["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
-    context["proxy_detected"] = os.getenv("PROXY_DETECTED", proxy_detected)
+    data["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
+    data["proxy_detected"] = os.getenv("PROXY_DETECTED", proxy_detected)
     app.logger.info(
-        f"web finding information for {context['client_address']} with forwarded_for {forwarded_for}"
+        f"web finding information for {data['client_address']} with forwarded_for {forwarded_for}"
     )  # pylint: disable=line-too-long, logging-fstring-interpolation
 
     # collect device information
     user_agent = parse(http_user_agent)
-    context["user_device"] = str(user_agent)
-    # context['user_browser'] = "{} {}".format(user_agent.browser.family,user_agent.browser.version_string) # pylint: disable=line-too-long
-    # context['user_os'] = "{} {}".format(user_agent.os.family,user_agent.os.version_string)
-    # context['user_device'] = "{} {}".format(user_agent.device.brand,user_agent.device.model)
+    data["user_device"] = str(user_agent)
+    # data['user_browser'] = "{} {}".format(user_agent.browser.family,user_agent.browser.version_string) # pylint: disable=line-too-long
+    # data['user_os'] = "{} {}".format(user_agent.os.family,user_agent.os.version_string)
+    # data['user_device'] = "{} {}".format(user_agent.device.brand,user_agent.device.model)
 
     # collect isp info
-    iplocation = get_ip_location(context["client_address"])
-    context["iplocation"] = iplocation
+    iplocation = get_ip_location(data["client_address"])
+    data["iplocation"] = iplocation
 
     # collect isp info
-    # ipwhois = getISP( context['client_address'])
-    # context['ipwhois'] = ipwhois
+    # ipwhois = getISP( data['client_address'])
+    # data['ipwhois'] = ipwhois
     # app.logger.debug("Parsed ip whois")
 
     # collect information about the network for this address
-    network = get_network(context["client_address"])
-    context["network"] = network
+    network = get_network(data["client_address"])
+    data["network"] = network
     if network:
         # collect network data to display
-        context["network_cidr"] = network.get("network", None)
-        context["network_comment"] = network.get("comment", None)
-        context["network_type"] = (
+        data["network_cidr"] = network.get("network", None)
+        data["network_comment"] = network.get("comment", None)
+        data["network_type"] = (
             network.get("extattrs", {}).get("Purpose", {}).get("value", None)
         )
-        context["network_router"] = (
+        data["network_router"] = (
             network.get("extattrs", {}).get("Router Device", {}).get("value", None)
         )
 
         # collect vlan data to display
         vlan_list = network.get("vlans", None)
         if vlan_list:
-            context["vlan_id"] = vlan_list[0].get("id", None)
-            context["vlan_name"] = vlan_list[0].get("name", None)
+            data["vlan_id"] = vlan_list[0].get("id", None)
+            data["vlan_name"] = vlan_list[0].get("name", None)
 
     # Find any address objects
-    address_records = get_address_objects(context["client_address"])
-    context["address_records"] = address_records
+    address_records = get_address_objects(data["client_address"])
+    data["address_records"] = address_records
     if not address_records:
         # collect dns data if we don't have Infoblox address data
-        reverse_addr = reversename.from_address(context["client_address"])
+        reverse_addr = reversename.from_address(data["client_address"])
         try:
             dns_response = resolver.query(reverse_addr, "PTR")
             for val in dns_response:
                 app.logger.debug(
                     f"PTR {val.to_text()}"
                 )  # pylint: disable=logging-fstring-interpolation
-                context["ptr"] = val.to_text()
+                data["ptr"] = val.to_text()
         except dns.exception.DNSException:
             app.logger.info(f"reverse DNS lookup failed on {reverse_addr}")
 
     # Add the ipv4 version of the test site if it is needed
-    # context['ipv4_url'] = 'https://whatismyipv4.unc.edu'
-    context["ipv4_url"] = app.config["IPV4_SERVER_URL"]
+    # data['ipv4_url'] = 'https://whatismyipv4.unc.edu'
+    data["ipv4_url"] = app.config["IPV4_SERVER_URL"]
+    data["ipv6_url"] = app.config["IPV6_SERVER_URL"]
 
-    # return render_template("home.html", context = context, headers = headers, environ = environ, network=network)
-    return render_template("home.html", context=context, headers=headers)
+    # return render_template("home.html", context = data, headers = headers, environ = environ, network=network)
+    return render_template("home.html", context=data, headers=headers)
 
 
 @app.route("/hostinfo.php")
 @app.route("/hostinfo")
 def hostinfo():
     """Return JSON structure with IP address information."""
+    data = {}
+
+    # variables to help debug
+    headers = dict(request.headers)
+
+    # get the request headers
+    forwarded_for = request.environ.get("HTTP_X_FORWARDED_FOR", None)
+    remote_address = request.environ.get("REMOTE_ADDR", None)
+    remote_port = request.environ.get("REMOTE_PORT", None)
+    request_method = request.environ.get("REQUEST_METHOD", None)
+    server_protocol = request.environ.get("SERVER_PROTOCOL", None)
+    http_user_agent = request.environ.get("HTTP_USER_AGENT", None)
 
     # build the main data dictionary
     data = {
@@ -177,6 +186,7 @@ def hostinfo():
     # data['client_address'] = '2610:28:3091:1000:2::a'
     # data['address'] = '2610:28:3090:1000::d6:e1'
     # context['client_address'] = '2603:6081:7041:8101:cd13:7d19:ae:20ed'
+    data["address"] = os.getenv("CLIENT_ADDRESS", data["address"])
     app.logger.info(
         f"hostinfo finding information for {data['address']} with forwarded_for {data['forwarded_for']}"
     )  # pylint: disable=line-too-long, logging-fstring-interpolation

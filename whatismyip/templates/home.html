@@ -250,7 +250,32 @@
         </div>
       </div>
     </div>
-  </div>
+
+    <div id="connect-test" class="card shadow my-3" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}">
+      <div class="card-body">
+        <h5 class="card-title">Connectivity to Campus</h5>
+        <div class="table-responsive">
+        <table class="table table-sm">
+          <tbody>
+              <tr>
+                <th style="width: 20%;">Default</th>
+                <td id="connect-default"></td>
+              </tr>
+              <tr>
+                <th style="width: 20%;">IPv6</th>
+                <td id="connect-ipv6"></td>
+              </tr>
+              <tr>
+                <th style="width: 20%;">IPv4</th>
+                <td id="connect-ipv4"></td>
+              </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- end column -->
 
 </div>
 
