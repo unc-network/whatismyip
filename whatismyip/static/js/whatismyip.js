@@ -57,7 +57,6 @@ $(document).ready(function () {
 				$('#connect-ipv4').text("Supported");
 				console.log("Host check from " + result["address"]);
 				$('#address2').text(result["address"]);
-				$('#v6_help_text').show();
 
 				// Populate 2nd address's details
 				$('#address2-details').show();

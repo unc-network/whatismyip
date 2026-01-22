@@ -19,9 +19,6 @@
       Your IP address is off campus and part of the public Internet.
     {% endif %}
     </p>
-    <p id="v6_help_text" style="display:none;">
-      You connected using IPv6. Alternatively you can use the <a href="{{ context.ipv4_url }}">IPv4 only version of What is my IP?</a> if needed. 
-    </p>
   </div>
 </div>
 <div class="row p-1 my-3">
@@ -31,7 +28,7 @@
 
         <div id="address_box" class="row unc-ip">
           <div class="col-md-10 offset-md-1 text-center">
-            <h1 id="address" class="display-4 text-center mb-0">{{ context.client_address }}</h1>
+            <h1 id="address" class="display-6 text-center mb-0">{{ context.client_address }}</h1>
           </div>
           <div class="col-md-1 text-end">
             <button onclick="copyAddress(address)" class="btn" aria-label="Copy IP Address">
@@ -51,7 +48,7 @@
 
         <div id="additional_ip" class="row unc-ip">
           <div class="col-md-10 offset-md-1 text-center">
-            <h1 id="address2" class="display-4 text-center mb-0">loading...</h1>
+            <h1 id="address2" class="display-6 text-center mb-0">loading...</h1>
           </div>
           <div class="col-md-1 text-end">
             <button onclick="copyAddress(address2)" class="btn" aria-label="Copy IP Address">
