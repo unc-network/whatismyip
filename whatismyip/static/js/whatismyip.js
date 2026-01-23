@@ -80,25 +80,25 @@ $(document).ready(function () {
 					$('#addr2-comment').text(result['address_details']["comment"]);
 				}
 
-				if ( result['address_details']["dhcp_lease_state"] ) {
-					$('#addr2-lease-row').show();
-					$('#addr2-lease').text(result['address_details']["dhcp_lease_state"]);
-				}
+				// if ( result['address_details']["dhcp_lease_state"] ) {
+				// 	$('#addr2-lease-row').show();
+				// 	$('#addr2-lease').text(result['address_details']["dhcp_lease_state"]);
+				// }
 
 				if ( result['address_details']["username"] ) {
 					$('#addr2-username-row').show();
 					$('#addr2-username').text(result['address_details']["username"]);
 				}
 
-				if ( result['address_details']["types"] ) {
-					$('#addr2-types-row').show();
-					$('#addr2-types').text(result['address_details']["types"]);
-				}
+				// if ( result['address_details']["types"] ) {
+				// 	$('#addr2-types-row').show();
+				// 	$('#addr2-types').text(result['address_details']["types"]);
+				// }
 
-				if ( result['address_details']["status"] ) {
-					$('#addr2-status-row').show();
-					$('#addr2-status').text(result['address_details']["status"]);
-				}
+				// if ( result['address_details']["status"] ) {
+				// 	$('#addr2-status-row').show();
+				// 	$('#addr2-status').text(result['address_details']["status"]);
+				// }
 			},
 			error: function (xhr, status, error) {
 				$('#connect-ipv4').text("Not supported");
