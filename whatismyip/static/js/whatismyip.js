@@ -99,6 +99,26 @@ $(document).ready(function () {
 				// 	$('#addr2-status-row').show();
 				// 	$('#addr2-status').text(result['address_details']["status"]);
 				// }
+
+				// Populate 2nd address's network details
+				if ( result['network']["cidr"] ) {
+					$('#net2-network-row').show();
+					$('#net2-network').text(result['network']["cidr"]);
+				}
+
+				if ( result['network']["vlan_id"] ) {
+					$('#net2-vlan-row').show();
+					$('#net2-vlan').text(result['network']["vlan_id"] + ' (' + result['network']['vlan_name'] + ')');
+				}
+
+				if ( result['iplocation']["country_name"] ) {
+					$('#net2-country-row').show();
+					$('#net2-country').text(result['iplocation']["country_name"]);
+				}
+				if ( result['iplocation']["isp"] ) {
+					$('#net2-isp-row').show();
+					$('#net2-isp').text(result['iplocation']["isp"]);
+				}
 			},
 			error: function (xhr, status, error) {
 				$('#connect-ipv4').text("Not supported");
