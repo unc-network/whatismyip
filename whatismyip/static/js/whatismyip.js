@@ -103,7 +103,11 @@ $(document).ready(function () {
 				// Populate 2nd address's network details
 				if ( result['network']["cidr"] ) {
 					$('#net2-network-row').show();
-					$('#net2-network').text(result['network']["cidr"]);
+					if ( result['network']['comment'] ) {
+						$('#net2-network').text(result['network']["cidr"] + ' (' + result['network']['comment'] + ')');
+					} else {
+						$('#net2-network').text(result['network']["cidr"]);
+					}
 				}
 
 				if ( result['network']["vlan_id"] ) {
