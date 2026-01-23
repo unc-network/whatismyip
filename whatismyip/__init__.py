@@ -183,7 +183,7 @@ def hostinfo():
     else:
         # No proxy was used
         data["address"] = data["remote_address"]
-    data['address'] = '152.2.198.50'
+    #data['address'] = '152.2.198.50'
     #data["address"]='2606:f640:1000:501:6325:a4ee:d1a3:d968'
     # context['client_address'] = '152.2.198.224'
     # context['client_address'] = '152.2.198.240'
@@ -193,7 +193,7 @@ def hostinfo():
     # data['client_address'] = '2610:28:3091:1000:2::a'
     # data['address'] = '2610:28:3090:1000::d6:e1'
     # context['client_address'] = '2603:6081:7041:8101:cd13:7d19:ae:20ed'
-    #data["address"] = os.getenv("CLIENT_ADDRESS", data["address"])
+    data["address"] = os.getenv("CLIENT_ADDRESS", data["address"])
     app.logger.info(
         f"hostinfo finding information for {data['address']} with forwarded_for {data['forwarded_for']}"
     )  # pylint: disable=line-too-long, logging-fstring-interpolation
