@@ -183,7 +183,7 @@ def hostinfo():
     else:
         # No proxy was used
         data["address"] = data["remote_address"]
-    data['address'] = '152.2.198.50'
+    #data['address'] = '152.2.198.50'
     #data["address"]='2606:f640:1000:501:6325:a4ee:d1a3:d968'
     # context['client_address'] = '152.2.198.224'
     # context['client_address'] = '152.2.198.240'
