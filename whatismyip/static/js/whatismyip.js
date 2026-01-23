@@ -61,7 +61,44 @@ $(document).ready(function () {
 				// Populate 2nd address's details
 				$('#address2-details').show();
 				$('#address2-address').text(result["address"]);
-				$('#address2-ptr').text(result["ptr"]);
+
+				if ( result['address_details']["names"] ) {
+					$('#addr2-names-row').show();
+					$('#addr2-names').text(result['address_details']["names"]);
+				} else if ( result['address_details']["ptr"] ) {
+					$('#addr2-ptr-row').show();
+					$('#addr2-ptr').text(result['address_details']["ptr"]);
+				}
+
+				if ( result['address_details']["mac"] ) {
+					$('#addr2-mac-row').show();
+					$('#addr2-mac').text(result['address_details']["mac"]);
+				}
+
+				if ( result['address_details']["comment"] ) {
+					$('#addr2-comment-row').show();
+					$('#addr2-comment').text(result['address_details']["comment"]);
+				}
+
+				if ( result['address_details']["dhcp_lease_state"] ) {
+					$('#addr2-lease-row').show();
+					$('#addr2-lease').text(result['address_details']["dhcp_lease_state"]);
+				}
+
+				if ( result['address_details']["username"] ) {
+					$('#addr2-username-row').show();
+					$('#addr2-username').text(result['address_details']["username"]);
+				}
+
+				if ( result['address_details']["types"] ) {
+					$('#addr2-types-row').show();
+					$('#addr2-types').text(result['address_details']["types"]);
+				}
+
+				if ( result['address_details']["status"] ) {
+					$('#addr2-status-row').show();
+					$('#addr2-status').text(result['address_details']["status"]);
+				}
 			},
 			error: function (xhr, status, error) {
 				$('#connect-ipv4').text("Not supported");

@@ -183,7 +183,8 @@ def hostinfo():
     else:
         # No proxy was used
         data["address"] = data["remote_address"]
-    # data['address'] = '152.2.198.50'
+    data['address'] = '152.2.198.50'
+    #data["address"]='2606:f640:1000:501:6325:a4ee:d1a3:d968'
     # context['client_address'] = '152.2.198.224'
     # context['client_address'] = '152.2.198.240'
     # context['client_address'] = '152.23.198.240'
@@ -192,10 +193,14 @@ def hostinfo():
     # data['client_address'] = '2610:28:3091:1000:2::a'
     # data['address'] = '2610:28:3090:1000::d6:e1'
     # context['client_address'] = '2603:6081:7041:8101:cd13:7d19:ae:20ed'
-    data["address"] = os.getenv("CLIENT_ADDRESS", data["address"])
+    #data["address"] = os.getenv("CLIENT_ADDRESS", data["address"])
     app.logger.info(
         f"hostinfo finding information for {data['address']} with forwarded_for {data['forwarded_for']}"
     )  # pylint: disable=line-too-long, logging-fstring-interpolation
+
+    # collect device information
+    # user_agent = parse(http_user_agent)
+    data["user_device"] = parse(data["user_agent"]).__str__()
 
     # collect dns data
     reverse_addr = reversename.from_address(data["address"])
@@ -215,11 +220,144 @@ def hostinfo():
 
     # collect information about the network for this address
     network = get_network(data["address"])
-    data["network"] = network
+    net_details = {
+        "cidr": None,
+        "comment": "",
+        "ip_version": None,
+        "netmask": None,
+        "prefixlen": None,
+        "contact": None,
+        "contact_name": None,
+        "contact_email": None,
+        "contact_dept": None,
+        "cost_center": None,
+        "purpose": None,
+        "router_device": None,
+        "dhcp_servers": [],
+        "dhcp_routers": None,
+        "dhcp_dns_servers": [],
+        "dhcp_domain_name": None,
+        "dhcp_lease_time": None,
+        "dhcp_ntp_servers": [],
+        "vlan_id": None,
+        "vlan_name": None,
+    }
+    if network:
+        # collect network data to display
+        net_details["cidr"] = network.get("network", None)
+        net_details["comment"] = network.get("comment", "")
+
+        # calculate the IP address basics
+        ip_net = ipaddress.ip_network(net_details["cidr"])
+        net_details["ip_version"] = str(ip_net.version)
+        net_details["netmask"] = str(ip_net.netmask)
+        net_details["prefixlen"] = str(ip_net.prefixlen)
+
+        # collect specific extattr data
+        net_details["contact"] = (
+            network.get("extattrs", {}).get("Admin Onyen", {}).get("value", None)
+        )
+        net_details["contact_name"] = (
+            network.get("extattrs", {}).get("Administrator", {}).get("value", None)
+        )
+        net_details["contact_email"] = (
+            network.get("extattrs", {}).get("Admin Email", {}).get("value", None)
+        )
+        net_details["contact_dept"] = (
+            network.get("extattrs", {}).get("Department", {}).get("value", None)
+        )
+        net_details["cost_center"] = (
+            network.get("extattrs", {}).get("Cost Center", {}).get("value", None)
+        )
+        net_details["purpose"] = (
+            network.get("extattrs", {}).get("Purpose", {}).get("value", None)
+        )
+        net_details["router_device"] = (
+            network.get("extattrs", {}).get("Router Device", {}).get("value", None)
+        )
+        
+        # iterate members to get dhcp servers
+        for member in network.get("members", []):
+            if net_details["ip_version"] == "4":
+                net_details["dhcp_servers"].append(member["ipv4addr"])
+            else:
+                net_details["dhcp_servers"].append(member["ipv6addr"])
+
+        # iterate dhcp options for specific 
+        options = network.get("options", [])
+        for option in options:
+            values = option.get("values", [])
+            for value in values:
+                if value.get("name", "") == "routers":
+                    net_details["dhcp_routers"] = value.get("value", None)
+                if value.get("name", "") == "domain-name-servers":
+                    server_list = value.get("value", "")
+                    net_details["dhcp_dns_servers"] = server_list.split(",")
+                if value.get("name", "") == "domain-name":
+                    net_details["dhcp_domain_name"] = value.get("value", None)
+                if value.get("name", "") == "dhcp-lease-time":
+                    net_details["dhcp_lease_time"] = value.get("value", None)
+                if value.get("name", "") == "ntp-servers":
+                    server_list = value.get("value", "")
+                    net_details["dhcp_ntp_servers"] = server_list.split(",")
+
+        # collect vlan data to display
+        vlan_list = network.get("vlans", None)
+        if vlan_list:
+            net_details["vlan_id"] = vlan_list[0].get("id", None)
+            net_details["vlan_name"] = vlan_list[0].get("name", None)
+
+    data["network"] = net_details
+
+    # collect details about this address
+    addr_details = {
+        "comment": "",
+        "status": None,
+        "mac": None,
+        "username": None,
+        "dhcp_lease_state": None,
+        "names": [],
+        "types": [],
+        "usage": [],
+        "contact": None,
+        "contact_name": None,
+        "contact_email": None,
+        "contact_dept": None,
+    }
+    # calculate the IP address basics
+    ip = ipaddress.ip_address(str(data["address"]))
+    addr_details["ip_version"] = ip.version
+    addr_details["is_private"] = ip.is_private
+    addr_details["is_global"] = ip.is_global
+    addr_details["is_link_local"] = ip.is_link_local
 
     # Find any address objects
     address_records = get_address_objects(data["address"])
-    data["address_records"] = address_records
+    if address_records:
+        addr_details["comment"] = address_records.get("comment", "")
+        addr_details["status"] = address_records.get("status", None)
+        addr_details["mac"] = address_records.get("mac_address", None)
+        addr_details["username"] = address_records.get("username", None)
+        addr_details["dhcp_lease_state"] = address_records.get("lease_state", None)
+        addr_details["names"] = address_records.get("names", [])
+        addr_details["types"] = address_records.get("types", [])
+        addr_details["usage"] = address_records.get("usage", [])
+
+        # collect specific extattr data
+        addr_details["contact"] = (
+            address_records.get("extattrs", {}).get("Admin Onyen", {}).get("value", None)
+        )
+        addr_details["contact_name"] = (
+            address_records.get("extattrs", {}).get("Administrator", {}).get("value", None)
+        )
+        addr_details["contact_email"] = (
+            address_records.get("extattrs", {}).get("Admin Email", {}).get("value", None)
+        )
+        addr_details["contact_dept"] = (
+            address_records.get("extattrs", {}).get("Department", {}).get("value", None)
+        )
+
+    data["address_details"] = addr_details
 
     # build the json response
     message = jsonify(data)

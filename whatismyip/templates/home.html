@@ -225,53 +225,43 @@
             <tbody>
               <tr>
                 <th style="width: 25%;">Address</th>
-                <td id="address2-address">{{ context.client_address }}</td>
+                <td id="address2-address"></td>
               </tr>
-              {% if context.address_records %}
-                <tr>
-                  <th style="width: 25%;">Name</th>
-                  <td>
-                    <ul class="list-group list-group-flush">
-                      {% for name in context.address_records.names %}
-                      <li class="list-group-item p-0">{{ name }}</li> 
-                      {% endfor %}
-                    </ul>
-                  </td>
-                </tr>
-                {% if context.address_records.mac_address %}
-                  <tr>
-                    <th>MAC Address</th>
-                    <td>{{ context.address_records.mac_address }}</td>
-                  </tr>
-                {% endif %}
-                {% if 'LEASE' in context.address_records.types %}
-                  <tr>
-                    <th>DHCP Lease</th>
-                    <td>{{ context.address_records.lease_state }}</td>
-                  </tr>
-                {% endif %}
-                {% if context.address_records.username %}
-                  <tr>
-                    <th>Username</th>
-                    <td>{{ context.address_records.username }}</td>
-                  </tr>
-                {% endif %}
-                {% if context.address_records.extattrs['Device Type'] %}
-                  <tr>
-                    <th>Device Type</th>
-                    <td>{{ context.address_records.extattrs['Device Type'].value }}</td>
-                  </tr>
-                {% endif %}
-                  <tr>
-                    <th>Status</th>
-                    <td>{{ context.address_records.status }}</td>
-                  </tr>
-              {% else %}
-                <tr>
-                  <th>DNS Name</th>
-                  <td id="address2-ptr">{{ context.ptr }}</td>
-                </tr>
-              {% endif %}
+              <tr id="addr2-names-row" style="display:none;">
+                <th>Name</th>
+                <td>
+                  <ul id="addr2-names" class="list-group list-group-flush">
+                  </ul>
+                </td>
+              </tr>
+              <tr id="addr2-mac-row" style="display:none;">
+                <th>MAC Address</th>
+                <td id="addr2-mac"></td>
+              </tr>
+              <tr id="addr2-comment-row" style="display:none;">
+                <th>Comment</th>
+                <td id="addr2-comment"></td>
+              </tr>
+              <tr id="addr2-lease-row" style="display:none;">
+                <th>DHCP Lease</th>
+                <td id="addr2-lease"></td>
+              </tr>
+              <tr id="addr2-username-row" style="display:none;">
+                <th>Username</th>
+                <td id="addr2-username"></td>
+              </tr>
+              <tr id="addr2-types-row" style="display:none;">
+                <th>Device Type</th>
+                <td id="addr2-types"></td>
+              </tr>
+              <tr id="addr2-status-row" style="display:none;">
+                <th>Status</th>
+                <td id="addr2-status"></td>
+              </tr>
+              <tr id="addr2-ptr-row" style="display:none;">
+                <th>DNS Name</th>
+                <td id="address2-ptr"></td>
+              </tr>
             </tbody>
           </table>
         </div>
