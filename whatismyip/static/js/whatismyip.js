@@ -64,14 +64,14 @@ $(document).ready(function () {
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 4 ) {
-				$('#address1').text(result["address"]);
+				$('#address1').text(result["client_address"]);
 			} else {
-				$('#address2').text(result["address"]);
+				$('#address2').text(result["client_address"]);
 			}
 
 			// Populate 2nd address's details
 			$('#address1-details').show();
-			$('#address1-address').text(result["address"]);
+			$('#address1-address').text(result["client_address"]);
 
 			if ( result['address_details']["names"] ) {
 				$('#addr1-names-row').show();
@@ -153,13 +153,13 @@ $(document).ready(function () {
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 6 ) {
-				$('#address1').text(result["address"]);
+				$('#address1').text(result["client_address"]);
 			} else {
-				$('#address2').text(result["address"]);
+				$('#address2').text(result["client_address"]);
 			}
 			// Populate 2nd address's details
 			$('#address2-details').show();
-			$('#address2-address').text(result["address"]);
+			$('#address2-address').text(result["client_address"]);
 
 			if ( result['address_details']["names"] ) {
 				$('#addr2-names-row').show();

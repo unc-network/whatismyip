@@ -99,30 +99,21 @@ def hostinfo():
         "proxy_detected": None,
     }
 
-    # Parse out the actual client ip address from header data
-    if data["forwarded_for"]:
-        # Proxy was used
-        # fwd_list = data['forwarded_for'].split(',')
-        # data['address'] = fwd_list[0]   # the original client should be the first ip
-        data["address"] = get_forwarded_address( data["forwarded_for"])
-    else:
-        # No proxy was used
-        data["address"] = data["remote_address"]
-    # data["address"] = os.getenv("CLIENT_ADDRESS", data['remote_address'])
-    # data["proxy_detected"] = os.getenv("PROXY_DETECTED", data['proxy_detected'])
-    app.logger.info(
-        f"hostinfo view from {data['address']} with forwarded_for {data['forwarded_for']}"
-    )
+    # Check for PROXY usage
+    tmp_forwarded_for = os.getenv("FORWARDED_FOR", forwarded_for)
+    client_address = get_client_address(remote_address, tmp_forwarded_for)
+    data["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
+    app.logger.warning( f"Hostinfo view from {client_address} with forwarded_for {tmp_forwarded_for}")
 
     # calculate the IP address basics at the start
-    ip = ipaddress.ip_address(str(data["address"]))
+    ip = ipaddress.ip_address(str(data["client_address"]))
 
     # collect device information
     # user_agent = parse(http_user_agent)
     data["user_device"] = parse(data["user_agent"]).__str__()
 
     # collect dns data
-    reverse_addr = reversename.from_address(data["address"])
+    reverse_addr = reversename.from_address(data["client_address"])
     try:
         dns_response = resolver.query(reverse_addr, "PTR")
         for val in dns_response:
@@ -135,7 +126,7 @@ def hostinfo():
 
     # collect isp info
     if ip.is_global:
-        iplocation = get_ip_location(data["address"])
+        iplocation = get_ip_location(data["client_address"])
 
         # ipwhois = getWhoIs( data['client_address'])
         # data['ipwhois'] = ipwhois
@@ -154,7 +145,7 @@ def hostinfo():
     data["iplocation"] = iplocation
 
     # collect information about the network for this address
-    network = get_network(data["address"])
+    network = get_network(data["client_address"])
     net_details = {
         "cidr": None,
         "comment": "",
@@ -260,14 +251,13 @@ def hostinfo():
         "contact_dept": None,
     }
     # calculate the IP address basics
-    ip = ipaddress.ip_address(str(data["address"]))
     addr_details["ip_version"] = ip.version
     addr_details["is_private"] = ip.is_private
     addr_details["is_global"] = ip.is_global
     addr_details["is_link_local"] = ip.is_link_local
 
     # Find any address objects
-    address_records = get_address_objects(data["address"])
+    address_records = get_address_objects(data["client_address"])
     if address_records:
         addr_details["comment"] = address_records.get("comment", "")
         addr_details["status"] = address_records.get("status", None)
