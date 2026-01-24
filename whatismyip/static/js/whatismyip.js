@@ -35,11 +35,11 @@ $(document).ready(function () {
 	//$('[data-toggle="tooltip"]').tooltip();
 
 	/* extract the default ip detected */
-	var address = $('#address').text();
-	console.log("Connection from " + address);
+	var default_address = $('#address1').text();
+	console.log("Connection from " + default_address);
 
 	default_version = 6;
-	if (address.indexOf(':') != -1) {
+	if (default_address.indexOf(':') != -1) {
 		// default is IPv6 connection
 		$('#connect-default').text("IPv6");
 		$('#connect-ipv6').text("Supported");
