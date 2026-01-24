@@ -50,9 +50,6 @@ def home():
     """Display the base homepage with IP address information."""
     data = {}
 
-    # variables to help debug
-    headers = dict(request.headers)
-
     # get the request headers
     forwarded_for = request.environ.get("HTTP_X_FORWARDED_FOR", None)
     remote_address = request.environ.get("REMOTE_ADDR", None)
@@ -77,8 +74,7 @@ def home():
     data["ipv4_url"] = app.config["IPV4_SERVER_URL"]
     data["ipv6_url"] = app.config["IPV6_SERVER_URL"]
 
-    # return render_template("home.html", context = data, headers = headers, environ = environ, network=network)
-    return render_template("home.html", context=data, headers=headers)
+    return render_template("home.html", context=data)
 
 
 @app.route("/hostinfo.php")
