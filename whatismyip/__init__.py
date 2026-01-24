@@ -51,6 +51,7 @@ fa = FontAwesome(app)
 def home():
     """Display the base homepage with IP address information."""
     data = {}
+    client_address = None
 
     # get the request headers
     forwarded_for = request.environ.get("HTTP_X_FORWARDED_FOR", None)
@@ -60,19 +61,15 @@ def home():
     server_protocol = request.environ.get("SERVER_PROTOCOL", None)
     http_user_agent = request.environ.get("HTTP_USER_AGENT", None)
 
-    # Parse out the actual client ip address from header data
+    # Check for PROXY usage
     if forwarded_for:
-        # Proxy was used, client IP should be first in the list
         client_address, proxy_detected = get_forwarded_address(forwarded_for)
     else:
-        # No proxy was used
         client_address = remote_address
         proxy_detected = None
     data["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
     data["proxy_detected"] = os.getenv("PROXY_DETECTED", proxy_detected)
-    app.logger.info(
-        f"Home view from {data['client_address']} with forwarded_for {forwarded_for}"
-    )
+    app.logger.warning( f"Home view from {data['client_address']} with forwarded_for {forwarded_for}")
 
     # Add the ipv4/ipv6 specific test urls
     data["ipv4_url"] = app.config["IPV4_SERVER_URL"]
