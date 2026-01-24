@@ -38,18 +38,18 @@ $(document).ready(function () {
 	var address = $('#address').text();
 	console.log("Connection from " + address);
 
+	default_version = 6;
 	if (address.indexOf(':') != -1) {
 		// default is IPv6 connection
 		$('#connect-default').text("IPv6");
 		$('#connect-ipv6').text("Supported");
 		$('#connect-ipv4').text("Testing...");
-
 	} else {
 		// default is IPv4 connection
 		$('#connect-default').text("IPv4");
 		$('#connect-ipv6').text("Testing...");
 		$('#connect-ipv4').text("Supported");
-
+		default_version = 4;
 	}
 
 	// Make AJAX call to the API to get the ipv4 address
@@ -62,7 +62,12 @@ $(document).ready(function () {
 		success: function (result, status, xhr) {
 			$('#connect-ipv4').text("Supported");
 			console.log("Host check from " + result["address"]);
-			$('#address1').text(result["address"]);
+
+			if ( default_version == 4 ) {
+				$('#address1').text(result["address"]);
+			} else {
+				$('#address2').text(result["address"]);
+			}
 
 			// Populate 2nd address's details
 			$('#address1-details').show();
@@ -146,8 +151,12 @@ $(document).ready(function () {
 			$('#second_address_section').show()
 			$('#connect-ipv6').text("Supported");
 			console.log("Host check from " + result["address"]);
-			$('#address2').text(result["address"]);
 
+			if ( default_version == 6 ) {
+				$('#address1').text(result["address"]);
+			} else {
+				$('#address2').text(result["address"]);
+			}
 			// Populate 2nd address's details
 			$('#address2-details').show();
 			$('#address2-address').text(result["address"]);
