@@ -29,11 +29,7 @@ dotenv_path = os.path.join(APP_ROOT, ".env")
 load_dotenv(dotenv_path)
 
 app = Flask(__name__)
-# app.config.from_object("config.Config")
-if os.environ.get('FLASK_ENV') == 'production':
-    app.config.from_object('config.ProductionConfig')
-else:
-    app.config.from_object('config.DevelopmentConfig')
+app.config.from_object("config.Config")
 app.config.from_prefixed_env()
 
 # logger = create_logger(app)
