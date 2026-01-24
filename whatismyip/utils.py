@@ -69,6 +69,28 @@ def is_campus_ip(ip_address):
 #     return {}
 
 
+def get_client_address(remote_address, forwarded_for):
+    """
+    In general the X-Forwarded-For header is a comma separated list of IP 
+    addresses but the header format is not formally standardized.  We will
+    only trust the last two addresses for security concerns.
+
+    Example value: "2610:28:3091:1000:2::a,172.22.158.131"
+    """
+    client_address = None
+
+    if forwarded_for:
+        # Remove spaces, split on commas, and get the second to last address
+        fwd_list = forwarded_for.replace(" ", "").split(",")
+        if len(fwd_list) > 2:
+            client_address = fwd_list[-2]
+        else:
+            client_address = fwd_list[-2]
+    else:
+        client_address = remote_address
+    return client_address
+
+
 def get_forwarded_address(forwarded_for):
     """
     In general the X-Forwarded-For header is a comma separated list of IP 
