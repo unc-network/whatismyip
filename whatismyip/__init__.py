@@ -77,21 +77,18 @@ def home():
     )  # pylint: disable=line-too-long, logging-fstring-interpolation
 
     # Version check first
-    ip = ipaddress.ip_address(str(data["client_address"]))
-    data["ip_version"] = ip.version
-    data["ip_private"] = ip.is_private
-    data["ip_global"] = ip.is_global
+    # ip = ipaddress.ip_address(str(data["client_address"]))
+    # data["ip_version"] = ip.version
+    # data["ip_private"] = ip.is_private
+    # data["ip_global"] = ip.is_global
 
     # collect device information
-    user_agent = parse(http_user_agent)
-    data["user_device"] = str(user_agent)
-    # data['user_browser'] = "{} {}".format(user_agent.browser.family,user_agent.browser.version_string) # pylint: disable=line-too-long
-    # data['user_os'] = "{} {}".format(user_agent.os.family,user_agent.os.version_string)
-    # data['user_device'] = "{} {}".format(user_agent.device.brand,user_agent.device.model)
+    # user_agent = parse(http_user_agent)
+    # data["user_device"] = str(user_agent)
 
     # collect isp info
-    iplocation = get_ip_location(data["client_address"])
-    data["iplocation"] = iplocation
+    # iplocation = get_ip_location(data["client_address"])
+    # data["iplocation"] = iplocation
 
     # collect isp info
     # ipwhois = getISP( data['client_address'])
@@ -99,40 +96,40 @@ def home():
     # app.logger.debug("Parsed ip whois")
 
     # collect information about the network for this address
-    network = get_network(data["client_address"])
-    data["network"] = network
-    if network:
-        # collect network data to display
-        data["network_cidr"] = network.get("network", None)
-        data["network_comment"] = network.get("comment", None)
-        data["network_type"] = (
-            network.get("extattrs", {}).get("Purpose", {}).get("value", None)
-        )
-        data["network_router"] = (
-            network.get("extattrs", {}).get("Router Device", {}).get("value", None)
-        )
+    # network = get_network(data["client_address"])
+    # data["network"] = network
+    # if network:
+    #     # collect network data to display
+    #     data["network_cidr"] = network.get("network", None)
+    #     data["network_comment"] = network.get("comment", None)
+    #     data["network_type"] = (
+    #         network.get("extattrs", {}).get("Purpose", {}).get("value", None)
+    #     )
+    #     data["network_router"] = (
+    #         network.get("extattrs", {}).get("Router Device", {}).get("value", None)
+    #     )
 
-        # collect vlan data to display
-        vlan_list = network.get("vlans", None)
-        if vlan_list:
-            data["vlan_id"] = vlan_list[0].get("id", None)
-            data["vlan_name"] = vlan_list[0].get("name", None)
+    #     # collect vlan data to display
+    #     vlan_list = network.get("vlans", None)
+    #     if vlan_list:
+    #         data["vlan_id"] = vlan_list[0].get("id", None)
+    #         data["vlan_name"] = vlan_list[0].get("name", None)
 
     # Find any address objects
-    address_records = get_address_objects(data["client_address"])
-    data["address_records"] = address_records
-    if not address_records:
-        # collect dns data if we don't have Infoblox address data
-        reverse_addr = reversename.from_address(data["client_address"])
-        try:
-            dns_response = resolver.query(reverse_addr, "PTR")
-            for val in dns_response:
-                app.logger.debug(
-                    f"PTR {val.to_text()}"
-                )  # pylint: disable=logging-fstring-interpolation
-                data["ptr"] = val.to_text()
-        except dns.exception.DNSException:
-            app.logger.info(f"reverse DNS lookup failed on {reverse_addr}")
+    # address_records = get_address_objects(data["client_address"])
+    # data["address_records"] = address_records
+    # if not address_records:
+    #     # collect dns data if we don't have Infoblox address data
+    #     reverse_addr = reversename.from_address(data["client_address"])
+    #     try:
+    #         dns_response = resolver.query(reverse_addr, "PTR")
+    #         for val in dns_response:
+    #             app.logger.debug(
+    #                 f"PTR {val.to_text()}"
+    #             )  # pylint: disable=logging-fstring-interpolation
+    #             data["ptr"] = val.to_text()
+    #     except dns.exception.DNSException:
+    #         app.logger.info(f"reverse DNS lookup failed on {reverse_addr}")
 
     # Add the ipv4 version of the test site if it is needed
     # data['ipv4_url'] = 'https://whatismyipv4.unc.edu'
@@ -198,6 +195,9 @@ def hostinfo():
         f"hostinfo finding information for {data['address']} with forwarded_for {data['forwarded_for']}"
     )  # pylint: disable=line-too-long, logging-fstring-interpolation
 
+    # calculate the IP address basics at the start
+    ip = ipaddress.ip_address(str(data["address"]))
+
     # collect device information
     # user_agent = parse(http_user_agent)
     data["user_device"] = parse(data["user_agent"]).__str__()
@@ -215,7 +215,23 @@ def hostinfo():
         app.logger.warning("reverse DNS lookup failed")
 
     # collect isp info
-    iplocation = get_ip_location(data["address"])
+    if ip.is_global:
+        iplocation = get_ip_location(data["address"])
+
+        # ipwhois = getWhoIs( data['client_address'])
+        # data['ipwhois'] = ipwhois
+    else:
+        # non-global addresses get a default location of campus
+        iplocation = {
+            "country_code2": "US",
+            "country_name": "United States of America",
+            "ip": str(ip),
+            "ip_number": None,
+            "ip_version": ip.version,
+            "isp": "University of North Carolina at Chapel Hill",
+            "response_code": None,
+            "response_message": None
+        }
     data["iplocation"] = iplocation
 
     # collect information about the network for this address

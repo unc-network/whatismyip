@@ -53,19 +53,20 @@ def is_campus_ip(ip_address):
     return False
 
 
-# def getISP( ip ):
-# 	# Lookup ISP information
+# def getWhoIs(ip):
+#     # Lookup Who Is information
+#     from ipwhois import IPWhois
 
-# 	ipaddr = ipaddress.ip_address(ip)
-# 	app.logger.debug("getISP {}".format(ip))
+#     ipaddr = ipaddress.ip_address(ip)
+#     app.logger.debug("getWhoIs {}".format(ip))
 
-# 	if not ipaddr.is_private:
-# 		obj = IPWhois( ip )
-# 		ret = obj.lookup_rdap()
-# 		print("Found {}".format(ret))
-# 		return ret
+#     if not ipaddr.is_private:
+#         obj = IPWhois(ip)
+#         ret = obj.lookup_rdap()
+#         print("Found {}".format(ret))
+#         return ret
 
-# 	return {}
+#     return {}
 
 
 def get_forwarded_address(forwarded_for):
