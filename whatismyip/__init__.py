@@ -39,7 +39,9 @@ app.config.from_prefixed_env()
 # Allow the https v6 site to call the https v4 version of the api.
 # CORS(app, resources={r"/hostinfo": {"origins": ["https://whatismyip.unc.edu"]}})
 CORS(app, resources={r"/hostinfo": {"origins": [app.config["SERVER_URL"]]}})
-app.logger.debug(f"URL: dual stack {app.config['SERVER_URL']}, ipv4-only {app.config['IPV4_SERVER_URL']}, ipv6-only {app.config['IPV6_SERVER_URL']}")
+app.logger.debug(
+    f"URL: dual stack {app.config['SERVER_URL']}, ipv4-only {app.config['IPV4_SERVER_URL']}, ipv6-only {app.config['IPV6_SERVER_URL']}"
+)
 
 fa = FontAwesome(app)
 
@@ -61,14 +63,16 @@ def home():
     # Parse out the actual client ip address from header data
     if forwarded_for:
         # Proxy was used, client IP should be first in the list
-        client_address, proxy_detected = get_forwarded_address( forwarded_for)
+        client_address, proxy_detected = get_forwarded_address(forwarded_for)
     else:
         # No proxy was used
         client_address = remote_address
         proxy_detected = None
     data["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
     data["proxy_detected"] = os.getenv("PROXY_DETECTED", proxy_detected)
-    app.logger.info( f"Home view from {data['client_address']} with forwarded_for {forwarded_for}")
+    app.logger.info(
+        f"Home view from {data['client_address']} with forwarded_for {forwarded_for}"
+    )
 
     # Add the ipv4/ipv6 specific test urls
     data["ipv4_url"] = app.config["IPV4_SERVER_URL"]
@@ -119,7 +123,9 @@ def hostinfo():
         data["address"] = data["remote_address"]
     # data["address"] = os.getenv("CLIENT_ADDRESS", data['remote_address'])
     # data["proxy_detected"] = os.getenv("PROXY_DETECTED", data['proxy_detected'])
-    app.logger.info( f"hostinfo view from {data['address']} with forwarded_for {data['forwarded_for']}")
+    app.logger.info(
+        f"hostinfo view from {data['address']} with forwarded_for {data['forwarded_for']}"
+    )
 
     # calculate the IP address basics at the start
     ip = ipaddress.ip_address(str(data["address"]))
@@ -156,7 +162,7 @@ def hostinfo():
             "ip_version": ip.version,
             "isp": "University of North Carolina at Chapel Hill",
             "response_code": None,
-            "response_message": None
+            "response_message": None,
         }
     data["iplocation"] = iplocation
 
@@ -217,7 +223,7 @@ def hostinfo():
         net_details["router_device"] = (
             network.get("extattrs", {}).get("Router Device", {}).get("value", None)
         )
-        
+
         # iterate members to get dhcp servers
         for member in network.get("members", []):
             if net_details["ip_version"] == "4":
@@ -225,7 +231,7 @@ def hostinfo():
             else:
                 net_details["dhcp_servers"].append(member["ipv6addr"])
 
-        # iterate dhcp options for specific 
+        # iterate dhcp options for specific
         options = network.get("options", [])
         for option in options:
             values = option.get("values", [])
@@ -287,13 +293,19 @@ def hostinfo():
 
         # collect specific extattr data
         addr_details["contact"] = (
-            address_records.get("extattrs", {}).get("Admin Onyen", {}).get("value", None)
+            address_records.get("extattrs", {})
+            .get("Admin Onyen", {})
+            .get("value", None)
         )
         addr_details["contact_name"] = (
-            address_records.get("extattrs", {}).get("Administrator", {}).get("value", None)
+            address_records.get("extattrs", {})
+            .get("Administrator", {})
+            .get("value", None)
         )
         addr_details["contact_email"] = (
-            address_records.get("extattrs", {}).get("Admin Email", {}).get("value", None)
+            address_records.get("extattrs", {})
+            .get("Admin Email", {})
+            .get("value", None)
         )
         addr_details["contact_dept"] = (
             address_records.get("extattrs", {}).get("Department", {}).get("value", None)
