@@ -13,10 +13,10 @@ from whatismyip import app as application
 # dotenv_path = os.path.join(APP_ROOT, '.env')
 # load_dotenv(dotenv_path)
 
-if __name__ == "__main__":
+gunicorn_logger = logging.getLogger('gunicorn.error')
+application.logger.handlers = gunicorn_logger.handlers
+application.logger.setLevel(gunicorn_logger.level)
 
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    application.logger.handlers = gunicorn_logger.handlers
-    application.logger.setLevel(gunicorn_logger.level)
+if __name__ == "__main__":
 
     application.run()
