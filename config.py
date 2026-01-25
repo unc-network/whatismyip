@@ -28,6 +28,7 @@ class Config:  # pylint: disable=too-few-public-methods
     IB_USERNAME = "admin"
     IB_PASSWORD = "infoblox"
 
+    LOG_LEVEL = "INFO"
 
 class ProductionConfig(Config):  # pylint: disable=too-few-public-methods
     """
