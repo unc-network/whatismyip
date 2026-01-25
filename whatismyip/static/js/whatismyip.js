@@ -73,13 +73,12 @@ $(document).ready(function () {
 			$('#address1-details').show();
 			$('#address1-address').text(result["client_address"]);
 
-			if ( result['address_details']["names"] ) {
+			if ( result['address_details']["names"] && result['address_details']['names'].length > 0) {
 				$('#addr1-names-row').show();
 				for (address_name of result['address_details']['names']) {
 					$('#addr1-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
 				}
 			} else if ( result["ptr"] ) {
-				// $('#addr1-ptr').text(result["ptr"]);
 				$('#addr1-names-row').show();
 				$('#addr1-names').append(`<li class="list-group-item p-0">${result["ptr"]}</li>`);
 			}
@@ -164,14 +163,12 @@ $(document).ready(function () {
 			$('#address2-details').show();
 			$('#address2-address').text(result["client_address"]);
 
-			if ( result['address_details']["names"] ) {
+			if ( result['address_details']["names"] && result['address_details']['names'].length > 0) {
 				$('#addr2-names-row').show();
 				for (address_name of result['address_details']['names']) {
 					$('#addr2-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
 				}
 			} else if ( result["ptr"] ) {
-				// $('#addr2-ptr-row').show();
-				// $('#addr2-ptr').text(result["ptr"]);
 				$('#addr2-names-row').show();
 				$('#addr2-names').append(`<li class="list-group-item p-0">${result["ptr"]}</li>`);
 			}
