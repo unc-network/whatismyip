@@ -73,19 +73,13 @@ def home():
 @app.route("/hostinfo.php")
 @app.route("/hostinfo")
 def hostinfo():
-    """Return JSON structure with IP address information."""
-    data = {}
-
-    # variables to help debug
-    headers = dict(request.headers)
+    """
+    Return JSON structure with IP address information.
+    """
 
     # get the request headers
     forwarded_for = request.environ.get("HTTP_X_FORWARDED_FOR", None)
     remote_address = request.environ.get("REMOTE_ADDR", None)
-    remote_port = request.environ.get("REMOTE_PORT", None)
-    request_method = request.environ.get("REQUEST_METHOD", None)
-    server_protocol = request.environ.get("SERVER_PROTOCOL", None)
-    http_user_agent = request.environ.get("HTTP_USER_AGENT", None)
 
     # build the main data dictionary
     data = {
@@ -103,7 +97,7 @@ def hostinfo():
     tmp_forwarded_for = os.getenv("FORWARDED_FOR", forwarded_for)
     client_address = get_client_address(remote_address, tmp_forwarded_for)
     data["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
-    app.logger.warning( f"Hostinfo view from {client_address} with forwarded_for {tmp_forwarded_for}")
+    app.logger.warning( f"Hostinfo view from {data['client_address']} with forwarded_for {tmp_forwarded_for}")
 
     # calculate the IP address basics at the start
     ip = ipaddress.ip_address(str(data["client_address"]))
