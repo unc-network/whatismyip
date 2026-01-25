@@ -32,6 +32,11 @@ app = Flask(__name__)
 app.config.from_object("config.Config")
 app.config.from_prefixed_env()
 
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
+
 # logger = create_logger(app)
 # logger.setLevel(logging.INFO)
 
