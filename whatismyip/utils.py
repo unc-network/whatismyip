@@ -134,7 +134,7 @@ def get_network(ip_address):
         ib_password = app.config["IB_PASSWORD"]
         url = f"https://{ib_server}/wapi/v2.10.5/"
 
-        app.logger.info("Checking for address info")
+        app.logger.debug("Checking for address info")
         session = requests.Session()
         # requests.packages.urllib3.disable_warnings()
         urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)

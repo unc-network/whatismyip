@@ -66,7 +66,7 @@ def home():
     tmp_forwarded_for = os.getenv("FORWARDED_FOR", forwarded_for)
     client_address = get_client_address(remote_address, tmp_forwarded_for)
     data["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
-    app.logger.warning( f"Home view from {client_address} with forwarded_for {tmp_forwarded_for}")
+    app.logger.info( f"Home view from {client_address} with forwarded_for {tmp_forwarded_for}")
 
     # Add the ipv4/ipv6 specific test urls
     data["ipv4_url"] = app.config["IPV4_SERVER_URL"]
