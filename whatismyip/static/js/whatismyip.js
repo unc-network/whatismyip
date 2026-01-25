@@ -79,8 +79,9 @@ $(document).ready(function () {
 					$('#addr1-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
 				}
 			} else if ( result["ptr"] ) {
-				$('#addr1-ptr-row').show();
-				$('#addr1-ptr').text(result["ptr"]);
+				// $('#addr1-ptr').text(result["ptr"]);
+				$('#addr1-names-row').show();
+				$('#addr1-names').append(`<li class="list-group-item p-0">${result["ptr"]}</li>`);
 			}
 
 			if ( result['address_details']["mac"] ) {
@@ -169,8 +170,10 @@ $(document).ready(function () {
 					$('#addr2-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
 				}
 			} else if ( result["ptr"] ) {
-				$('#addr2-ptr-row').show();
-				$('#addr2-ptr').text(result["ptr"]);
+				// $('#addr2-ptr-row').show();
+				// $('#addr2-ptr').text(result["ptr"]);
+				$('#addr2-names-row').show();
+				$('#addr2-names').append(`<li class="list-group-item p-0">${result["ptr"]}</li>`);
 			}
 
 			if ( result['address_details']["mac"] ) {
