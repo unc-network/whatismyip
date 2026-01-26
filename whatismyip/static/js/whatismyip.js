@@ -54,7 +54,6 @@ $(document).ready(function () {
 
 	// Make AJAX call to the API to get the ipv4 address
 	var test_url = $('#connect-test').data('ipv4_url')
-	$('#second_address_section').show()
 	$.ajax({
 		type: "GET",
 		url: test_url + "/hostinfo",
@@ -64,12 +63,14 @@ $(document).ready(function () {
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 4 ) {
+				$('#first_address_section').show()
 				$('#address1').text(result["client_address"]);
 			} else {
+				$('#second_address_section').show()
 				$('#address2').text(result["client_address"]);
 			}
 
-			// Populate 2nd address's details
+			// Populate IPv4 address's details
 			$('#address1-details').show();
 			$('#address1-address').text(result["client_address"]);
 
@@ -113,7 +114,7 @@ $(document).ready(function () {
 			// 	$('#addr1-status').text(result['address_details']["status"]);
 			// }
 
-			// Populate 2nd address's network details
+			// Populate address's network details
 			if ( result['network']["cidr"] ) {
 				$('#net1-network-row').show();
 				if ( result['network']['comment'] ) {
@@ -150,16 +151,17 @@ $(document).ready(function () {
 		url: test_url + "/hostinfo",
 		dataType: "json",
 		success: function (result, status, xhr) {
-			$('#second_address_section').show()
 			$('#connect-ipv6').text("Supported");
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 6 ) {
+				$('#first_address_section').show()
 				$('#address1').text(result["client_address"]);
 			} else {
+				$('#second_address_section').show()
 				$('#address2').text(result["client_address"]);
 			}
-			// Populate 2nd address's details
+			// Populate IPv6 address's details
 			$('#address2-details').show();
 			$('#address2-address').text(result["client_address"]);
 
