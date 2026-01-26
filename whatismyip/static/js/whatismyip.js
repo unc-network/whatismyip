@@ -31,43 +31,8 @@ function set_intro_text(is_campus, network_purpose) {
 	}
 }
 
-$(document).ready(function () {
-
-	// $(function() {
-	// 	$('.allowCopy').click(function() {
-	// 		var text = $('#address').text();
-	// 		// const text = $(this).text();
-	// 		//console.log("clicked address "+text);
-
-	// 		try {
-	// 			navigator.clipboard.writeText(text)
-	// 			//event.target.textContent = 'Copied to clipboard'
-	// 		} catch (err) {
-	// 			console.error('Failed to copy!', err)
-	// 		}
-
-	// 	});
-	// });
-
-	//$('[data-toggle="tooltip"]').tooltip();
-
-	/* extract the default ip detected */
-	var default_address = $('#address1').text();
-	//console.log("Connection from " + default_address);
-
-	default_version = 6;
-	if (default_address.indexOf(':') != -1) {
-		// default is IPv6 connection
-		$('#connect-default').text("IPv6");
-		$('#connect-ipv6').text("Supported");
-		$('#connect-ipv4').text("Testing...");
-	} else {
-		// default is IPv4 connection
-		$('#connect-default').text("IPv4");
-		$('#connect-ipv6').text("Testing...");
-		$('#connect-ipv4').text("Supported");
-		default_version = 4;
-	}
+function test_primary_url(default_version) {
+	// call the test url and display address information
 
 	// Make AJAX call to the API to get the ipv4 address
 	var test_url = $('#connect-test').data('ipv4_url')
@@ -164,6 +129,11 @@ $(document).ready(function () {
 		}
 	});
 
+}
+
+function test_secondary_url(default_version) {
+	// test secondary url
+
 	// Make AJAX call to the API to get the ipv6 address
 	var test_url = $('#connect-test').data('ipv6_url')
 	$.ajax({
@@ -251,11 +221,38 @@ $(document).ready(function () {
 				$('#net2-isp-row').show();
 				$('#net2-isp').text(result['iplocation']["isp"]);
 			}
+
 		},
 		error: function (xhr, status, error) {
 			$('#connect-ipv6').text("Not supported");
 			//console.log(error);
 		}
 	});
+
+}
+
+$(document).ready(function () {
+
+	/* extract the default ip detected */
+	var default_address = $('#address1').text();
+	//console.log("Connection from " + default_address);
+
+	default_version = 6;
+	if (default_address.indexOf(':') != -1) {
+		// default is IPv6 connection
+		$('#connect-default').text("IPv6");
+		$('#connect-ipv6').text("Supported");
+		$('#connect-ipv4').text("Testing...");
+	} else {
+		// default is IPv4 connection
+		$('#connect-default').text("IPv4");
+		$('#connect-ipv6').text("Testing...");
+		$('#connect-ipv4').text("Supported");
+		default_version = 4;
+	}
+
+	test_primary_url(default_version);
+
+	test_secondary_url(default_version);
 
 });
