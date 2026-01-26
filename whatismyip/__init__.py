@@ -107,6 +107,9 @@ def hostinfo():
     # calculate the IP address basics at the start
     ip = ipaddress.ip_address(str(data["client_address"]))
 
+    # Check if campus address 
+    data["is_campus"] = is_campus_ip(data["client_address"])
+
     # collect device information
     # user_agent = parse(http_user_agent)
     data["user_device"] = parse(data["user_agent"]).__str__()

@@ -2,23 +2,7 @@
 {% block content %}
 <div class="row p-1 my-3">
   <div class="col">
-    <p>
-    {% if context.network_cidr %}
-      {% if context.network_type %}
-        {% if 'VPN' in context.network_type %}
-          Your IP address is part of a campus VPN network.
-        {% elif 'Wireless' in context.network_type %}
-          Your IP address is part of the campus wireless network.
-        {% else %}
-          Your IP address is part of a local campus network.
-        {% endif %}
-      {% else %}
-        Your IP address is part of a local campus network.
-      {% endif %}
-    {% else %}
-      Your IP address is off campus and part of the public Internet.
-    {% endif %}
-    </p>
+    <div id="intro_text"></div>
   </div>
 </div>
 <div id="first_address_section" class="row p-1 my-3">

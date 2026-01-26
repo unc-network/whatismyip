@@ -14,6 +14,23 @@ function copyAddress(id_of_address) {
 	}
 }
 
+function set_intro_text(is_campus, network_purpose) {
+	// add some user text at the very top of the page
+	$('#intro_text').html(`<p>hello</p>`);
+
+	if (is_campus) {
+		if ( network_purpose == 'VPN' ) {
+			$('#intro_text').html(`<p>Your IP address is part of a campus VPN network.</p>`);
+		} else if ( network_purpose == 'Wireless' ) {
+			$('#intro_text').html(`<p>Your IP address is part of the campus wireless network.</p>`);
+		} else {
+			$('#intro_text').html(`<p>Your IP address is part of a local campus network.</p>`);
+		}
+	} else {
+		$('#intro_text').html(`<p>Your IP address is off campus and part of the public Internet.</p>`);
+	}
+}
+
 $(document).ready(function () {
 
 	// $(function() {
@@ -65,6 +82,7 @@ $(document).ready(function () {
 			if ( default_version == 4 ) {
 				$('#first_address_section').show()
 				$('#address1').text(result["client_address"]);
+				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
 				$('#second_address_section').show()
 				$('#address2').text(result["client_address"]);
@@ -159,6 +177,7 @@ $(document).ready(function () {
 			if ( default_version == 6 ) {
 				$('#first_address_section').show()
 				$('#address1').text(result["client_address"]);
+				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
 				$('#second_address_section').show()
 				$('#address2').text(result["client_address"]);
