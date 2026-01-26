@@ -2,37 +2,17 @@
 {% block content %}
 <div class="row p-1 my-3">
   <div class="col">
-    <p>
-    {% if context.network_cidr %}
-      {% if context.network_type %}
-        {% if 'VPN' in context.network_type %}
-          Your IP address is part of a campus VPN network.
-        {% elif 'Wireless' in context.network_type %}
-          Your IP address is part of the campus wireless network.
-        {% else %}
-          Your IP address is part of a local campus network.
-        {% endif %}
-      {% else %}
-        Your IP address is part of a local campus network.
-      {% endif %}
-    {% else %}
-      Your IP address is off campus and part of the public Internet.
-    {% endif %}
-    It is used by your client when accessing campus resources.
-    </p>
-    <p id="v6_help_text" style="display:none;">
-      A dual stacked configuration (IPv6 and IPv4) was detected.  You can use the <a href="{{ context.ipv4_url }}">IPv4 version of the What is my IP? site</a> to ignore your IPv6 address.
-    </p>
+    <div id="intro_text"></div>
   </div>
 </div>
-<div class="row p-1 my-3">
+<div id="first_address_section" class="row p-1 my-3">
   <div class="col">
     <div class="card bg-primary shadow">
       <div class="card-body">
 
         <div id="address_box" class="row unc-ip">
           <div class="col-md-10 offset-md-1 text-center">
-            <h1 id="address" class="display-4 text-center mb-0">{{ context.client_address }}</h1>
+            <h1 id="address1" class="display-6 text-center mb-0">{{ context.client_address }}</h1>
           </div>
           <div class="col-md-1 text-end">
             <button onclick="copyAddress(address)" class="btn" aria-label="Copy IP Address">
@@ -45,14 +25,14 @@
     </div>
   </div>
 </div>
-<div id="second_address_section" class="row p-1 my-3" style="display:none;" data-test_url="{{ context.ipv4_url }}">
+<div id="second_address_section" class="row p-1 my-3" style="display:none;">
   <div class="col">
     <div class="card bg-primary shadow">
       <div class="card-body">
 
         <div id="additional_ip" class="row unc-ip">
           <div class="col-md-10 offset-md-1 text-center">
-            <h1 id="address2" class="display-4 text-center mb-0">loading...</h1>
+            <h1 id="address2" class="display-6 text-center mb-0">loading...</h1>
           </div>
           <div class="col-md-1 text-end">
             <button onclick="copyAddress(address2)" class="btn" aria-label="Copy IP Address">
@@ -66,194 +46,180 @@
   </div>
 </div>
 
-<div class="row row-cols-1 row-cols-xl-2 g-4 p-1">
+<!-- <div class="row row-cols-1 row-cols-xl-3 g-4 p-1"> -->
+<div class="row g-4 p-1">
 
-  <div class="col">
+  <div class="col-xl-3"> <!-- start of column 1 -->
 
-    <div id="address1-details" class="card shadow">
+    <div id="connect-test" class="card shadow my-3" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}">
       <div class="card-body">
-        <h5 class="card-title">Address Details</h5>
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <tbody>
-              <tr>
-                <th style="width: 25%;">Address</th>
-                <td>{{ context.client_address }}</td>
-              </tr>
-              {% if context.address_records %}
-                <tr>
-                  <th style="width: 25%;">Name</th>
-                  <td>
-                    <ul class="list-group list-group-flush">
-                      {% for name in context.address_records.names %}
-                      <li class="list-group-item p-0">{{ name }}</li> 
-                      {% endfor %}
-                    </ul>
-                  </td>
-                </tr>
-                {% if context.address_records.mac_address %}
-                  <tr>
-                    <th>MAC Address</th>
-                    <td>{{ context.address_records.mac_address }}</td>
-                  </tr>
-                {% endif %}
-                {% if 'LEASE' in context.address_records.types %}
-                  <tr>
-                    <th>DHCP Lease</th>
-                    <td>{{ context.address_records.lease_state }}</td>
-                  </tr>
-                {% endif %}
-                {% if context.address_records.username %}
-                  <tr>
-                    <th>Username</th>
-                    <td>{{ context.address_records.username }}</td>
-                  </tr>
-                {% endif %}
-                {% if context.address_records.extattrs['Device Type'] %}
-                  <tr>
-                    <th>Device Type</th>
-                    <td>{{ context.address_records.extattrs['Device Type'].value }}</td>
-                  </tr>
-                {% endif %}
-                  <tr>
-                    <th>Status</th>
-                    <td>{{ context.address_records.status }}</td>
-                  </tr>
-              {% else %}
-                <tr>
-                  <th>DNS Name</th>
-                  <td>{{ context.ptr }}</td>
-                </tr>
-              {% endif %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div id="address2-details" class="card shadow my-3" style="display:none;">
-      <div class="card-body">
-        <h5 class="card-title">Address Details</h5>
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <tbody>
-              <tr>
-                <th style="width: 25%;">Address</th>
-                <td id="address2-address">{{ context.client_address }}</td>
-              </tr>
-              {% if context.address_records %}
-                <tr>
-                  <th style="width: 25%;">Name</th>
-                  <td>
-                    <ul class="list-group list-group-flush">
-                      {% for name in context.address_records.names %}
-                      <li class="list-group-item p-0">{{ name }}</li> 
-                      {% endfor %}
-                    </ul>
-                  </td>
-                </tr>
-                {% if context.address_records.mac_address %}
-                  <tr>
-                    <th>MAC Address</th>
-                    <td>{{ context.address_records.mac_address }}</td>
-                  </tr>
-                {% endif %}
-                {% if 'LEASE' in context.address_records.types %}
-                  <tr>
-                    <th>DHCP Lease</th>
-                    <td>{{ context.address_records.lease_state }}</td>
-                  </tr>
-                {% endif %}
-                {% if context.address_records.username %}
-                  <tr>
-                    <th>Username</th>
-                    <td>{{ context.address_records.username }}</td>
-                  </tr>
-                {% endif %}
-                {% if context.address_records.extattrs['Device Type'] %}
-                  <tr>
-                    <th>Device Type</th>
-                    <td>{{ context.address_records.extattrs['Device Type'].value }}</td>
-                  </tr>
-                {% endif %}
-                  <tr>
-                    <th>Status</th>
-                    <td>{{ context.address_records.status }}</td>
-                  </tr>
-              {% else %}
-                <tr>
-                  <th>DNS Name</th>
-                  <td id="address2-ptr">{{ context.ptr }}</td>
-                </tr>
-              {% endif %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="col">
-    <div class="card shadow">
-      <div class="card-body">
-        <h5 class="card-title">Network Details</h5>
+        <h5 class="card-title">Campus Connectivity</h5>
         <div class="table-responsive">
         <table class="table table-sm">
           <tbody>
-            {% if context.network_cidr %}
-              {% if context.vlan_id %}
               <tr>
-                <th>Vlan</th>
-                <td>{{ context.vlan_id }} ({{ context.vlan_name }})</td>
+                <th style="width: 20%;">Default</th>
+                <td id="connect-default"></td>
               </tr>
-              {% endif %}
               <tr>
-                <th style="width: 20%;">Network</th>
-                <td>{{ context.network_cidr }} {% if context.network_comment %}({{ context.network_comment }}){% endif %}</td>
+                <th style="width: 20%;">IPv6</th>
+                <td id="connect-ipv6"></td>
               </tr>
-              {% if context.network_type %}
               <tr>
-                <th>Usage</th>
-                <td>{{ context.network_type }}</td>
+                <th style="width: 20%;">IPv4</th>
+                <td id="connect-ipv4"></td>
               </tr>
-              {% endif %}
-              {% if context.network.extattrs['Admin Onyen'] %}
-              <tr>
-                <th>Admin Onyen</th>
-                <td>{{ context.network.extattrs['Admin Onyen'].value }}</td>
-              </tr>
-              {% endif %}
-              {% if context.network.extattrs['Cost Center'] %}
-              <tr>
-                <th>Cost Center</th>
-                <td>{{ context.network.extattrs['Cost Center'].value }}</td>
-              </tr>
-              {% endif %}
-            {% else %}
-              <tr>
-                <th>Network</th>
-                <td>Off Campus</td>
-              </tr>
-            {% endif %}
-            {% if context.iplocation.isp %}
-            <tr>
-              <th>ISP</th>
-              <td>{{ context.iplocation.isp }}</td>
-            </tr>
-            <tr>
-              <th>Country</th>
-              <td>{{ context.iplocation.country_name }}</td>
-            </tr>
-            {% endif %}
           </tbody>
         </table>
         </div>
       </div>
     </div>
-  </div>
+  
+  </div> <!-- end of column 1 -->
 
-</div>
+  <div id="address1-details" class="col-xl">
+
+    <div class="card shadow my-3">
+      <div class="card-body">
+        <h5 class="card-title">IPv4 Address Details</h5>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <tbody>
+              <tr>
+                <th style="width: 25%;">Address</th>
+                <td id="address1-address"></td>
+              </tr>
+              <tr id="addr1-names-row" style="display:none;">
+                <th>Name</th>
+                <td>
+                  <ul id="addr1-names" class="list-group list-group-flush">
+                  </ul>
+                </td>
+              </tr>
+              <tr id="addr1-mac-row" style="display:none;">
+                <th>MAC Address</th>
+                <td id="addr1-mac"></td>
+              </tr>
+              <tr id="addr1-comment-row" style="display:none;">
+                <th>Comment</th>
+                <td id="addr1-comment"></td>
+              </tr>
+              <tr id="addr1-lease-row" style="display:none;">
+                <th>DHCP Lease</th>
+                <td id="addr1-lease"></td>
+              </tr>
+              <tr id="addr1-username-row" style="display:none;">
+                <th>Username</th>
+                <td id="addr1-username"></td>
+              </tr>
+              <tr id="addr1-types-row" style="display:none;">
+                <th>Device Type</th>
+                <td id="addr1-types"></td>
+              </tr>
+              <tr id="addr1-status-row" style="display:none;">
+                <th>Status</th>
+                <td id="addr1-status"></td>
+              </tr>
+              <tr id="addr1-ptr-row" style="display:none;">
+                <th>DNS Name</th>
+                <td id="address1-ptr"></td>
+              </tr>
+              <tr id="net1-network-row" style="display:none;">
+                <th>Network</th>
+                <td id="net1-network"></td>
+              </tr>
+              <tr id="net1-vlan-row" style="display:none;">
+                <th>VLAN</th>
+                <td id="net1-vlan"></td>
+              </tr>
+              <tr id="net1-isp-row" style="display:none;">
+                <th>ISP</th>
+                <td id="net1-isp"></td>
+              </tr>
+              <tr id="net1-country-row" style="display:none;">
+                <th>Country</th>
+                <td id="net1-country"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- end of column 2 -->
+
+  <div id="address2-details" class="col-xl" style="display:none;">
+
+    <div class="card shadow my-3">
+      <div class="card-body">
+        <h5 class="card-title">IPv6 Address Details</h5>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <tbody>
+              <tr>
+                <th style="width: 25%;">Address</th>
+                <td id="address2-address"></td>
+              </tr>
+              <tr id="addr2-names-row" style="display:none;">
+                <th>Name</th>
+                <td>
+                  <ul id="addr2-names" class="list-group list-group-flush">
+                  </ul>
+                </td>
+              </tr>
+              <tr id="addr2-mac-row" style="display:none;">
+                <th>MAC Address</th>
+                <td id="addr2-mac"></td>
+              </tr>
+              <tr id="addr2-comment-row" style="display:none;">
+                <th>Comment</th>
+                <td id="addr2-comment"></td>
+              </tr>
+              <tr id="addr2-lease-row" style="display:none;">
+                <th>DHCP Lease</th>
+                <td id="addr2-lease"></td>
+              </tr>
+              <tr id="addr2-username-row" style="display:none;">
+                <th>Username</th>
+                <td id="addr2-username"></td>
+              </tr>
+              <tr id="addr2-types-row" style="display:none;">
+                <th>Device Type</th>
+                <td id="addr2-types"></td>
+              </tr>
+              <tr id="addr2-status-row" style="display:none;">
+                <th>Status</th>
+                <td id="addr2-status"></td>
+              </tr>
+              <tr id="addr2-ptr-row" style="display:none;">
+                <th>DNS Name</th>
+                <td id="address2-ptr"></td>
+              </tr>
+              <tr id="net2-network-row" style="display:none;">
+                <th>Network</th>
+                <td id="net2-network"></td>
+              </tr>
+              <tr id="net2-vlan-row" style="display:none;">
+                <th>VLAN</th>
+                <td id="net2-vlan"></td>
+              </tr>
+              <tr id="net2-isp-row" style="display:none;">
+                <th>ISP</th>
+                <td id="net2-isp"></td>
+              </tr>
+              <tr id="net2-country-row" style="display:none;">
+                <th>Country</th>
+                <td id="net2-country"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- end of column 3 -->
+
+</div> <!-- end of row -->
 
 <!-- <div class="row p-1 mt-2">
   <div class="col">
@@ -264,7 +230,7 @@
           <tbody>
             <tr>
               <th style="width: 20%;">User-Agent</th>
-              <td>{{ headers['User-Agent'] }}</td>
+              <td>{{ context['http_user_agent'] }}</td>
             </tr>
             <tr>
               <th>Device</th>
@@ -293,7 +259,7 @@
         <!-- <a target="_blank" href="http://nperf.net.unc.edu" class="btn btn-primary my-1">Campus Speed Test</a> -->
         <!-- <a target="_blank" href="https://www.dnsleaktest.com" class="btn btn-primary my-1">DNS leak test</a> -->
       <!-- </p> -->
-      <iframe width="100%" height="650px" frameborder="0" src="https://uncch.speedtestcustom.com?serverId=14774""></iframe>
+      <iframe width="100%" height="650px" frameborder="0" src="https://uncch.speedtestcustom.com"></iframe>
     </div>
   </div>
 </div>

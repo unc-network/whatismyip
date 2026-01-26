@@ -21,6 +21,7 @@ def is_campus_ip(ip_address):
         "152.2.",
         "152.19.",
         "152.23.",
+        "10.",
         "172.16.",
         "172.17.",
         "172.18.",
@@ -37,6 +38,7 @@ def is_campus_ip(ip_address):
         "172.29.",
         "172.30.",
         "172.31.",
+        "192.168.",
         "198.85.230.",
         "198.85.231.",
         "204.84.",
@@ -53,34 +55,66 @@ def is_campus_ip(ip_address):
     return False
 
 
-# def getISP( ip ):
-# 	# Lookup ISP information
+# def getWhoIs(ip):
+#     # Lookup Who Is information
+#     from ipwhois import IPWhois
 
-# 	ipaddr = ipaddress.ip_address(ip)
-# 	app.logger.debug("getISP {}".format(ip))
+#     ipaddr = ipaddress.ip_address(ip)
+#     app.logger.debug("getWhoIs {}".format(ip))
 
-# 	if not ipaddr.is_private:
-# 		obj = IPWhois( ip )
-# 		ret = obj.lookup_rdap()
-# 		print("Found {}".format(ret))
-# 		return ret
+#     if not ipaddr.is_private:
+#         obj = IPWhois(ip)
+#         ret = obj.lookup_rdap()
+#         print("Found {}".format(ret))
+#         return ret
 
-# 	return {}
+#     return {}
+
+
+def get_client_address(remote_address, forwarded_for):
+    """
+    In general the X-Forwarded-For header is a comma separated list of IP 
+    addresses but the header format is not formally standardized.  We will
+    only trust the last two addresses for security concerns.
+
+    Example value: "2610:28:3091:1000:2::a,172.22.158.131"
+    """
+    client_address = None
+
+    if forwarded_for:
+        # Remove spaces, split on commas, and get the second to last address
+        fwd_list = forwarded_for.replace(" ", "").split(",")
+        if len(fwd_list) > 2:
+            client_address = fwd_list[-2]
+        else:
+            client_address = fwd_list[-2]
+    else:
+        client_address = remote_address
+    return client_address
 
 
 def get_forwarded_address(forwarded_for):
-    """A proxy will populate the X-Forwarded-For header, so find the client"""
+    """
+    In general the X-Forwarded-For header is a comma separated list of IP 
+    addresses but the header format is not formally standardized.  We will
+    only trust the last two addresses for security concerns.
+
+    Example value: "2610:28:3091:1000:2::a,172.22.158.131"
+    """
     proxy_detected = None
-    fwd_list = forwarded_for.split(",")
+    proxy_address = None
+    client_address = None
+
+    # Remove spaces and split on commas
+    fwd_list = forwarded_for.replace(" ", "").split(",")
     if len(fwd_list) > 2:
-        # multiple proxy detected, only trust the last 2 for campus
-        # the last for cloudapps and second to last for client
-        client_address = fwd_list[-2].strip()
+        proxy_address = fwd_list[-1]
+        client_address = fwd_list[-2]
         proxy_detected = ",".join(fwd_list[:-2])
     else:
         # normal: the last for cloudapps and second to last for client
-        client_address = fwd_list[0].strip()
-    return client_address, proxy_detected
+        client_address = fwd_list[-2]
+    return client_address
 
 
 def get_network(ip_address):
@@ -102,7 +136,7 @@ def get_network(ip_address):
         ib_password = app.config["IB_PASSWORD"]
         url = f"https://{ib_server}/wapi/v2.10.5/"
 
-        app.logger.info("Checking for address info")
+        app.logger.debug("Checking for address info")
         session = requests.Session()
         # requests.packages.urllib3.disable_warnings()
         urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
@@ -242,10 +276,13 @@ def get_ip_location(ip_address):
 
     if not ipaddr.is_private:
         # Do not attempt this with private IP addresses
-        api_url = "https://api.iplocation.net/?ip="
+        # api_url = "https://api.iplocation.net/?ip="
+        api_url = f"https://api.iplocation.net/?ip={ip_address}"
+        # api_url = f"https://ipapi.co/{ip_address}/json/"
         session = requests.Session()
         try:
-            response = session.get(f"{api_url}{ip_address}", timeout=3)
+            # response = session.get(f"{api_url}{ip_address}", timeout=3)
+            response = session.get(api_url, timeout=3)
         except requests.ReadTimeout:
             # Something went wrong, return no data
             app.logger.warn("unable to query location api")
