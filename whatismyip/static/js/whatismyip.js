@@ -76,7 +76,9 @@ $(document).ready(function () {
 
 			if ( result['address_details']["names"] && result['address_details']['names'].length > 0) {
 				$('#addr1-names-row').show();
-				for (address_name of result['address_details']['names']) {
+				uniqueNames = [...new Set(result['address_details']['names'])]
+				for (address_name of uniqueNames) {
+				// for (address_name of result['address_details']['names']) {
 					$('#addr1-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
 				}
 			} else if ( result["ptr"] ) {
@@ -167,7 +169,9 @@ $(document).ready(function () {
 
 			if ( result['address_details']["names"] && result['address_details']['names'].length > 0) {
 				$('#addr2-names-row').show();
-				for (address_name of result['address_details']['names']) {
+				uniqueNames = [...new Set(result['address_details']['names'])]
+				for (address_name of uniqueNames) {
+				// for (address_name of result['address_details']['names']) {
 					$('#addr2-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
 				}
 			} else if ( result["ptr"] ) {
