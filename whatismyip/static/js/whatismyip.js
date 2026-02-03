@@ -37,7 +37,8 @@ function test_primary_url(default_version) {
 	// handle starting state
 	if ( default_version == 4 ) {
 		$('#connect-default').text("IPv4");
-		$('#connect-ipv4').text("Testing...");
+		// $('#connect-ipv4').text("Testing...");
+		$('#connect-ipv4').html('<i class="fa-solid fa-question"></i> Testing');
 	}
 
 	// Make AJAX call to the API to get the ipv4 address
@@ -47,7 +48,8 @@ function test_primary_url(default_version) {
 		url: test_url + "/hostinfo",
 		dataType: "json",
 		success: function (result, status, xhr) {
-			$('#connect-ipv4').text("Supported");
+			// $('#connect-ipv4').text("Supported");
+			$('#connect-ipv4').html('<i class="fa-solid fa-circle-check text-success"></i> Supported');
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 4 ) {
@@ -65,7 +67,9 @@ function test_primary_url(default_version) {
 
 			if ( result['address_details']["names"] && result['address_details']['names'].length > 0) {
 				$('#addr1-names-row').show();
-				uniqueNames = [...new Set(result['address_details']['names'])]
+				lowercaseNames = result['address_details']['names'].map(item => item.toLowerCase());
+				uniqueNames = [...new Set(lowercaseNames)]
+				// uniqueNames = [...new Set(result['address_details']['names'])]
 				for (address_name of uniqueNames) {
 				// for (address_name of result['address_details']['names']) {
 					$('#addr1-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
@@ -130,7 +134,8 @@ function test_primary_url(default_version) {
 			}
 		},
 		error: function (xhr, status, error) {
-			$('#connect-ipv4').text("Not supported");
+			// $('#connect-ipv4').text("Not supported");
+			$('#connect-ipv4').html('<i class="fa-solid fa-circle-xmark text-danger"></i> Not supported');
 			//console.log(error);
 		}
 	});
@@ -143,7 +148,8 @@ function test_secondary_url(default_version) {
 	// handle starting state
 	if ( default_version == 6 ) {
 		$('#connect-default').text("IPv6");
-		$('#connect-ipv6').text("Testing...");
+		// $('#connect-ipv6').text("Testing...");
+		$('#connect-ipv6').html('<i class="fa-solid fa-question"></i> Testing');
 	}
 
 	// Make AJAX call to the API to get the ipv6 address
@@ -153,7 +159,8 @@ function test_secondary_url(default_version) {
 		url: test_url + "/hostinfo",
 		dataType: "json",
 		success: function (result, status, xhr) {
-			$('#connect-ipv6').text("Supported");
+			// $('#connect-ipv6').text("Supported");
+			$('#connect-ipv6').html('<i class="fa-solid fa-circle-check text-success"></i> Supported');
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 6 ) {
@@ -170,7 +177,9 @@ function test_secondary_url(default_version) {
 
 			if ( result['address_details']["names"] && result['address_details']['names'].length > 0) {
 				$('#addr2-names-row').show();
-				uniqueNames = [...new Set(result['address_details']['names'])]
+				lowercaseNames = result['address_details']['names'].map(item => item.toLowerCase());
+				uniqueNames = [...new Set(lowercaseNames)]
+				// uniqueNames = [...new Set(result['address_details']['names'])]
 				for (address_name of uniqueNames) {
 				// for (address_name of result['address_details']['names']) {
 					$('#addr2-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
@@ -236,7 +245,8 @@ function test_secondary_url(default_version) {
 
 		},
 		error: function (xhr, status, error) {
-			$('#connect-ipv6').text("Not supported");
+			// $('#connect-ipv6').text("Not supported");
+			$('#connect-ipv6').html('<i class="fa-solid fa-circle-xmark text-danger"></i> Not supported');
 			//console.log(error);
 		}
 	});

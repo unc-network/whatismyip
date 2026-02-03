@@ -4,13 +4,12 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="What is my IP? is a service offered by UNC Chapel Hill to provide information about your connection, as seen from the campus network." />
-	<meta name="author" content="">
+	<meta name="author" content="Information Technology Services">
     <meta name="robots" content="index, follow" />
     <title>What is my IP? See connection details</title>
 
 	<link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
 
-	<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}"> -->
     <!-- Font Awesome -->
     <link
       rel="stylesheet"
@@ -22,18 +21,11 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
 
-    <!-- Google Fonts Roboto -->
-    <!-- <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap"
-    /> -->
     <!-- MDB -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mdb.min.css') }}" />
 
 	<!-- Site Specific -->
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/whatismyip.css') }}">
-
-	{{ fontawesome_html () }}
 
 	<!-- Alert Carolina -->
 	<script type="text/javascript" src="https://alertcarolina.unc.edu/scripts/webalert.php"></script>
@@ -43,39 +35,6 @@
  </head>
  <body>
 	<body>
-
-		<!-- Navbar -->
-		<!-- <nav class="navbar navbar-expand-lg navbar-dark navbar-unc">
-			<div class="container">
-				<a href="https://www.unc.edu" class="navbar-brand">
-					<span class="d-none d-md-inline unc-title">The University <em>of</em> North Carolina <em>at</em> Chapel Hill</span>
-					<span class="d-inline d-md-none unc-title">UNC-Chapel Hill</span>
-				</a>
-
-				<button class="navbar-toggler" type="button"
-					data-bs-toggle="collapse"
-					data-bs-target="#navbarNav"
-					aria-controls="navbarNav"
-					aria-expanded="false"
-					aria-label="Toggle navigation">
-					<span class="navbar-toggler-icon"></span>
-				</button>
-
-				<div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-					<ul class="navbar-nav mr-auto">
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('home') }}">Home</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('hostinfo') }}">API</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="{{ url_for('about') }}">About</a>
-						</li>
-					</ul>
-				</div>
-			</div>
-		</nav> -->
 
 		<!-- Main Content -->
 		<main role="main">
@@ -102,23 +61,23 @@
 				</div>
 				<div class="row mb-3">
 					<div class="col-lg-4">
-						<h5>Explore</h5>
+						<p class="h5">Explore</p>
 						<ul class="list-unstyled">
-							<li><a href="/">Home (Retest Connection)</a></li>
-							<li><a href="/about">About "What is my IP?"</a></li>
-							<li><a href="https://www.speedtest.net/server/14774">UNC's Speedtest Server</a></li>
+							<li><a href="/" aria-label="Home">Home (Retest Connection)</a></li>
+							<li><a href="/about" aria-label="About">About "What is my IP?"</a></li>
+							<li><a href="https://www.speedtest.net/server/14774" aria-label="UNC speedtest server">UNC's Speedtest Server</a></li>
 						</ul>
 					</div>
 					<div class="col-lg-4">
-						<h5>More Resources</h5>
+						<p class="h5">More Resources</p>
 						<ul class="list-unstyled">
-							<li><a href="https://its.unc.edu/">Information Technology Services</a></li>
-							<li><a href="https://help.unc.edu">ITS Service Desk</a></li>
-							<li><a href="https://nit.net.unc.edu">Network Information Tool (NIT)</a></li>
+							<li><a href="https://its.unc.edu/" aria-label="ITS">Information Technology Services</a></li>
+							<li><a href="https://help.unc.edu" aria-label="Service Desk">ITS Service Desk</a></li>
+							<li><a href="https://nit.net.unc.edu" aria-label="NIT">Network Information Tool (NIT)</a></li>
 						</ul>
 					</div>
 					<div class="col-lg-4">
-						<h5>Connect with tech at UNC</h5>
+						<p class="h5">Connect with tech at UNC</p>
 						<a href="https://instagram.com/unctarheeltech" aria-label="Instagram"> <i class="fab fa-instagram fa-xl" style="color:#4B9CD3;"></i></a> &nbsp; 
 						<a href="https://threads.net/unctarheeltech" aria-label="Threads"> <i class="fa-brands fa-threads fa-xl" style="color:#4B9CD3;"></i></a> &nbsp; 
 						<a href="https://x.com/unctarheeltech" aria-label="X, Twitter"> <i class="fa-brands fa-x-twitter fa-xl" style="color:#4B9CD3;"></i></a> &nbsp; 

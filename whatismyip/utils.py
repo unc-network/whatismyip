@@ -73,7 +73,7 @@ def is_campus_ip(ip_address):
 
 def get_client_address(remote_address, forwarded_for):
     """
-    In general the X-Forwarded-For header is a comma separated list of IP 
+    In general the X-Forwarded-For header is a comma separated list of IP
     addresses but the header format is not formally standardized.  We will
     only trust the last two addresses for security concerns.
 
@@ -95,7 +95,7 @@ def get_client_address(remote_address, forwarded_for):
 
 def get_forwarded_address(forwarded_for):
     """
-    In general the X-Forwarded-For header is a comma separated list of IP 
+    In general the X-Forwarded-For header is a comma separated list of IP
     addresses but the header format is not formally standardized.  We will
     only trust the last two addresses for security concerns.
 

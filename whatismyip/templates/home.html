@@ -46,14 +46,13 @@
   </div>
 </div>
 
-<!-- <div class="row row-cols-1 row-cols-xl-3 g-4 p-1"> -->
 <div class="row g-4 p-1">
 
   <div class="col-xl-3"> <!-- start of column 1 -->
 
     <div id="connect-test" class="card shadow my-3" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}">
       <div class="card-body">
-        <h5 class="card-title">Campus Connectivity</h5>
+        <p class="card-title h5">Campus Connectivity</p>
         <div class="table-responsive">
         <table class="table table-sm">
           <tbody>
@@ -63,11 +62,11 @@
               </tr>
               <tr>
                 <th style="width: 20%;">IPv6</th>
-                <td id="connect-ipv6"></td>
+                <td id="connect-ipv6"><i class="fa-solid fa-question text-primary"></i> Testing</td>
               </tr>
               <tr>
                 <th style="width: 20%;">IPv4</th>
-                <td id="connect-ipv4"></td>
+                <td id="connect-ipv4"><i class="fa-solid fa-question text-primary"></i> Testing</td>
               </tr>
           </tbody>
         </table>
@@ -81,7 +80,7 @@
 
     <div class="card shadow my-3">
       <div class="card-body">
-        <h5 class="card-title">IPv4 Address Details</h5>
+        <p class="card-title h5">IPv4 Address Details</p>
         <div class="table-responsive">
           <table class="table table-sm">
             <tbody>
@@ -97,7 +96,7 @@
                 </td>
               </tr>
               <tr id="addr1-mac-row" style="display:none;">
-                <th>MAC Address</th>
+                <th>MAC</th>
                 <td id="addr1-mac"></td>
               </tr>
               <tr id="addr1-comment-row" style="display:none;">
@@ -152,7 +151,7 @@
 
     <div class="card shadow my-3">
       <div class="card-body">
-        <h5 class="card-title">IPv6 Address Details</h5>
+        <p class="card-title h5">IPv6 Address Details</p>
         <div class="table-responsive">
           <table class="table table-sm">
             <tbody>
@@ -168,7 +167,7 @@
                 </td>
               </tr>
               <tr id="addr2-mac-row" style="display:none;">
-                <th>MAC Address</th>
+                <th>MAC</th>
                 <td id="addr2-mac"></td>
               </tr>
               <tr id="addr2-comment-row" style="display:none;">
@@ -221,44 +220,9 @@
 
 </div> <!-- end of row -->
 
-<!-- <div class="row p-1 mt-2">
-  <div class="col">
-     <div class="card shadow card-body">
-      <h5 class="card-title">Client Details</h5>
-      <div class="table-responsive">
-        <table class="table table-sm">
-          <tbody>
-            <tr>
-              <th style="width: 20%;">User-Agent</th>
-              <td>{{ context['http_user_agent'] }}</td>
-            </tr>
-            <tr>
-              <th>Device</th>
-              <td>{{ context.user_device }}</td>
-            </tr>
-            {% if context.proxy_detected %}
-            <tr>
-              <th>Web Proxy Detected</th>
-              <td>{{ context.proxy_detected }}</td>
-            </tr>
-            {% endif %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div> -->
-
 <div class="row p-1 mt-2">
   <div class="col">
      <div class="card shadow card-body">
-      <!-- <h5 class="card-title">Internet Speedtest</h5> -->
-      <!-- <p class="text-center"> -->
-        <!-- <a target="_blank" href="https://www.google.com/search?q=what+is+my+ip" class="btn btn-primary my-1">Google's "What is my ip?"</a> -->
-        <!-- <a target="_blank" href="https://speedtest.net" class="btn btn-primary my-1">Internet Speed Test</a> -->
-        <!-- <a target="_blank" href="http://nperf.net.unc.edu" class="btn btn-primary my-1">Campus Speed Test</a> -->
-        <!-- <a target="_blank" href="https://www.dnsleaktest.com" class="btn btn-primary my-1">DNS leak test</a> -->
-      <!-- </p> -->
       <iframe width="100%" height="650px" frameborder="0" src="https://uncch.speedtestcustom.com"></iframe>
     </div>
   </div>

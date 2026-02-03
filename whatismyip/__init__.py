@@ -66,7 +66,9 @@ def home():
     tmp_forwarded_for = os.getenv("FORWARDED_FOR", forwarded_for)
     client_address = get_client_address(remote_address, tmp_forwarded_for)
     data["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
-    app.logger.info( f"Home view from {client_address} with forwarded_for {tmp_forwarded_for}")
+    app.logger.info(
+        f"Home view from {client_address} with forwarded_for {tmp_forwarded_for}"
+    )
 
     # Add the ipv4/ipv6 specific test urls
     data["ipv4_url"] = app.config["IPV4_SERVER_URL"]
@@ -102,12 +104,14 @@ def hostinfo():
     tmp_forwarded_for = os.getenv("FORWARDED_FOR", forwarded_for)
     client_address = get_client_address(remote_address, tmp_forwarded_for)
     data["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
-    app.logger.info( f"Hostinfo view from {data['client_address']} with forwarded_for {tmp_forwarded_for}")
+    app.logger.info(
+        f"Hostinfo view from {data['client_address']} with forwarded_for {tmp_forwarded_for}"
+    )
 
     # calculate the IP address basics at the start
     ip = ipaddress.ip_address(str(data["client_address"]))
 
-    # Check if campus address 
+    # Check if campus address
     data["is_campus"] = is_campus_ip(data["client_address"])
 
     # collect device information
