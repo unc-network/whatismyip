@@ -67,7 +67,9 @@ function test_primary_url(default_version) {
 
 			if ( result['address_details']["names"] && result['address_details']['names'].length > 0) {
 				$('#addr1-names-row').show();
-				uniqueNames = [...new Set(result['address_details']['names'])]
+				lowercaseNames = result['address_details']['names'].map(item => item.toLowerCase());
+				uniqueNames = [...new Set(lowercaseNames)]
+				// uniqueNames = [...new Set(result['address_details']['names'])]
 				for (address_name of uniqueNames) {
 				// for (address_name of result['address_details']['names']) {
 					$('#addr1-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
@@ -175,7 +177,9 @@ function test_secondary_url(default_version) {
 
 			if ( result['address_details']["names"] && result['address_details']['names'].length > 0) {
 				$('#addr2-names-row').show();
-				uniqueNames = [...new Set(result['address_details']['names'])]
+				lowercaseNames = result['address_details']['names'].map(item => item.toLowerCase());
+				uniqueNames = [...new Set(lowercaseNames)]
+				// uniqueNames = [...new Set(result['address_details']['names'])]
 				for (address_name of uniqueNames) {
 				// for (address_name of result['address_details']['names']) {
 					$('#addr2-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
