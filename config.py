@@ -28,10 +28,12 @@ class Config:  # pylint: disable=too-few-public-methods
     IB_USERNAME = "admin"
     IB_PASSWORD = "infoblox"
 
+
 class ProductionConfig(Config):  # pylint: disable=too-few-public-methods
     """
     Production flask config
     """
+
     LOG_LEVEL = "INFO"
 
 
