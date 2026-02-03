@@ -6,16 +6,16 @@
     <meta name="description" content="What is my IP? is a service offered by UNC Chapel Hill to provide information about your connection, as seen from the campus network." />
 	<meta name="author" content="">
     <meta name="robots" content="index, follow" />
-    <title>What is my IP?</title>
+    <title>What is my IP? See connection details</title>
 
 	<link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
 
 	<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}"> -->
     <!-- Font Awesome -->
-    <!-- <link
+    <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    /> -->
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    />
 
 	<!-- Google Fonts -->
 	<link rel="preconnect" href="https://fonts.googleapis.com">
@@ -102,18 +102,35 @@
 				</div>
 				<div class="row mb-3">
 					<div class="col">
-						<h5>About "What is my IP?"</h5>
-						<p><small>This site is hosted on the campus network and provided by <a href="https://its.unc.edu/">Information Technology Services</a>
-							as a network diagnostic tool.  The IP addresses reported are those visible to campus applications
-							such as addresses provided by the campus VPN service.  
-							Refer to the <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=263">Determine Client IP Address</a> help article 
-							for site questions or comments.
-							Further detailed network information is available through the <a href="https://nit.net.unc.edu">Network Information Tool (NIT)</a>.	
+						<h5>Explore</h5>
+						<ul class="list-unstyled">
+							<li><a href="/">Home (Retest Connection)</a></li>
+							<li><a href="/about">About "What is my IP?</a></li>
+							<li><a href="https://www.speedtest.net/server/14774">UNC's Speedtest Server</a></li>
+						</ul>
+					</div>
+					<div class="col">
+						<h5>More Resources</h5>
+						<ul class="list-unstyled">
+							<li><a href="https://its.unc.edu/">Information Technology Services</a></li>
+							<li><a href="https://help.unc.edu">ITS Service Desk</a></li>
+							<li><a href="https://nit.net.unc.edu">Network Information Tool (NIT)</a></li>
+						</ul>
+					</div>
+					<div class="col">
+						<h5>Connect with tech at UNC</h5>
+						<a href="https://instagram.com/unctarheeltech" aria-label="Instagram"> <i class="fab fa-instagram fa-xl" style="color:#4B9CD3;"></i></a> &nbsp; 
+						<a href="https://threads.net/unctarheeltech" aria-label="Threads"> <i class="fa-brands fa-threads fa-xl" style="color:#4B9CD3;"></i></a> &nbsp; 
+						<a href="https://x.com/unctarheeltech" aria-label="X, Twitter"> <i class="fa-brands fa-x-twitter fa-xl" style="color:#4B9CD3;"></i></a> &nbsp; 
+						<a href="https://youtube.com/@unctarheeltech" aria-label="YouTube"> <i class="fa-brands fa-youtube fa-xl" style="color:#4B9CD3;"></i></a>
+						<p>
+						</p>
+						<p style="font-size: 12pt"><a href="https://its.unc.edu/itsnewstechconnect"><i class="fa fa-envelope fa-lg" style="margin-right: 7px"></i>ITS News Tech Connect newsletter</a></p>
 					</div>
 				</div>
 				<div class="row mb-5">
 					<div class="col">
-						<p><small>Copyright &copy; <script>document.write(new Date().getFullYear())</script> - Information Technology Services</small></p>
+						<p class="text-center"><small>Copyright &copy; <script>document.write(new Date().getFullYear())</script> - Information Technology Services</small></p>
 					</div>
 				</div>
 			</div>
