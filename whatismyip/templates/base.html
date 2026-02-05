@@ -2,12 +2,25 @@
 <html lang="en">
  <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="What is my IP? is a service offered by UNC Chapel Hill to provide information about your connection, as seen from the campus network." />
-	<meta name="author" content="Information Technology Services">
-    <meta name="robots" content="index, follow" />
-    <title>What is my IP? See connection details</title>
+	<link rel="dns-prefetch" href="https://ipv6.whatismyip.unc.edu"/>
+	<link rel="dns-prefetch" href="https://ipv4.whatismyip.unc.edu"/>
 
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>What is my IP? See connection details</title>
+    <meta name="description" content="What is my IP? is a service offered by UNC Chapel Hill to provide information about your connection, as seen from the campus network.">
+	<meta name="keywords" content="ip address unc campus">
+	<meta name="author" content="">
+    <meta name="robots" content="index, follow">
+
+	<meta property="og:title" content="What is my IP? See connection details">
+	<meta property="og:site_name" content="WhatIsMyIP?">
+	<meta property="og:url" content="https://whatismyip.unc.edu/">
+	<meta property="og:description" content="What is my IP? is a service offered by UNC Chapel Hill to provide information about your connection, as seen from the campus network.">
+	<meta property="og:type" content="website">
+	<meta property="og:image" content="https://whatismyip.unc.edu/static/img/interlocking-nc-carolinablue-navy.png">
+	<meta property="og:image:width" content="600">
+	<meta property="og:image:height" content="470">
+   
 	<link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
 
     <!-- Font Awesome -->
@@ -72,8 +85,8 @@
 						<p class="h5">More Resources</p>
 						<ul class="list-unstyled">
 							<li><a href="https://its.unc.edu/" aria-label="ITS">Information Technology Services</a></li>
+							<li><a href="https://itsstatus.unc.edu/" aria-label="ITS Status">ITS System Status</a></li>
 							<li><a href="https://help.unc.edu" aria-label="Service Desk">ITS Service Desk</a></li>
-							<li><a href="https://nit.net.unc.edu" aria-label="NIT">Network Information Tool (NIT)</a></li>
 						</ul>
 					</div>
 					<div class="col-lg-4">
