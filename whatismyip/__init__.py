@@ -62,6 +62,12 @@ def inject_site_name():
 
 
 # Routes
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'logo/favicon.ico',
+                               mimetype='image/vnd.microsoft.icon')
+
 @app.route("/")
 def home():
     """Display the base homepage with IP address information."""
