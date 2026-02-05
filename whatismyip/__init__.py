@@ -50,11 +50,16 @@ app.logger.debug(
 
 fa = FontAwesome(app)
 
+
 @app.context_processor
 def inject_site_name():
-    """Inject base site url into templates."""
-    SITE_URL = app.config.get("SERVER_URL", "https://whatismyip.unc.edu")
-    return dict(site_url=SITE_URL)
+    """Inject site urls into templates."""
+    return dict(
+        site_url=app.config["SERVER_URL"],
+        ipv4_url=app.config["IPV4_SERVER_URL"],
+        ipv6_url=app.config["IPV6_SERVER_URL"],
+    )
+
 
 # Routes
 @app.route("/")
