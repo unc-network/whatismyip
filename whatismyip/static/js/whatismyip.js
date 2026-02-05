@@ -20,14 +20,14 @@ function set_intro_text(is_campus, network_purpose) {
 
 	if (is_campus) {
 		if ( network_purpose == 'VPN' ) {
-			$('#intro_text').html(`<p>Your IP address is part of a campus VPN network.</p>`);
+			$('#intro_text').html(`<p>Your IP address indicates that you are connected with the campus VPN service.</p>`);
 		} else if ( network_purpose == 'Wireless' ) {
-			$('#intro_text').html(`<p>Your IP address is part of the campus wireless network.</p>`);
+			$('#intro_text').html(`<p>Your IP address indicates that you are connected to the campus wireless network.</p>`);
 		} else {
-			$('#intro_text').html(`<p>Your IP address is part of a local campus network.</p>`);
+			$('#intro_text').html(`<p>Your IP address indicates that you are connected to the local campus network.</p>`);
 		}
 	} else {
-		$('#intro_text').html(`<p>Your IP address is off campus and part of the public Internet.</p>`);
+		$('#intro_text').html(`<p>Your IP address indicates that you are off campus and connected over the Internet.</p>`);
 	}
 }
 
