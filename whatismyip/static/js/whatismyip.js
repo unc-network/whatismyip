@@ -31,7 +31,7 @@ function set_intro_text(is_campus, network_purpose) {
 	}
 }
 
-function test_primary_url(default_version) {
+function test_primary_url(default_version, map) {
 	// call the test url and display address information
 
 	// handle starting state
@@ -132,6 +132,10 @@ function test_primary_url(default_version) {
 				$('#net1-isp-row').show();
 				$('#net1-isp').text(result['iplocation']["isp"]);
 			}
+			if (result['iplocation']['lat'] && result['iplocation']['lon']) {
+				console.log('adding marker to map');
+				pin_to_map(map, result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location2');
+			}
 		},
 		error: function (xhr, status, error) {
 			// $('#connect-ipv4').text("Not supported");
@@ -140,6 +144,16 @@ function test_primary_url(default_version) {
 		}
 	});
 
+}
+
+function pin_to_map(map, lat, lon, label) {
+	// add device marker to the map
+	console.log(map);
+	var campusMarker = L.marker([35.9103, -79.0555]);
+	// var deviceMarker = L.marker([35.9825, -78.5376]).addTo(map).bindPopup("Your IP location");
+	var deviceMarker = L.marker([lat, lon]).addTo(map).bindPopup(label);
+	var group = new L.featureGroup([campusMarker, deviceMarker])
+	map.fitBounds(group.getBounds());
 }
 
 function test_secondary_url(default_version) {
@@ -315,32 +329,32 @@ $(document).ready(function () {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 	}).addTo(map);
 	var campusMarker = L.marker([35.9103, -79.0555]).addTo(map).bindPopup('UNC Campus').openPopup();
-	var userMarker;
-	map.locate({ setView: true, maxZoom: 16, watch: true })
-		.on('locationfound', function(e) {
-			var radius = e.accuracy / 2;
+	// var userMarker;
+	// map.locate({ setView: true, maxZoom: 16, watch: true })
+	// 	.on('locationfound', function(e) {
+	// 		var radius = e.accuracy / 2;
 
-			if (!userMarker) {
-				// Create the marker and circle the first time location is found
-				userMarker = L.marker(e.latlng).addTo(map)
-					// .bindPopup("You are within " + radius + " meters from this point").openPopup();
-					.bindPopup("Your location");
-				L.circle(e.latlng, radius).addTo(map); // A circle showing accuracy
-			} else {
-				// Update the position of existing marker and circle
-				userMarker.setLatLng(e.latlng);
-				// The circle update might need a separate reference if not using the marker's directly
-			}
-			var group = new L.featureGroup([campusMarker, userMarker])
-			map.fitBounds(group.getBounds());
+	// 		if (!userMarker) {
+	// 			// Create the marker and circle the first time location is found
+	// 			userMarker = L.marker(e.latlng).addTo(map)
+	// 				// .bindPopup("You are within " + radius + " meters from this point").openPopup();
+	// 				.bindPopup("Your location");
+	// 			L.circle(e.latlng, radius).addTo(map); // A circle showing accuracy
+	// 		} else {
+	// 			// Update the position of existing marker and circle
+	// 			userMarker.setLatLng(e.latlng);
+	// 			// The circle update might need a separate reference if not using the marker's directly
+	// 		}
+	// 		var group = new L.featureGroup([campusMarker, userMarker])
+	// 		map.fitBounds(group.getBounds());
 
-		}).on('locationerror', function(e) {
-			console.error(e.message);
-			if (userMarker) {
-				map.removeLayer(userMarker);
-				userMarker = undefined;
-			}
-		});
+	// 	}).on('locationerror', function(e) {
+	// 		console.error(e.message);
+	// 		if (userMarker) {
+	// 			map.removeLayer(userMarker);
+	// 			userMarker = undefined;
+	// 		}
+	// 	});
 
 	default_version = null;
 	if (default_address.indexOf(':') != -1) {
@@ -351,7 +365,7 @@ $(document).ready(function () {
 		default_version = 4;
 	}
 
-	test_primary_url(default_version);
+	test_primary_url(default_version, map);
 
 	test_secondary_url(default_version);
 

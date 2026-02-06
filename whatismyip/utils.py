@@ -276,8 +276,8 @@ def get_ip_location(ip_address):
 
     if not ipaddr.is_private:
         # Do not attempt this with private IP addresses
-        # api_url = "https://api.iplocation.net/?ip="
-        api_url = f"https://api.iplocation.net/?ip={ip_address}"
+        # api_url = f"https://api.iplocation.net/?ip={ip_address}" # Country lookup is free with no rate limits, but does not provide city level data
+        api_url = f"http://ip-api.com/json/{ip_address}"
         # api_url = f"https://ipapi.co/{ip_address}/json/"
         session = requests.Session()
         try:
