@@ -31,7 +31,7 @@ function set_intro_text(is_campus, network_purpose) {
 	}
 }
 
-function test_primary_url(default_version, map) {
+function test_primary_url(default_version) {
 	// call the test url and display address information
 
 	// handle starting state
@@ -134,7 +134,7 @@ function test_primary_url(default_version, map) {
 			}
 			if (result['iplocation']['lat'] && result['iplocation']['lon']) {
 				console.log('adding marker to map');
-				pin_to_map(map, result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
+				pin_to_map(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
 			}
 		},
 		error: function (xhr, status, error) {
@@ -146,13 +146,20 @@ function test_primary_url(default_version, map) {
 
 }
 
-function pin_to_map(map, lat, lon, label) {
+function pin_to_map(lat, lon, label) {
+
+	// var map = L.map('map').setView([35.9114, -79.0509], 13);
+	console.log(`updating map ${lat}, ${lon}`);
+	var map = L.map('map').setView([lat, lon], 10);
+	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+	}).addTo(map);
+
 	// add device marker to the map
-	console.log(map);
-	var campusMarker = L.marker([35.9114, -79.0509]); // South Building
+	//var campusMarker = L.marker([35.9114, -79.0509]); // South Building
 	var deviceMarker = L.marker([lat, lon]).addTo(map).bindPopup(label);
-	var group = new L.featureGroup([campusMarker, deviceMarker])
-	map.fitBounds(group.getBounds());
+	//var group = new L.featureGroup([campusMarker, deviceMarker])
+	//map.fitBounds(group.getBounds());
 }
 
 function test_secondary_url(default_version) {
@@ -323,13 +330,14 @@ $(document).ready(function () {
 	//console.log("Connection from " + default_address);
 
 	/* setup the map view */
-	var map = L.map('map').setView([35.9114, -79.0509], 13);
-	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-	}).addTo(map);
+	// var map = L.map('map').setView([35.9114, -79.0509], 13);
+	// L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	// 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+	// }).addTo(map);
 	// var campusMarker = L.marker([35.9114, -79.0509]).addTo(map).bindPopup('UNC Campus').openPopup();
-	var campusMarker = L.marker([35.9114, -79.0509]).addTo(map).bindPopup('UNC Campus');
-	L.circle([35.9114, -79.0509], 1500).addTo(map); // A circle showing rough boundary of campus
+	//var campusMarker = L.marker([35.9114, -79.0509]).addTo(map).bindPopup('UNC Campus');
+	//L.circle([35.9114, -79.0509], 1500).addTo(map); // A circle showing rough boundary of campus
+
 	// var userMarker;
 	// map.locate({ setView: true, maxZoom: 16, watch: true })
 	// 	.on('locationfound', function(e) {
@@ -366,7 +374,7 @@ $(document).ready(function () {
 		default_version = 4;
 	}
 
-	test_primary_url(default_version, map);
+	test_primary_url(default_version);
 
 	test_secondary_url(default_version);
 
