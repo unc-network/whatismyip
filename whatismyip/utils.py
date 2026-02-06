@@ -12,6 +12,7 @@ import urllib3
 from flask import current_app as app
 from whatismyip.extreme import XMC_NBI
 
+
 def is_campus_ip(ip_address):
     """
     Check if the IP address is in a campus block. If so, further testing can take place.
@@ -304,13 +305,14 @@ def get_ip_location(ip_address):
     app.logger.debug(f"get_ip_location complete in {execution_time} seconds")
     return {}
 
+
 def get_endSystemInfo(ip_address, mac):
-    '''
+    """
     Docstring for get_endSystemInfo
-    
-    :param ip_address: Description 
-    :param mac: Description 
-    '''
+
+    :param ip_address: Description
+    :param mac: Description
+    """
     start_time = time.time()
     app.logger.debug(f"get_endSystemInfo {ip_address} {mac}")
     nac_data = {}
@@ -322,7 +324,7 @@ def get_endSystemInfo(ip_address, mac):
         #     app.logger.error( "ERROR: '%s'" % session.message )
         #     exit(1)
         # app.logger.debug("XMC session created")
-        
+
         # nac_data['ip'] = session.getEndSystemByIp(ip_address)
         # if session.error:
         #     app.logger.error( "ERROR: get devices failed '%s'" % session.message )
