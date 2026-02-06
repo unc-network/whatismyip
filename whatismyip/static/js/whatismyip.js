@@ -124,9 +124,16 @@ function test_primary_url(default_version) {
 				$('#net1-vlan').text(result['network']["vlan_id"] + ' (' + result['network']['vlan_name'] + ')');
 			}
 
+			if ( result['iplocation']["city"] ) {
+				$('#net1-city-row').show();
+				$('#net1-city').text(result['iplocation']["city"]);
+			}
 			if ( result['iplocation']["country_name"] ) {
 				$('#net1-country-row').show();
 				$('#net1-country').text(result['iplocation']["country_name"]);
+			} else if ( result['iplocation']['country']) {
+				$('#net1-country-row').show();
+				$('#net1-country').text(result['iplocation']["country"]);
 			}
 			if ( result['iplocation']["isp"] ) {
 				$('#net1-isp-row').show();
@@ -254,9 +261,16 @@ function test_secondary_url(default_version) {
 				$('#net2-vlan').text(result['network']["vlan_id"] + ' (' + result['network']['vlan_name'] + ')');
 			}
 
+			if ( result['iplocation']["city"] ) {
+				$('#net2-city-row').show();
+				$('#net2-city').text(result['iplocation']["city"]);
+			}
 			if ( result['iplocation']["country_name"] ) {
 				$('#net2-country-row').show();
 				$('#net2-country').text(result['iplocation']["country_name"]);
+			} else if ( result['iplocation']['country']) {
+				$('#net2-country-row').show();
+				$('#net2-country').text(result['iplocation']["country"]);
 			}
 			if ( result['iplocation']["isp"] ) {
 				$('#net2-isp-row').show();
