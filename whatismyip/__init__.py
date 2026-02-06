@@ -157,6 +157,7 @@ def hostinfo():
             "isp": "University of North Carolina at Chapel Hill",
             "response_code": None,
             "response_message": None,
+            "city": "Chapel Hill",
             "lat": 35.9034, 
             "lon": -79.0484,
         }
