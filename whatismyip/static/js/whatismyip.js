@@ -140,7 +140,7 @@ function test_primary_url(default_version) {
 				$('#net1-isp').text(result['iplocation']["isp"]);
 			}
 			if (result['iplocation']['lat'] && result['iplocation']['lon']) {
-				console.log('adding marker to map');
+				// console.log('adding marker to map');
 				pin_to_map(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
 			}
 		},
@@ -156,7 +156,7 @@ function test_primary_url(default_version) {
 function pin_to_map(lat, lon, label) {
 
 	// var map = L.map('map').setView([35.9114, -79.0509], 13);
-	console.log(`updating map ${lat}, ${lon}`);
+	// console.log(`updating map ${lat}, ${lon}`);
 	var map = L.map('map').setView([lat, lon], 11);
 	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
