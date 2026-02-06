@@ -328,6 +328,7 @@ $(document).ready(function () {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 	}).addTo(map);
 	var campusMarker = L.marker([35.9114, -79.0509]).addTo(map).bindPopup('UNC Campus').openPopup();
+	L.circle([35.9114, -79.0509], 1500).addTo(map); // A circle showing rough boundary of campus
 	// var userMarker;
 	// map.locate({ setView: true, maxZoom: 16, watch: true })
 	// 	.on('locationfound', function(e) {
