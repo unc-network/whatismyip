@@ -134,7 +134,7 @@ function test_primary_url(default_version, map) {
 			}
 			if (result['iplocation']['lat'] && result['iplocation']['lon']) {
 				console.log('adding marker to map');
-				pin_to_map(map, result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location2');
+				pin_to_map(map, result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
 			}
 		},
 		error: function (xhr, status, error) {
