@@ -14,6 +14,7 @@ from flask import (
     abort,
 )
 from flask_cors import CORS
+
 # from flask_fontawesome import FontAwesome
 from dotenv import load_dotenv
 from user_agents import parse
