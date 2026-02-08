@@ -32,12 +32,6 @@
 	<meta name="msapplication-TileColor" content="#ffffff">
 	<meta name="msapplication-config" content="/static/logo/browserconfig.xml">
 
-    <!-- Font Awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
-    />
-
 	<!-- Google Fonts -->
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,6 +39,9 @@
 
     <!-- MDB -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mdb.min.css') }}" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}" />
 
 	<!-- Site Specific -->
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/whatismyip.css') }}">
