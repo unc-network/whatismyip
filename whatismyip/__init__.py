@@ -14,7 +14,7 @@ from flask import (
     abort,
 )
 from flask_cors import CORS
-from flask_fontawesome import FontAwesome
+# from flask_fontawesome import FontAwesome
 from dotenv import load_dotenv
 from user_agents import parse
 from dns import resolver, reversename
@@ -49,7 +49,7 @@ app.logger.debug(
     f"URL: dual stack {app.config['SERVER_URL']}, ipv4-only {app.config['IPV4_SERVER_URL']}, ipv6-only {app.config['IPV6_SERVER_URL']}"
 )
 
-fa = FontAwesome(app)
+# fa = FontAwesome(app)
 
 
 @app.context_processor
