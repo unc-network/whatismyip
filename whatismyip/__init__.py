@@ -89,7 +89,7 @@ def home():
     return render_template("home.html", context=data)
 
 
-@app.route("/hostinfo.php")
+# @app.route("/hostinfo.php")
 @app.route("/hostinfo")
 def hostinfo():
     """
