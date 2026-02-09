@@ -72,7 +72,7 @@
 
     <div id="connect-test" class="card shadow my-3" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}">
       <div class="card-body">
-        <p class="card-title h5">Campus Connectivity</p>
+        <h3 class="card-title h5">Campus Connectivity</h3>
         <div class="table-responsive">
         <table class="table table-sm">
           <tbody>
@@ -100,7 +100,7 @@
 
     <div class="card shadow my-3">
       <div class="card-body">
-        <p class="card-title h5">IPv4 Address Details</p>
+        <h3 class="card-title h5">IPv4 Address Details</h3>
         <div class="table-responsive">
           <table class="table table-sm">
             <tbody>
@@ -175,7 +175,7 @@
 
     <div class="card shadow my-3">
       <div class="card-body">
-        <p class="card-title h5">IPv6 Address Details</p>
+        <h3 class="card-title h5">IPv6 Address Details</h3>
         <div class="table-responsive">
           <table class="table table-sm">
             <tbody>
@@ -254,17 +254,21 @@
   </div>
 </div> -->
 
-<div class="row p-1 mt-2">
+<!-- <div class="row p-1 mt-2">
   <div class="col">
     <p>Run a speed test using the closest Speedtest server, which is selected by default, 
       or manually choose “UNC Chapel Hill” to test your connection to the UNC campus.
     </p>
   </div>
-</div>
+</div> -->
 
 <div class="row p-1 mt-2">
   <div class="col">
-     <div class="card shadow card-body">
+      <div class="card shadow card-body">
+      <h3 class="card-title h5">Internet Speedtest</h3>
+    <p>Run a speed test using the closest Speedtest server, which is selected by default, 
+      or manually choose “UNC Chapel Hill” to test your connection to the UNC campus.
+    </p>
       <iframe width="100%" height="650px" frameborder="0" src="https://uncch.speedtestcustom.com"></iframe>
     </div>
   </div>
@@ -276,6 +280,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
         crossorigin=""/>
+    <link rel="canonical" href="{{site_url}}">
 {% endblock %}
 
 {% block javascript %}
