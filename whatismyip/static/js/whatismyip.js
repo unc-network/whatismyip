@@ -145,17 +145,22 @@ function test_primary_url(default_version) {
 			}
 
 			// dump nac data
-			for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
-				if ( value ) {
-					$('#nac-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+			if (result['nac']['endSystem']) {
+				$('#nac-row').show();
+				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
+					if ( value ) {
+						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+					}
 				}
 			}
-			for (const [key, value] of Object.entries(result['nac']['endSystemInfo'])) {
-				if ( value ) {
-					$('#nac-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+			if (result['nac']['endSystemInfo']) {
+				$('#nac-row').show();
+				for (const [key, value] of Object.entries(result['nac']['endSystemInfo'])) {
+					if ( value ) {
+						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+					}
 				}
 			}
-			$('#nac-row').show();
 		},
 		error: function (xhr, status, error) {
 			// $('#connect-ipv4').text("Not supported");
