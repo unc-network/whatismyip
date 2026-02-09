@@ -306,7 +306,7 @@ def get_ip_location(ip_address):
     return {}
 
 
-def get_endSystemInfo(ip_address):
+def get_nac_info(ip_address):
     """
     Docstring for get_endSystemInfo
 
