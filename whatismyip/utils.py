@@ -316,8 +316,8 @@ def get_nac_info(ip_address):
     start_time = time.time()
     app.logger.debug(f"get_endSystemInfo {ip_address}")
     data = {
-        "nac_ip": None,
-        "nac_mac": None,
+        "endSystem": None,
+        "endSystemInfo": None,
     }
 
     if is_campus_ip(ip_address):
@@ -338,7 +338,15 @@ def get_nac_info(ip_address):
         if session.error:
             app.logger.error("ERROR: get devices failed '%s'" % session.message)
         app.logger.debug(f"nac ip: {ip_data}")
-        data["nac_ip"] = ip_data
+        # if 'policy' in ip_data and ip_data['policy']:
+        #     policy_parts = ip_data['policy'].split(",")
+        #     for p in policy_parts:
+        #         app.logger.debug(f"Breaking up policy part: {p}")
+        #         p = p.strip()
+        #         p_key, p_value = p.split('=', 1)
+        #         new_key = f"policy_{p_key}"
+        #         ip_data[new_key] = p_value
+        data["endSystem"] = ip_data
 
         # if 'macAddress' in ip_data and ip_data['macAddress']:
         if ip_data and ip_data["macAddress"]:
@@ -349,7 +357,7 @@ def get_nac_info(ip_address):
             if session.error:
                 app.logger.error("ERROR: get devices failed '%s'" % session.message)
             app.logger.debug(f"nac_mac: {mac_data}")
-            data["nac_mac"] = mac_data
+            data["endSystemInfo"] = mac_data
 
     execution_time = time.time() - start_time
     app.logger.debug(f"get_endSystemInfo complete in {execution_time} seconds")

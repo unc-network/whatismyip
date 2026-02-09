@@ -312,11 +312,11 @@ def hostinfo():
     data["address_details"] = addr_details
 
     # collect NAC data to display
-    nac_data = get_nac_info(client_address)
-    if nac_data:
-        data["nac"] = nac_data
-    else:
-        data["nac"] = {}
+    data["nac"] = {}
+    if data["is_campus"] and ip.version == 4:
+        nac_data = get_nac_info(data["client_address"])
+        if nac_data:
+            data["nac"] = nac_data
 
     # build the json response
     message = jsonify(data)
