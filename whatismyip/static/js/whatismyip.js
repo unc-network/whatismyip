@@ -187,6 +187,41 @@ function pin_to_map(lat, lon, label) {
 	//map.fitBounds(group.getBounds());
 }
 
+function get_dns_info() {
+	// testing DNS identification
+	// https://ip-api.com/docs/dns
+	const test_url = "http://edns.ip-api.com/json"
+
+	$.ajax({
+		type: "GET",
+		url: test_url,
+		dataType: "json",
+		success: function (result, status, xhr) {
+			console.dir(`success: ${result}`)
+			// dump dns data
+			if (result['dns']) {
+				$('#dns-test').show();
+				for (const [key, value] of Object.entries(result['dns'])) {
+					if ( value ) {
+						$('#dns-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+					}
+				}
+			}
+			if (result['edns']) {
+				$('#dns-test').show();
+				for (const [key, value] of Object.entries(result['edns'])) {
+					if ( value ) {
+						$('#dns-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+					}
+				}
+			}
+		},
+		error: function (xhr, status, error) {
+			console.dir(`failed: ${error}`)
+		}
+	});
+}
+
 function test_secondary_url(default_version) {
 	// test secondary url
 
@@ -409,5 +444,7 @@ $(document).ready(function () {
 	test_primary_url(default_version);
 
 	test_secondary_url(default_version);
+
+	get_dns_info();
 
 });
