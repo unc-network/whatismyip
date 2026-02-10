@@ -187,10 +187,21 @@ function pin_to_map(lat, lon, label) {
 	//map.fitBounds(group.getBounds());
 }
 
+function createRandomString(length) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 function get_dns_info() {
 	// testing DNS identification
 	// https://ip-api.com/docs/dns
-	const test_url = "https://edns.ip-api.com/json"
+	tmp_name = createRandomString(32);
+	const test_url = `https://${tmp_name}.edns.ip-api.com/json`;
+	// console.log(`Checking DNS servers with ${test_url}`);
 
 	$.ajax({
 		type: "GET",
@@ -450,5 +461,6 @@ $(document).ready(function () {
 		// Do additional tests for campus
 		get_dns_info();
 	}
+	get_dns_info();
 
 });
