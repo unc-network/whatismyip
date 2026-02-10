@@ -6,6 +6,7 @@ import time
 import ipaddress
 import requests
 import urllib3
+import json
 
 # from ipwhois import IPWhois
 
@@ -339,13 +340,7 @@ def get_nac_info(ip_address):
             app.logger.error("ERROR: get devices failed '%s'" % session.message)
         app.logger.debug(f"nac ip: {ip_data}")
         # if 'policy' in ip_data and ip_data['policy']:
-        #     policy_parts = ip_data['policy'].split(",")
-        #     for p in policy_parts:
-        #         app.logger.debug(f"Breaking up policy part: {p}")
-        #         p = p.strip()
-        #         p_key, p_value = p.split('=', 1)
-        #         new_key = f"policy_{p_key}"
-        #         ip_data[new_key] = p_value
+        #     ip_data['policy_parsed'] = parse_extreme_vsa(ip_data['policy']) 
         data["endSystem"] = ip_data
 
         # if 'macAddress' in ip_data and ip_data['macAddress']:
@@ -362,3 +357,38 @@ def get_nac_info(ip_address):
     execution_time = time.time() - start_time
     app.logger.debug(f"get_endSystemInfo complete in {execution_time} seconds")
     return data
+
+def parse_extreme_vsa(vsa_string):
+    parsed_data = {
+        'Extreme-Dynamic-Config': []
+    }
+    
+    # Split the main string by comma, but only if not within nested structures
+    # Using a simple split, then cleaning whitespace
+    parts = [part.strip() for part in vsa_string.split(',')]
+    
+    for part in parts:
+        if '=' not in part:
+            continue
+            
+        key, value = part.split('=', 1)
+        key = key.strip()
+        value = value.strip()
+        
+        if key == 'Extreme-Dynamic-Client-Assignments':
+            # Parse nested comma-separated values
+            nested_dict = {}
+            for item in value.split(','):
+                if '=' in item:
+                    n_key, n_value = item.split('=', 1)
+                    nested_dict[n_key.strip()] = n_value.strip()
+            parsed_data[key] = nested_dict
+            
+        elif key == 'Extreme-Dynamic-Config':
+            # Handle multiple configuration entries
+            parsed_data['Extreme-Dynamic-Config'].append(value)
+            
+        else:
+            parsed_data[key] = value
+            
+    return json.dumps(parsed_data)

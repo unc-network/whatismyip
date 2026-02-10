@@ -237,6 +237,14 @@ function get_dns_info() {
 			console.dir(`DNS test failed: ${error}`)
 		}
 	});
+
+	// fetch('http://www.akamaietpmalwaretest.com/')
+	// .then(response => response.text()) // Parse body as text
+	// .then(text => {
+	// 	console.log(text); // Handle the parsed text
+	// })
+	// .catch(error => console.error('Error:', error));
+
 }
 
 function test_secondary_url(default_version) {
