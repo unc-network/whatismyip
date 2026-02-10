@@ -213,9 +213,9 @@ function get_dns_info() {
 			if (result['dns']) {
 				let geo = result['dns']['geo']
 				if ( geo.includes('Akamai') ) {
-					$('#dns-table tbody').append(`<tr><th>Security Filtering</th><td><i class="fa-solid fa-circle-check text-success"></i> Active</td></tr>`);
+					$('#dns-table tbody').append(`<tr><th>Security Filtering <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333" alt="Security Filtering Service"><i class="fa-solid fa-circle-info" alt="More Information"></i></a></th><td><i class="fa-solid fa-circle-check text-success"></i> Active</td></tr>`);
 				} else {
-					$('#dns-table tbody').append(`<tr><th>Security Filtering</th><td><i class="fa-solid fa-circle-xmark text-danger"></i> Inactive</td></tr>`);
+					$('#dns-table tbody').append(`<tr><th>Security Filtering <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333" alt="Security Filtering Service"><i class="fa-solid fa-circle-info" alt="More Information"></i></a></th><td><i class="fa-solid fa-circle-xmark text-danger"></i> Inactive</td></tr>`);
 				}
 				$('#dns-test').show();
 				// for (const [key, value] of Object.entries(result['dns'])) {
