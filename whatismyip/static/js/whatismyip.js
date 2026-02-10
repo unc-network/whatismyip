@@ -213,9 +213,9 @@ function get_dns_info() {
 			if (result['dns']) {
 				let geo = result['dns']['geo']
 				if ( geo.includes('Akamai') ) {
-					$('#dns-table tbody').append(`<tr><th>DNS Security Filtering</th><td><i class="fa-solid fa-circle-check text-success"></i> Active</td></tr>`);
+					$('#dns-table tbody').append(`<tr><th>Security Filtering</th><td><i class="fa-solid fa-circle-check text-success"></i> Active</td></tr>`);
 				} else {
-					$('#dns-table tbody').append(`<tr><th>DNS Security Filtering</th><td><i class="fa-solid fa-circle-xmark text-danger"></i> Inactive</td></tr>`);
+					$('#dns-table tbody').append(`<tr><th>Security Filtering</th><td><i class="fa-solid fa-circle-xmark text-danger"></i> Inactive</td></tr>`);
 				}
 				$('#dns-test').show();
 				// for (const [key, value] of Object.entries(result['dns'])) {
@@ -467,4 +467,5 @@ $(document).ready(function () {
 		// Do additional tests for campus
 		get_dns_info();
 	}
+	//get_dns_info();
 });
