@@ -84,7 +84,9 @@ def home():
 
     # Quickly flag if this is campus or not
     data["is_campus"] = is_campus_ip(client_address)
-    app.logger.debug(f"Client address {client_address} is campus IP {data['is_campus']}")
+    app.logger.debug(
+        f"Client address {client_address} is campus IP {data['is_campus']}"
+    )
 
     # Add the ipv4/ipv6 specific test urls
     data["ipv4_url"] = app.config["IPV4_SERVER_URL"]
