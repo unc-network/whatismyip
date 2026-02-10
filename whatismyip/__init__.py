@@ -15,15 +15,12 @@ from flask import (
 )
 from flask_cors import CORS
 
-# from flask_fontawesome import FontAwesome
 from dotenv import load_dotenv
 from user_agents import parse
 from dns import resolver, reversename
 import dns.exception
 
 from whatismyip.utils import *
-
-# from whatismyip import views
 
 # load dotenv in the base root
 APP_ROOT = os.path.join(os.path.dirname(__file__), "..")  # refers to application_top
@@ -34,23 +31,15 @@ app = Flask(__name__)
 app.config.from_object("config.Config")
 app.config.from_prefixed_env()
 
-# if __name__ != '__main__':
-#     gunicorn_logger = logging.getLogger('gunicorn.error')
-#     app.logger.handlers = gunicorn_logger.handlers
-#     app.logger.setLevel(gunicorn_logger.level)
-
-# logger = create_logger(app)
-# logger.setLevel(logging.INFO)
-
 # Dual stack clients need to access both the v6 and v4 versions of this site.
-# Allow the https v6 site to call the https v4 version of the api.
-# CORS(app, resources={r"/hostinfo": {"origins": ["https://whatismyip.unc.edu"]}})
-CORS(app, resources={r"/hostinfo": {"origins": [app.config["SERVER_URL"]]}})
-app.logger.debug(
-    f"URL: dual stack {app.config['SERVER_URL']}, ipv4-only {app.config['IPV4_SERVER_URL']}, ipv6-only {app.config['IPV6_SERVER_URL']}"
-)
-
-# fa = FontAwesome(app)
+api_config = {
+    "origins": [
+        app.config["SERVER_URL"],
+        app.config["IPV4_SERVER_URL"],
+        app.config["IPV6_SERVER_URL"],
+    ]
+}
+CORS(app, resources={"/hostinfo": api_config, "/nacinfo": api_config})
 
 
 @app.context_processor
