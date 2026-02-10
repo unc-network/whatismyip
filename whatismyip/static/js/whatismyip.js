@@ -187,6 +187,52 @@ function pin_to_map(lat, lon, label) {
 	//map.fitBounds(group.getBounds());
 }
 
+function createRandomString(length) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+function get_dns_info() {
+	// testing DNS identification
+	// https://ip-api.com/docs/dns
+	tmp_name = createRandomString(32);
+	const test_url = `https://${tmp_name}.edns.ip-api.com/json`;
+	// console.log(`Checking DNS servers with ${test_url}`);
+
+	$.ajax({
+		type: "GET",
+		url: test_url,
+		dataType: "json",
+		success: function (result, status, xhr) {
+			// console.dir(`success: ${result}`)
+			// dump dns data
+			if (result['dns']) {
+				$('#dns-test').show();
+				for (const [key, value] of Object.entries(result['dns'])) {
+					if ( value ) {
+						$('#dns-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+					}
+				}
+			}
+			if (result['edns']) {
+				$('#dns-test').show();
+				for (const [key, value] of Object.entries(result['edns'])) {
+					if ( value ) {
+						$('#dns-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+					}
+				}
+			}
+		},
+		error: function (xhr, status, error) {
+			console.dir(`DNS test failed: ${error}`)
+		}
+	});
+}
+
 function test_secondary_url(default_version) {
 	// test secondary url
 
@@ -409,5 +455,11 @@ $(document).ready(function () {
 	test_primary_url(default_version);
 
 	test_secondary_url(default_version);
+
+	const is_campus = JSON.parse(document.getElementById('campus_id').textContent);
+	if (is_campus) {
+		// Do additional tests for campus
+		get_dns_info();
+	}
 
 });

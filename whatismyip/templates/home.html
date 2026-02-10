@@ -94,6 +94,16 @@
       </div>
     </div>
 
+    <div id="dns-test" class="card shadow card-body" style="display:none;">
+      <h3 class="card-title h5">DNS Server Details</h3>
+      <div class="table-responsive">
+        <table id="dns-table" class="table table-sm">
+          <tbody>
+          </tbody>
+        </table>
+        </div>
+    </div>
+
   </div> <!-- end of column 1 -->
 
   <div id="address1-details" class="col-xl">
@@ -284,6 +294,9 @@
 {% endblock %}
 
 {% block javascript %}
+<script type="application/json" id="campus_id">
+    {{ context['is_campus'] | tojson }}
+</script>
 <script src="{{ url_for('static', filename='js/whatismyip.js') }}"></script>
  <!-- Make sure you put this AFTER Leaflet's CSS -->
  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"

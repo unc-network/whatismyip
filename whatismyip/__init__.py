@@ -82,6 +82,12 @@ def home():
         f"Home view from {client_address} with forwarded_for {tmp_forwarded_for}"
     )
 
+    # Quickly flag if this is campus or not
+    data["is_campus"] = is_campus_ip(client_address)
+    app.logger.debug(
+        f"Client address {client_address} is campus IP {data['is_campus']}"
+    )
+
     # Add the ipv4/ipv6 specific test urls
     data["ipv4_url"] = app.config["IPV4_SERVER_URL"]
     data["ipv6_url"] = app.config["IPV6_SERVER_URL"]
