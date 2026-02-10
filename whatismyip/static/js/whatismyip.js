@@ -467,6 +467,4 @@ $(document).ready(function () {
 		// Do additional tests for campus
 		get_dns_info();
 	}
-	get_dns_info();
-
 });
