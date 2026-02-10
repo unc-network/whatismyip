@@ -30,8 +30,8 @@ class Config:  # pylint: disable=too-few-public-methods
 
     # XMC credentials
     XMC_SERVER = "http://127.0.0.1"
-    XMC_CLIENT_ID="abc"
-    XMC_SECRET="123"
+    XMC_CLIENT_ID = "abc"
+    XMC_SECRET = "123"
 
 
 class ProductionConfig(Config):  # pylint: disable=too-few-public-methods
