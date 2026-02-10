@@ -190,7 +190,7 @@ function pin_to_map(lat, lon, label) {
 function get_dns_info() {
 	// testing DNS identification
 	// https://ip-api.com/docs/dns
-	const test_url = "http://edns.ip-api.com/json"
+	const test_url = "https://edns.ip-api.com/json"
 
 	$.ajax({
 		type: "GET",
