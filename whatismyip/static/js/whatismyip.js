@@ -375,97 +375,10 @@ function test_secondary_url(default_version) {
 
 }
 
-// function initMap() {
-//   const myLatlng = { lat: 35.9103, lng: -79.0555 }; // Example: Chapel Hill, NC
-//   const map = new google.maps.Map(document.getElementById("map"), {
-//     zoom: 4,
-//     center: myLatlng,
-//   });
-
-//   // Add a marker
-//   new google.maps.Marker({
-//     position: myLatlng,
-//     map,
-//     title: "Hello World!",
-//   });
-// }
-
-
-// function getLocation() {
-//   if (navigator.geolocation) {
-//     navigator.geolocation.getCurrentPosition(showPosition, showError);
-//   } else {
-//     // Geolocation is not supported by the browser
-//   }
-// }
-
-// function showPosition(position) {
-//   const latitude = position.coords.latitude;
-//   const longitude = position.coords.longitude;
-//   // Use latitude and longitude (e.g., display on a map)
-//   console.log("Latitude: " + latitude + ", Longitude: " + longitude);
-// 	L.marker([latitude, longitude]).addTo(map)
-// 		.bindPopup('Your Location');
-// }
-
-// function showError(error) {
-//   switch(error.code) {
-//     case error.PERMISSION_DENIED:
-//       console.error("User denied the request for Geolocation.");
-//       break;
-//     case error.POSITION_UNAVAILABLE:
-//       console.error("Location information is unavailable.");
-//       break;
-//     case error.TIMEOUT:
-//       console.error("The request to get user location timed out.");
-//       break;
-//     case error.UNKNOWN_ERROR:
-//       console.error("An unknown error occurred.");
-//       break;
-//   }
-// }
-
 $(document).ready(function () {
-
 	/* extract the default ip detected */
 	var default_address = $('#address1').text();
 	//console.log("Connection from " + default_address);
-
-	/* setup the map view */
-	// var map = L.map('map').setView([35.9114, -79.0509], 13);
-	// L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-	// 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-	// }).addTo(map);
-	// var campusMarker = L.marker([35.9114, -79.0509]).addTo(map).bindPopup('UNC Campus').openPopup();
-	//var campusMarker = L.marker([35.9114, -79.0509]).addTo(map).bindPopup('UNC Campus');
-	//L.circle([35.9114, -79.0509], 1500).addTo(map); // A circle showing rough boundary of campus
-
-	// var userMarker;
-	// map.locate({ setView: true, maxZoom: 16, watch: true })
-	// 	.on('locationfound', function(e) {
-	// 		var radius = e.accuracy / 2;
-
-	// 		if (!userMarker) {
-	// 			// Create the marker and circle the first time location is found
-	// 			userMarker = L.marker(e.latlng).addTo(map)
-	// 				// .bindPopup("You are within " + radius + " meters from this point").openPopup();
-	// 				.bindPopup("Your location");
-	// 			L.circle(e.latlng, radius).addTo(map); // A circle showing accuracy
-	// 		} else {
-	// 			// Update the position of existing marker and circle
-	// 			userMarker.setLatLng(e.latlng);
-	// 			// The circle update might need a separate reference if not using the marker's directly
-	// 		}
-	// 		var group = new L.featureGroup([campusMarker, userMarker])
-	// 		map.fitBounds(group.getBounds());
-
-	// 	}).on('locationerror', function(e) {
-	// 		console.error(e.message);
-	// 		if (userMarker) {
-	// 			map.removeLayer(userMarker);
-	// 			userMarker = undefined;
-	// 		}
-	// 	});
 
 	default_version = null;
 	if (default_address.indexOf(':') != -1) {
@@ -485,5 +398,5 @@ $(document).ready(function () {
 		// Do additional tests for campus
 		get_dns_info();
 	}
-	//get_dns_info();
+	get_dns_info();
 });
