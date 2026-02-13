@@ -354,9 +354,11 @@ def get_nac_info(ip_address):
             app.logger.debug(f"nac_mac: {mac_data}")
             data["endSystemInfo"] = mac_data
 
-        if ip_data and 'switchIP' in ip_data and ip_data['switchIP']:
-            app.logger.debug(f"NAC data includes switch IP {ip_data['switchIP']}, collecting switch info")
-            data['nit_building'] = get_nit_building(ip_data['switchIP'])
+        if ip_data and "switchIP" in ip_data and ip_data["switchIP"]:
+            app.logger.debug(
+                f"NAC data includes switch IP {ip_data['switchIP']}, collecting switch info"
+            )
+            data["nit_building"] = get_nit_building(ip_data["switchIP"])
             app.logger.debug(f"NIT building data: {data['nit_building']}")
 
     execution_time = time.time() - start_time
@@ -387,7 +389,8 @@ def get_nit_building(switch_ip):
 
     execution_time = time.time() - start_time
     app.logger.debug(f"get_nit_switch_info complete in {execution_time} seconds")
-    return data['building'] if 'building' in data else {}
+    return data["building"] if "building" in data else {}
+
 
 def parse_extreme_vsa(vsa_string):
     parsed_data = {"Extreme-Dynamic-Config": []}
