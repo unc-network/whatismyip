@@ -141,7 +141,8 @@ function test_primary_url(default_version) {
 			}
 			if (result['iplocation']['lat'] && result['iplocation']['lon']) {
 				// console.log('adding marker to map');
-				pin_to_map(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
+				// pin_to_map(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
+				add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
 			}
 
 			// dump nac data
@@ -181,8 +182,39 @@ function test_primary_url(default_version) {
 
 }
 
-function pin_to_map(lat, lon, label) {
+async function initMap() {
+    //  Request the needed libraries.
+    const [{ Map }, { AdvancedMarkerElement }] = await Promise.all([
+        google.maps.importLibrary('maps'),
+        google.maps.importLibrary('marker'),
+    ]);
+    // Get the gmp-map element.
+    const mapElement = document.querySelector('gmp-map');
+    // Get the inner map.
+    const innerMap = mapElement.innerMap;
+    // Set map options.
+    innerMap.setOptions({
+        mapTypeControl: false,
+    });
+    // Add a marker positioned at the map center (Uluru).
+    // const marker = new AdvancedMarkerElement({
+    //     map: innerMap,
+    //     position: mapElement.center,
+    //     title: 'Uluru/Ayers Rock',
+    // });
+}
 
+async function add_marker (lat, lon, label) {
+	const mapElement = document.querySelector('gmp-map');
+    const { Map } = (await google.maps.importLibrary('maps'));
+    const { AdvancedMarkerElement } = (await google.maps.importLibrary('marker'));
+    const marker = new AdvancedMarkerElement({
+        position: { lat: lat, lng: lon },
+    });
+    mapElement.append(marker);
+}
+
+function pin_to_map(lat, lon, label) {
 	// var map = L.map('map').setView([35.9114, -79.0509], 13);
 	// console.log(`updating map ${lat}, ${lon}`);
 	var map = L.map('map').setView([lat, lon], 11);
@@ -376,6 +408,7 @@ function test_secondary_url(default_version) {
 }
 
 $(document).ready(function () {
+	initMap();
 	/* extract the default ip detected */
 	var default_address = $('#address1').text();
 	//console.log("Connection from " + default_address);
