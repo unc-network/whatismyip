@@ -14,6 +14,7 @@ from flask import (
     abort,
 )
 from flask_cors import CORS
+from flask_compress import Compress
 
 from dotenv import load_dotenv
 from user_agents import parse
@@ -30,6 +31,7 @@ load_dotenv(dotenv_path)
 app = Flask(__name__)
 app.config.from_object("config.Config")
 app.config.from_prefixed_env()
+Compress(app)
 
 # Dual stack clients need to access both the v6 and v4 versions of this site.
 api_config = {

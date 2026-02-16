@@ -3,6 +3,8 @@ gunicorn
 python-dotenv
 requests
 
+Flask-Compress
+
 flask-cors
 #flask-fontawesome
 ipaddress
