@@ -369,10 +369,12 @@ def about():
     """Display a basic webpage with about information."""
     return render_template("about.html")
 
+
 @app.route("/faq")
 def faq():
     """Display a basic webpage with about information."""
     return render_template("faq.html")
+
 
 @app.route("/favicon.ico")
 @app.route("/robots.txt")
