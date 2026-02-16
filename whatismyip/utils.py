@@ -354,9 +354,7 @@ def get_nac_info(ip_address, mac=None):
             app.logger.debug(f"nac_mac: {mac_data}")
             data["endSystemInfo"] = mac_data
         elif mac:
-            app.logger.debug(
-                f"Looking up end system info from IPAM mac {mac}"
-            )
+            app.logger.debug(f"Looking up end system info from IPAM mac {mac}")
             mac_data = session.getMacAddress(mac)
             if session.error:
                 app.logger.error("ERROR: get devices failed '%s'" % session.message)
