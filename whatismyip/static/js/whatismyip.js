@@ -216,6 +216,7 @@ async function add_marker (lat, lon, label) {
 
     const innerMap = mapElement.innerMap;
 	innerMap.setCenter({lat: lat, lng: lon});
+	innerMap.setZoom(14);
 }
 
 function pin_to_map(lat, lon, label) {
