@@ -164,7 +164,7 @@ function test_primary_url(default_version) {
 			}
 
 			// dump building data
-			if (result['nac']['nit_building']) {
+			if (result['nac']['nit_building'] && Object.keys(result['nac']['nit_building']).length > 0) {
 				$('#bldg-col').show();
 				for (const [key, value] of Object.entries(result['nac']['nit_building'])) {
 					if ( value ) {
