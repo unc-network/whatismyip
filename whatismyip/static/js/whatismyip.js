@@ -141,8 +141,9 @@ function test_primary_url(default_version) {
 			}
 			if (result['iplocation']['lat'] && result['iplocation']['lon']) {
 				// console.log('adding marker to map');
-				// pin_to_map(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
-				add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
+				if ( is_campus) {
+					add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
+				}
 			}
 
 			// dump nac data
@@ -219,21 +220,6 @@ async function add_marker (lat, lon, label) {
 	innerMap.setZoom(11);
 }
 
-function pin_to_map(lat, lon, label) {
-	// var map = L.map('map').setView([35.9114, -79.0509], 13);
-	// console.log(`updating map ${lat}, ${lon}`);
-	var map = L.map('map').setView([lat, lon], 11);
-	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-	}).addTo(map);
-
-	// add device marker to the map
-	//var campusMarker = L.marker([35.9114, -79.0509]); // South Building
-	var deviceMarker = L.marker([lat, lon]).addTo(map).bindPopup(label);
-	//var group = new L.featureGroup([campusMarker, deviceMarker])
-	//map.fitBounds(group.getBounds());
-}
-
 function createRandomString(length) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let result = "";
@@ -248,15 +234,12 @@ function get_dns_info() {
 	// https://ip-api.com/docs/dns
 	tmp_name = createRandomString(32);
 	const test_url = `https://${tmp_name}.edns.ip-api.com/json`;
-	// console.log(`Checking DNS servers with ${test_url}`);
 
 	$.ajax({
 		type: "GET",
 		url: test_url,
 		dataType: "json",
 		success: function (result, status, xhr) {
-			// console.dir(`success: ${result}`)
-			// dump dns data
 			if (result['dns']) {
 				let geo = result['dns']['geo']
 				if ( geo.includes('Akamai') ) {
@@ -413,10 +396,13 @@ function test_secondary_url(default_version) {
 }
 
 $(document).ready(function () {
-	initMap();
-	/* extract the default ip detected */
-	var default_address = $('#address1').text();
-	//console.log("Connection from " + default_address);
+	// Extract information passed from initial connection
+	const is_campus = JSON.parse(document.getElementById('is_campus').textContent);
+	const default_address = JSON.parse(document.getElementById('default_address').textContent);
+	//console.log("Connection from " + default_address );
+
+	// Setup Google Map
+	//initMap();
 
 	default_version = null;
 	if (default_address.indexOf(':') != -1) {
@@ -431,10 +417,13 @@ $(document).ready(function () {
 
 	test_secondary_url(default_version);
 
-	const is_campus = JSON.parse(document.getElementById('is_campus').textContent);
 	if (is_campus) {
 		// Do additional tests for campus
 		get_dns_info();
+
+		// Show the map and get it ready
+		$('#map_card').show()
+		initMap();
 	}
 	//get_dns_info();
 });
