@@ -141,9 +141,9 @@ function test_primary_url(default_version) {
 			}
 
 			// Do the Map work
-			// if (result['nac']['nit_building'] && result['nac']['nit_building']['address']) {
-			// 	codeAddress(result['nac']['nit_building']['address']);
-			if (is_campus && result['iplocation']['lat'] && result['iplocation']['lon']) {
+			if (result['nac']['nit_building'] && result['nac']['nit_building']['address']) {
+				codeAddress(result['nac']['nit_building']['address']);
+			} else if (is_campus && result['iplocation']['lat'] && result['iplocation']['lon']) {
 				add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
 			}
 
@@ -187,11 +187,11 @@ function test_primary_url(default_version) {
 async function initMap() {
     //  Request the needed libraries.
 	// Initialize the Geocoder object within initMap
-    geocoder = new google.maps.Geocoder();
     const [{ Map }, { AdvancedMarkerElement }] = await Promise.all([
         google.maps.importLibrary('maps'),
         google.maps.importLibrary('marker'),
     ]);
+    geocoder = new google.maps.Geocoder();
     // Get the gmp-map element.
     const mapElement = document.querySelector('gmp-map');
     // Get the inner map.
@@ -224,21 +224,29 @@ async function add_marker (lat, lon, label) {
 }
 
 function codeAddress(address) {
-	// Add marker to Google Map by Address
-    geocoder.geocode({'address': address}, function(results, status) {
-        if (status == 'OK') {
-            // Center the map at the new location
-            map.setCenter(results[0].geometry.location); 
-            
-            // Place a marker at the retrieved coordinates
-            var marker = new google.maps.Marker({
-                map: map,
-                position: results[0].geometry.location 
-            });
-        } else {
-            alert('Geocode was not successful for the following reason: ' + status);
-        }
-    });
+	// const address = document.getElementById("address").value;
+	geocoder.geocode({ address: address }, (results, status) => {
+		if (status === "OK") {
+		// Center the map and add a marker at the results location
+		map.setCenter(results[0].geometry.location);
+		
+		// Use the recommended AdvancedMarkerElement
+		addAdvancedMarker(results[0].geometry.location); 
+
+		} else {
+		alert("Geocode was not successful for the following reason: " + status);
+		}
+	});
+}
+
+	// Function to add an Advanced Marker
+async function addAdvancedMarker(position) {
+	const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+	new AdvancedMarkerElement({
+		map: map,
+		position: position,
+		title: document.getElementById("address").value,
+	});
 }
 
 function createRandomString(length) {
@@ -422,6 +430,10 @@ $(document).ready(function () {
 	const default_address = JSON.parse(document.getElementById('default_address').textContent);
 	//console.log("Connection from " + default_address );
 
+	const isLocalhost = window.location.hostname === "localhost" || 
+						window.location.hostname === "127.0.0.1" ||
+						window.location.hostname === "::1"; // IPv6 loopback address
+
 	// Setup Google Map
 	//initMap();
 
@@ -435,16 +447,14 @@ $(document).ready(function () {
 	}
 
 	test_primary_url(default_version);
-
 	test_secondary_url(default_version);
 
-	if (is_campus) {
+	if (isLocalhost || is_campus) {
 		// Do additional tests for campus
 		get_dns_info();
 
 		// Show the map and get it ready
-		// $('#map_card').show()
+		$('#map_card').show()
 		initMap();
 	}
-	//get_dns_info();
 });
