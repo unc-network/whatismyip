@@ -320,9 +320,7 @@
 {% endblock %}
 
 {% block javascript %}
-<script type="application/json" id="campus_id">
-    {{ context['is_campus'] | tojson }}
-</script>
+<script type="application/json" id="is_campus">{{ context['is_campus'] | tojson }}</script>
 <script src="{{ url_for('static', filename='js/whatismyip.js') }}"></script>
  <!-- Make sure you put this AFTER Leaflet's CSS -->
  <!-- <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"

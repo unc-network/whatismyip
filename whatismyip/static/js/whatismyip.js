@@ -431,7 +431,7 @@ $(document).ready(function () {
 
 	test_secondary_url(default_version);
 
-	const is_campus = JSON.parse(document.getElementById('campus_id').textContent);
+	const is_campus = JSON.parse(document.getElementById('is_campus').textContent);
 	if (is_campus) {
 		// Do additional tests for campus
 		get_dns_info();
