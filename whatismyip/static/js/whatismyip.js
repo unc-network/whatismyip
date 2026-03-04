@@ -143,7 +143,8 @@ function test_primary_url(default_version) {
 			// Do the Map work
 			if (result['nac']['nit_building'] && result['nac']['nit_building']['address']) {
 				codeAddress(result['nac']['nit_building']['address']);
-			} else if (is_campus && result['iplocation']['lat'] && result['iplocation']['lon']) {
+			}
+			if (is_campus && result['iplocation']['lat'] && result['iplocation']['lon']) {
 				add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
 			}
 
@@ -191,7 +192,7 @@ async function initMap() {
         google.maps.importLibrary('maps'),
         google.maps.importLibrary('marker'),
     ]);
-    geocoder = new google.maps.Geocoder();
+    // geocoder = new google.maps.Geocoder();
     // Get the gmp-map element.
     const mapElement = document.querySelector('gmp-map');
     // Get the inner map.
@@ -225,16 +226,15 @@ async function add_marker (lat, lon, label) {
 
 function codeAddress(address) {
 	// const address = document.getElementById("address").value;
+	console.log(`Mapping address ${address}`);
 	geocoder.geocode({ address: address }, (results, status) => {
 		if (status === "OK") {
-		// Center the map and add a marker at the results location
-		map.setCenter(results[0].geometry.location);
-		
-		// Use the recommended AdvancedMarkerElement
-		addAdvancedMarker(results[0].geometry.location); 
-
+			// Center the map and add a marker at the results location
+			map.setCenter(results[0].geometry.location);
+			// Use the recommended AdvancedMarkerElement
+			addAdvancedMarker(results[0].geometry.location); 
 		} else {
-		alert("Geocode was not successful for the following reason: " + status);
+			alert("Geocode was not successful for the following reason: " + status);
 		}
 	});
 }
