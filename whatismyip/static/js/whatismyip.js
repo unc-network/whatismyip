@@ -141,13 +141,10 @@ function test_primary_url(default_version) {
 			}
 
 			// Do the Map work
-			if (result['nac']['nit_building'] && result['nac']['nit_building']['address']) {
-				codeAddress(result['nac']['nit_building']['address']);
-			} else if (result['iplocation']['lat'] && result['iplocation']['lon']) {
-				// console.log('adding marker to map');
-				if ( is_campus) {
-					add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
-				}
+			// if (result['nac']['nit_building'] && result['nac']['nit_building']['address']) {
+			// 	codeAddress(result['nac']['nit_building']['address']);
+			if (is_campus && result['iplocation']['lat'] && result['iplocation']['lon']) {
+				add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
 			}
 
 			// dump nac data
@@ -446,7 +443,7 @@ $(document).ready(function () {
 		get_dns_info();
 
 		// Show the map and get it ready
-		$('#map_card').show()
+		// $('#map_card').show()
 		initMap();
 	}
 	//get_dns_info();
