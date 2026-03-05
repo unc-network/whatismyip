@@ -83,6 +83,9 @@ def home():
     data["ipv4_url"] = app.config["IPV4_SERVER_URL"]
     data["ipv6_url"] = app.config["IPV6_SERVER_URL"]
 
+    # Add Google Maps API key for client-side use
+    data["google_maps_api_key"] = app.config["GOOGLE_MAPS_API_KEY"]
+
     return render_template("home.html", context=data)
 
 
