@@ -18,7 +18,6 @@ black_formatting_check:
 
 security_scan_pip_audit:
   stage: security_scan
-  image: python:3.13 # Use a relevant Python image
   script:
     - python3 -m ensurepip
     - python3 -m pip install --upgrade pip
