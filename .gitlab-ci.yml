@@ -2,6 +2,7 @@ image: python:3.11
 
 stages:
   - lint
+  - security_scan
   - test
 
 black_formatting_check:
@@ -14,6 +15,20 @@ black_formatting_check:
     # Run black in check mode: fails if changes are needed
     - black "$WORKDIR" --check --verbose --diff --color
   cache: [] # Prevents caching for this job, ensuring a fresh run
+
+security_scan_pip_audit:
+  stage: security_scan
+  image: python:3.13 # Use a relevant Python image
+  script:
+    - python3 -m ensurepip
+    - python3 -m pip install --upgrade pip
+    # Install project dependencies again to audit the environment
+    - python3 -m pip install -r requirements.txt
+    # Install pip-audit
+    - python3 -m pip install pip-audit
+    # Run pip-audit, specifying requirements.txt for clear input
+    - pip-audit -r requirements.txt
+  allow_failure: true # Optional: allows the pipeline to continue even if vulnerabilities are found initially
 
 run_tests:
   stage: test # Assign this job to the 'test' stage
