@@ -142,10 +142,11 @@ function test_primary_url(default_version) {
 
 			// Do the Map work
 			if (result['nac']['nit_building'] && result['nac']['nit_building']['address']) {
-				codeAddress(result['nac']['nit_building']['address']);
-			} else if (is_campus && result['iplocation']['lat'] && result['iplocation']['lon']) {
-				add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
+				codeAddress(result['nac']['nit_building']['address'], result['nac']['nit_building']['full_name']);
 			}
+			// } else if (is_campus && result['iplocation']['lat'] && result['iplocation']['lon']) {
+			// 	add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
+			// }
 
 			// dump nac data
 			if (result['nac']['endSystem']) {
@@ -209,13 +210,13 @@ async function add_marker (lat, lon, label) {
 	addAdvancedMarker(position, label);
 }
 
-function codeAddress(address) {
+function codeAddress(address, title) {
 	// Translate address to a map marker
 	console.log(`Mapping address ${address}`);
 	geocoder.geocode({ address: address }, (results, status) => {
 		if (status === "OK") {
 			map.setCenter(results[0].geometry.location);
-			addAdvancedMarker(results[0].geometry.location, address); 
+			addAdvancedMarker(results[0].geometry.location, title); 
 		} else {
 			console.log("Geocode was not successful for the following reason: " + status);
 		}

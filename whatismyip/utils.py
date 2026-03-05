@@ -377,30 +377,30 @@ def get_nac_info(ip_address, mac=None):
         app.logger.debug(f"nac_mac: {mac_data}")
         data["endSystemInfo"] = mac_data
 
-    # If we have end system and it includes a switch IP, get additional info about the switch from NIT
-    if (
-        end_system_data
-        and "switchIP" in end_system_data
-        and end_system_data["switchIP"]
-    ):
-        app.logger.debug(
-            f"NAC data includes switch IP {end_system_data['switchIP']}, collecting switch info"
-        )
-        data["nit_building"] = get_nit_building(end_system_data["switchIP"])
-        app.logger.debug(f"NIT building data: {data['nit_building']}")
-
-    # Do some cleanup on the data to make it easier to work with in the front end
+    # Do some cleanup on the data to add NIT inventory information
     if data["endSystem"] and "switchPortId" in data["endSystem"]:
         wireless_regex = r"^(?P<ap_name>\S+)\s(?P<ap_mac>\S+):(?P<ssid>\S+)$"
+        ap_name_regex = r"^(?P<tier>[^-]+)-(?P<bldg_id>\d+)-"
         match = re.match(wireless_regex, data["endSystem"]["switchPortId"])
         if match:
+            # we have a wireless connection
             data["endSystem"]["connection_type"] = "wireless"
             data["endSystem"]["wireless_controller"] = data["endSystem"]["switchIP"] if "switchIP" in data["endSystem"] else None
             data["endSystem"]["wireless_ap_name"] = match.group("ap_name")
             data["endSystem"]["wireless_ap_mac"] = match.group("ap_mac")
             data["endSystem"]["wireless_ssid"] = match.group("ssid")
-        else:
+            ap_match = re.match(ap_name_regex, match.group("ap_name"))
+            if ap_match:
+                data["endSystem"]["wireless_ap_tier"] = ap_match.group("tier")
+                data["endSystem"]["wireless_ap_bldg_id"] = ap_match.group("bldg_id")
+                data["nit_building"] = get_nit_building_by_id(ap_match.group("bldg_id"))
+                app.logger.debug(f"NIT building info: {data['nit_building']}")
+        elif data["endSystem"] and "switchIP" in data["endSystem"]:
+            # we have a wired connection
             data["endSystem"]["connection_type"] = "wired"
+            data["nit_building"] = get_nit_building(end_system_data["switchIP"])
+            app.logger.debug(f"NIT building info: {data['nit_building']}")
+
 
     execution_time = time.time() - start_time
     app.logger.debug(f"get_endSystemInfo complete in {execution_time} seconds")
@@ -419,6 +419,37 @@ def get_nit_building(switch_ip):
     params = {
         "authentication": app.config["NIT_AUTH"],
         "ip": switch_ip,
+    }
+    try:
+        response = requests.get(url, params=params, timeout=5)
+    except requests.exceptions.RequestException as e:  # This is the correct syntax
+        app.logger.warning(f"NIT query failed: {url} {type(e).__name__}")
+        execution_time = time.time() - start_time
+        app.logger.debug(f"get_nit_switch_info complete in {execution_time} seconds")
+        return {}
+    if response.status_code != 200:
+        app.logger.warning(f"NIT query failed {response}")
+        execution_time = time.time() - start_time
+        app.logger.debug(f"get_nit_switch_info complete in {execution_time} seconds")
+        return {}
+    data = response.json()
+
+    execution_time = time.time() - start_time
+    app.logger.debug(f"get_nit_switch_info complete in {execution_time} seconds")
+    return data["building"] if "building" in data else {}
+
+def get_nit_building_by_id(building_id):
+    """
+    Get building information from NIT about this building id
+    """
+    start_time = time.time()
+    app.logger.debug(f"get_nit_switch_info by building id {building_id}")
+    data = {}
+
+    url = f"http://{app.config['NIT_SERVER']}:8081/buildings.cgi"
+    params = {
+        "authentication": app.config["NIT_AUTH"],
+        "building_id": building_id,
     }
     try:
         response = requests.get(url, params=params, timeout=5)
