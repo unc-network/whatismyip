@@ -440,7 +440,7 @@ $(document).ready(function () {
 		get_dns_info();
 
 		// Show the map and get it ready
-		// $('#map_card').show()
+		$('#map_card').show()
 		initMap();
 	}
 });
