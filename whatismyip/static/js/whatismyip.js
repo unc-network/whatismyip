@@ -150,6 +150,7 @@ function test_primary_url(default_version) {
 
 			// dump nac data
 			if (result['nac']['endSystem']) {
+				$('#toggle-button').show();
 				$('#nac-row').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
 					if ( value ) {
