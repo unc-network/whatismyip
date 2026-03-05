@@ -197,7 +197,8 @@ async function initMap() {
 	map = new Map(document.getElementById("map"), {
 		center: defaultLocation, 
 		zoom: 15,
-		mapId: 'LOCATION_MAP_ID', 
+		mapId: 'LOCATION_MAP_ID',
+		disableDefaultUI: true,
 	});
 	geocoder = new Geocoder();
 }
