@@ -43,3 +43,6 @@ run_tests:
   #     - coverage.xml
   #   reports:
   #     cobertura: coverage.xml
+
+include:
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
