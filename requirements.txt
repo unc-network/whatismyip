@@ -1,8 +1,8 @@
 flask>=3.1.0
 gunicorn>=25.0.0
 python-dotenv>=1.2.0
-requests>=2.32.0
-urllib3>=2.6.3
+requests>=2.33.0
+urllib3>=2.7.0
 Flask-Compress>=1.15
 flask-cors>=6.0.0
 ipaddress>=1.0.23
