@@ -29,11 +29,24 @@ function showCopyNotification(message, isError = false) {
 	notification.fadeIn(150).delay(1300).fadeOut(250);
 }
 
-function copyAddress(addressSelector, addressLabel = 'Address') {
+function getAddressLabel(text) {
+	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(text)) {
+		return 'IPv4 address';
+	}
+
+	if (text.includes(':')) {
+		return 'IPv6 address';
+	}
+
+	return 'Address';
+}
+
+function copyAddress(addressSelector) {
 	const text = $(addressSelector).text().trim();
+	const addressLabel = getAddressLabel(text);
 
 	if (!text || text === 'loading...') {
-		showCopyNotification(`${addressLabel} is not available yet`, true);
+		showCopyNotification('Address is not available yet', true);
 		return;
 	}
 
