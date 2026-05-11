@@ -65,8 +65,10 @@
 					<div class="col">
 					  <div class="py-5 text-center fst-italic unc-page-title">
 						<h1 class="mb-0">
+						<a href="{{ site_url }}" style="text-decoration: none; color: inherit;">
 							<b>What is my IP?</b>
 							<img class="img-fluid" src="{{ url_for('static', filename='logo/android-chrome-192x192.png') }}" alt="Logo">
+						</a>
 						</h1>
 					  </div>
 					</div>
@@ -88,7 +90,6 @@
 					<div class="col-lg-4">
 						<p class="h5">Explore</p>
 						<ul class="list-unstyled">
-							<li><a href="{{ site_url }}" aria-label="Home">Home (Retest Connection)</a></li>
 							<li><a href="{{ site_url }}/faq" aria-label="FAQ">Frequently Asked Questions</a></li>
 							<li><a href="{{ site_url }}/about" aria-label="About">About "What is my IP?"</a></li>
 							<li><a href="https://www.speedtest.net/server/14774" aria-label="UNC speedtest server">UNC's Speedtest Server</a></li>
