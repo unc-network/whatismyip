@@ -65,8 +65,7 @@ def ensure_metrics_store():
     """Create the metrics database and schema when needed."""
     os.makedirs(os.path.dirname(METRICS_DB_PATH), exist_ok=True)
     with sqlite3.connect(METRICS_DB_PATH) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS metrics_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 created_at TEXT NOT NULL,
@@ -76,8 +75,7 @@ def ensure_metrics_store():
                 is_campus INTEGER,
                 network_purpose TEXT
             )
-            """
-        )
+            """)
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_metrics_events_created_at ON metrics_events(created_at)"
         )
@@ -92,7 +90,9 @@ def ensure_metrics_store():
         )
 
 
-def log_metrics_event(event_type, ip_version=None, isp=None, is_campus=None, network_purpose=None):
+def log_metrics_event(
+    event_type, ip_version=None, isp=None, is_campus=None, network_purpose=None
+):
     """Store a single aggregate metrics event without persisting raw IP addresses."""
     try:
         ensure_metrics_store()
@@ -278,8 +278,10 @@ def metrics_auth_required(view_func):
             abort(404)
 
         auth = request.authorization
-        if auth and compare_digest(auth.username or "", username) and compare_digest(
-            auth.password or "", password
+        if (
+            auth
+            and compare_digest(auth.username or "", username)
+            and compare_digest(auth.password or "", password)
         ):
             return view_func(*args, **kwargs)
 
