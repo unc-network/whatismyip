@@ -43,54 +43,6 @@
 </div>
 
 <div class="row g-3 p-1 my-1">
-  <div class="col-lg-8">
-    <div class="card shadow h-100">
-      <div class="card-body">
-        <h3 class="h5 card-title">Lookups over time</h3>
-        {% if metrics.daily_series %}
-          {% for row in metrics.daily_series | reverse %}
-          <div class="mb-2">
-            <div class="d-flex justify-content-between small text-muted mb-1">
-              <span>{{ row.day }}</span>
-              <span>{{ row.count }}</span>
-            </div>
-            <div class="progress" style="height: 0.9rem;">
-              <div class="progress-bar bg-primary" role="progressbar" style="width: {{ (row.count / metrics.daily_max * 100) if metrics.daily_max else 0 }}%;" aria-valuenow="{{ row.count }}" aria-valuemin="0" aria-valuemax="{{ metrics.daily_max }}"></div>
-            </div>
-          </div>
-          {% endfor %}
-        {% else %}
-          <p class="mb-0 text-muted">No metrics recorded yet.</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4">
-    <div class="card shadow h-100">
-      <div class="card-body">
-        <h3 class="h5 card-title">IP version mix</h3>
-        {% if metrics.ip_versions %}
-          {% for row in metrics.ip_versions %}
-          <div class="mb-3">
-            <div class="d-flex justify-content-between small mb-1">
-              <span>{{ row.label }}</span>
-              <span>{{ row.count }} ({{ row.percentage }}%)</span>
-            </div>
-            <div class="progress" style="height: 0.75rem;">
-              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
-            </div>
-          </div>
-          {% endfor %}
-        {% else %}
-          <p class="mb-0 text-muted">No metrics recorded yet.</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row g-3 p-1 my-1">
   <div class="col-lg-6">
     <div class="card shadow h-100">
       <div class="card-body">
@@ -107,6 +59,32 @@
               </thead>
               <tbody>
                 {% for row in metrics.isp_breakdown %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end">{{ row.count }}</td>
+                  <td class="text-end">{{ row.percentage }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+
+        <h3 class="h5 card-title mt-4">Country breakdown</h3>
+        {% if metrics.country_breakdown %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Country</th>
+                  <th class="text-end">Hits</th>
+                  <th class="text-end">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in metrics.country_breakdown %}
                 <tr>
                   <td>{{ row.label }}</td>
                   <td class="text-end">{{ row.count }}</td>
@@ -146,6 +124,54 @@
         <h3 class="h5 card-title mt-4">Network purpose</h3>
         {% if metrics.purpose_breakdown %}
           {% for row in metrics.purpose_breakdown %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span>{{ row.label }}</span>
+              <span>{{ row.count }} ({{ row.percentage }}%)</span>
+            </div>
+            <div class="progress" style="height: 0.75rem;">
+              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 p-1 my-1">
+  <div class="col-lg-8">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">Lookups over time</h3>
+        {% if metrics.daily_series %}
+          {% for row in metrics.daily_series | reverse %}
+          <div class="mb-2">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+              <span>{{ row.day }}</span>
+              <span>{{ row.count }}</span>
+            </div>
+            <div class="progress" style="height: 0.9rem;">
+              <div class="progress-bar bg-primary" role="progressbar" style="width: {{ (row.count / metrics.daily_max * 100) if metrics.daily_max else 0 }}%;" aria-valuenow="{{ row.count }}" aria-valuemin="0" aria-valuemax="{{ metrics.daily_max }}"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">IP version mix</h3>
+        {% if metrics.ip_versions %}
+          {% for row in metrics.ip_versions %}
           <div class="mb-3">
             <div class="d-flex justify-content-between small mb-1">
               <span>{{ row.label }}</span>
