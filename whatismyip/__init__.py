@@ -4,6 +4,10 @@ Basic App
 
 import os
 import logging
+import sqlite3
+from datetime import datetime, timedelta, timezone
+from functools import wraps
+from hmac import compare_digest
 from flask import (
     Flask,
     render_template,
@@ -52,6 +56,240 @@ def inject_site_name():
         ipv4_url=app.config["IPV4_SERVER_URL"],
         ipv6_url=app.config["IPV6_SERVER_URL"],
     )
+
+
+METRICS_DB_PATH = os.path.join(APP_ROOT, "data", "metrics.sqlite3")
+
+
+def ensure_metrics_store():
+    """Create the metrics database and schema when needed."""
+    os.makedirs(os.path.dirname(METRICS_DB_PATH), exist_ok=True)
+    with sqlite3.connect(METRICS_DB_PATH) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS metrics_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                ip_version INTEGER,
+                isp TEXT,
+                is_campus INTEGER,
+                network_purpose TEXT
+            )
+            """)
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_created_at ON metrics_events(created_at)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_event_type ON metrics_events(event_type)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_ip_version ON metrics_events(ip_version)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_isp ON metrics_events(isp)"
+        )
+
+
+def log_metrics_event(
+    event_type, ip_version=None, isp=None, is_campus=None, network_purpose=None
+):
+    """Store a single aggregate metrics event without persisting raw IP addresses."""
+    try:
+        ensure_metrics_store()
+        with sqlite3.connect(METRICS_DB_PATH) as conn:
+            conn.execute(
+                """
+                INSERT INTO metrics_events (
+                    created_at,
+                    event_type,
+                    ip_version,
+                    isp,
+                    is_campus,
+                    network_purpose
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    datetime.now(timezone.utc).isoformat(),
+                    event_type,
+                    ip_version,
+                    isp,
+                    None if is_campus is None else int(bool(is_campus)),
+                    network_purpose,
+                ),
+            )
+    except Exception as error:  # pragma: no cover - metrics must not break diagnostics
+        app.logger.warning("Metrics logging skipped: %s", error)
+
+
+def _count_by_query(conn, query, params=()):
+    """Return a list of dictionaries from a grouped count query."""
+    rows = conn.execute(query, params).fetchall()
+    return [dict(row) for row in rows]
+
+
+def _with_percentages(rows):
+    """Add percentage values to grouped rows."""
+    total = sum(row["count"] for row in rows)
+    result = []
+    for row in rows:
+        percentage = round((row["count"] / total) * 100, 1) if total else 0
+        result.append({**row, "percentage": percentage})
+    return result
+
+
+def get_metrics_dashboard(days=None):
+    """Build the metrics summary data for the admin dashboard."""
+    ensure_metrics_store()
+    if days is None:
+        days = app.config["METRICS_TIME_WINDOW_DAYS"]
+
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days - 1)).isoformat()
+    today = datetime.now(timezone.utc).date()
+
+    with sqlite3.connect(METRICS_DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        total_hostinfo = conn.execute(
+            "SELECT COUNT(*) AS count FROM metrics_events WHERE event_type = ?",
+            ("hostinfo",),
+        ).fetchone()["count"]
+
+        total_campus = conn.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM metrics_events
+            WHERE event_type = ? AND is_campus = 1
+            """,
+            ("hostinfo",),
+        ).fetchone()["count"]
+
+        total_remote = conn.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM metrics_events
+            WHERE event_type = ? AND is_campus = 0
+            """,
+            ("hostinfo",),
+        ).fetchone()["count"]
+
+        daily_counts = _count_by_query(
+            conn,
+            """
+            SELECT SUBSTR(created_at, 1, 10) AS day, COUNT(*) AS count
+            FROM metrics_events
+            WHERE event_type = ? AND created_at >= ?
+            GROUP BY SUBSTR(created_at, 1, 10)
+            ORDER BY day
+            """,
+            ("hostinfo", cutoff),
+        )
+        daily_lookup = {row["day"]: row["count"] for row in daily_counts}
+        daily_series = []
+        for offset in range(days):
+            day = (today - timedelta(days=days - 1 - offset)).isoformat()
+            daily_series.append({"day": day, "count": daily_lookup.get(day, 0)})
+        daily_max = max((row["count"] for row in daily_series), default=0) or 1
+
+        ip_versions = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT COALESCE(CAST(ip_version AS TEXT), 'Unknown') AS label, COUNT(*) AS count
+                FROM metrics_events
+                WHERE event_type = ?
+                GROUP BY label
+                ORDER BY count DESC
+                """,
+                ("hostinfo",),
+            )
+        )
+        for row in ip_versions:
+            if row["label"] == "4":
+                row["label"] = "IPv4"
+            elif row["label"] == "6":
+                row["label"] = "IPv6"
+
+        isp_breakdown = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT COALESCE(NULLIF(TRIM(isp), ''), 'Unknown') AS label, COUNT(*) AS count
+                FROM metrics_events
+                WHERE event_type = ?
+                GROUP BY label
+                ORDER BY count DESC
+                LIMIT 10
+                """,
+                ("hostinfo",),
+            )
+        )
+
+        campus_breakdown = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT CASE WHEN is_campus = 1 THEN 'Campus' ELSE 'Off campus' END AS label,
+                       COUNT(*) AS count
+                FROM metrics_events
+                WHERE event_type = ?
+                GROUP BY label
+                ORDER BY count DESC
+                """,
+                ("hostinfo",),
+            )
+        )
+
+        purpose_breakdown = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT COALESCE(NULLIF(TRIM(network_purpose), ''), 'Unknown') AS label, COUNT(*) AS count
+                FROM metrics_events
+                WHERE event_type = ?
+                GROUP BY label
+                ORDER BY count DESC
+                LIMIT 10
+                """,
+                ("hostinfo",),
+            )
+        )
+
+    return {
+        "window_days": days,
+        "total_hostinfo": total_hostinfo,
+        "total_campus": total_campus,
+        "total_remote": total_remote,
+        "daily_series": daily_series,
+        "daily_max": daily_max,
+        "ip_versions": ip_versions,
+        "isp_breakdown": isp_breakdown,
+        "campus_breakdown": campus_breakdown,
+        "purpose_breakdown": purpose_breakdown,
+    }
+
+
+def metrics_auth_required(view_func):
+    """Protect the metrics dashboard with HTTP basic auth."""
+
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        username = app.config.get("METRICS_USERNAME", "")
+        password = app.config.get("METRICS_PASSWORD", "")
+        if not username or not password:
+            abort(404)
+
+        auth = request.authorization
+        if (
+            auth
+            and compare_digest(auth.username or "", username)
+            and compare_digest(auth.password or "", password)
+        ):
+            return view_func(*args, **kwargs)
+
+        response = make_response("Authentication required", 401)
+        response.headers["WWW-Authenticate"] = 'Basic realm="WhatIsMyIP Metrics"'
+        return response
+
+    return wrapper
 
 
 # Routes
@@ -121,6 +359,8 @@ def hostinfo():
     )
 
     # calculate the IP address basics at the start
+    if not data["client_address"]:
+        abort(400)
     ip = ipaddress.ip_address(str(data["client_address"]))
 
     # Check if campus address
@@ -195,10 +435,11 @@ def hostinfo():
         net_details["comment"] = network.get("comment", "")
 
         # calculate the IP address basics
-        ip_net = ipaddress.ip_network(net_details["cidr"])
-        net_details["ip_version"] = str(ip_net.version)
-        net_details["netmask"] = str(ip_net.netmask)
-        net_details["prefixlen"] = str(ip_net.prefixlen)
+        if net_details["cidr"]:
+            ip_net = ipaddress.ip_network(str(net_details["cidr"]))
+            net_details["ip_version"] = str(ip_net.version)
+            net_details["netmask"] = str(ip_net.netmask)
+            net_details["prefixlen"] = str(ip_net.prefixlen)
 
         # collect specific extattr data
         net_details["contact"] = (
@@ -318,6 +559,14 @@ def hostinfo():
         if nac_data:
             data["nac"] = nac_data
 
+    log_metrics_event(
+        "hostinfo",
+        ip_version=ip.version,
+        isp=iplocation.get("isp"),
+        is_campus=data["is_campus"],
+        network_purpose=net_details.get("purpose"),
+    )
+
     # build the json response
     message = jsonify(data)
     response = make_response(message)
@@ -379,12 +628,22 @@ def faq():
     return render_template("faq.html")
 
 
+@app.route("/metrics")
+@metrics_auth_required
+def metrics():
+    """Display aggregate usage metrics for authenticated administrators."""
+    return render_template(
+        "metrics.html",
+        metrics=get_metrics_dashboard(),
+    )
+
+
 @app.route("/favicon.ico")
 @app.route("/robots.txt")
 @app.route("/sitemap.xml")
 def static_from_root():
     """Support basic robots and sitemap files"""
-    return send_from_directory(app.static_folder, request.path[1:])
+    return send_from_directory(app.static_folder or APP_ROOT, request.path[1:])
 
 
 # Custom handler for 404 Not Found errors

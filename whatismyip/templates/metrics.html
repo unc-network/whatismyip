@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row p-1 my-3">
+  <div class="col">
+    <h2 class="h4 mb-2">Usage Metrics</h2>
+    <p class="mb-0">Aggregated diagnostic lookups for the last {{ metrics.window_days }} days. The database stores counts and classifications only, not raw client IP addresses.</p>
+  </div>
+</div>
+
+<div class="row g-3 p-1 my-1">
+  <div class="col-md-3">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <div class="text-muted small">Tracked lookups</div>
+        <div class="display-6 mb-0">{{ metrics.total_hostinfo }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <div class="text-muted small">Campus lookups</div>
+        <div class="display-6 mb-0">{{ metrics.total_campus }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <div class="text-muted small">Off-campus lookups</div>
+        <div class="display-6 mb-0">{{ metrics.total_remote }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <div class="text-muted small">Window size</div>
+        <div class="display-6 mb-0">{{ metrics.window_days }}d</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 p-1 my-1">
+  <div class="col-lg-8">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">Lookups over time</h3>
+        {% if metrics.daily_series %}
+          {% for row in metrics.daily_series | reverse %}
+          <div class="mb-2">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+              <span>{{ row.day }}</span>
+              <span>{{ row.count }}</span>
+            </div>
+            <div class="progress" style="height: 0.9rem;">
+              <div class="progress-bar bg-primary" role="progressbar" style="width: {{ (row.count / metrics.daily_max * 100) if metrics.daily_max else 0 }}%;" aria-valuenow="{{ row.count }}" aria-valuemin="0" aria-valuemax="{{ metrics.daily_max }}"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">IP version mix</h3>
+        {% if metrics.ip_versions %}
+          {% for row in metrics.ip_versions %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span>{{ row.label }}</span>
+              <span>{{ row.count }} ({{ row.percentage }}%)</span>
+            </div>
+            <div class="progress" style="height: 0.75rem;">
+              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 p-1 my-1">
+  <div class="col-lg-6">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">ISP breakdown</h3>
+        {% if metrics.isp_breakdown %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>ISP</th>
+                  <th class="text-end">Hits</th>
+                  <th class="text-end">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in metrics.isp_breakdown %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end">{{ row.count }}</td>
+                  <td class="text-end">{{ row.percentage }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">Campus mix</h3>
+        {% if metrics.campus_breakdown %}
+          {% for row in metrics.campus_breakdown %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span>{{ row.label }}</span>
+              <span>{{ row.count }} ({{ row.percentage }}%)</span>
+            </div>
+            <div class="progress" style="height: 0.75rem;">
+              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+
+        <h3 class="h5 card-title mt-4">Network purpose</h3>
+        {% if metrics.purpose_breakdown %}
+          {% for row in metrics.purpose_breakdown %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span>{{ row.label }}</span>
+              <span>{{ row.count }} ({{ row.percentage }}%)</span>
+            </div>
+            <div class="progress" style="height: 0.75rem;">
+              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -188,7 +188,7 @@ function test_primary_url(default_version) {
 
 			// Do the Map work
 			if (result['nac']['nit_building'] && result['nac']['nit_building']['address']) {
-				codeAddress(result['nac']['nit_building']['address'], result['nac']['nit_building']['full_name']);
+				loadCampusMap(result['nac']['nit_building']['address'], result['nac']['nit_building']['full_name']);
 			}
 			// } else if (is_campus && result['iplocation']['lat'] && result['iplocation']['lon']) {
 			// 	add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
@@ -234,6 +234,32 @@ function test_primary_url(default_version) {
 
 let map;
 let geocoder;
+let mapInitialized = false;
+
+function loadCampusMap(address, title) {
+	if (!address) {
+		return;
+	}
+
+	$('#map_card').show();
+
+	if (mapInitialized) {
+		codeAddress(address, title);
+		return;
+	}
+
+	mapInitialized = true;
+	initMap()
+		.then(() => {
+			codeAddress(address, title);
+		})
+		.catch((error) => {
+			console.error('Failed to load campus map', error);
+			$('#map_card').hide();
+			mapInitialized = false;
+		});
+}
+
 async function initMap() {
 	// Request needed libraries asynchronously
 	const { Map } = await google.maps.importLibrary("maps");
@@ -483,8 +509,10 @@ $(document).ready(function () {
 
 	if (isLocalhost || is_campus) {
 		// console.log(`Doing extended testing for campus`);
-		get_dns_info();
-		$('#map_card').show()
-		initMap();
+		if ('requestIdleCallback' in window) {
+			window.requestIdleCallback(() => get_dns_info(), { timeout: 2000 });
+		} else {
+			setTimeout(get_dns_info, 0);
+		}
 	}
 });
