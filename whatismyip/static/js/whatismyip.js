@@ -3,15 +3,48 @@
   * Helper library for https://whatismyip.unc.edu
   */
 
-function copyAddress(id_of_address) {
-	//const text = $("#address").text()
-	const text = $(id_of_address).text()
-	try {
-		navigator.clipboard.writeText(text)
-		//console.log("Copied the address: " + text);
-	} catch (err) {
-		console.error('Failed to copy the address!', err)
+function showCopyNotification(message, isError = false) {
+	let notification = $('#copy-notification');
+
+	if (notification.length === 0) {
+		$('body').append('<div id="copy-notification" role="status" aria-live="polite"></div>');
+		notification = $('#copy-notification');
+		notification.css({
+			position: 'fixed',
+			top: '80px',
+			right: '20px',
+			zIndex: 2000,
+			padding: '10px 14px',
+			borderRadius: '6px',
+			color: '#ffffff',
+			fontWeight: '600',
+			boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+			display: 'none'
+		});
 	}
+
+	notification.stop(true, true);
+	notification.text(message);
+	notification.css('backgroundColor', isError ? '#b42318' : '#4b9cd3');
+	notification.fadeIn(150).delay(1300).fadeOut(250);
+}
+
+function copyAddress(addressSelector, addressLabel = 'Address') {
+	const text = $(addressSelector).text().trim();
+
+	if (!text || text === 'loading...') {
+		showCopyNotification(`${addressLabel} is not available yet`, true);
+		return;
+	}
+
+	navigator.clipboard.writeText(text)
+		.then(() => {
+			showCopyNotification(`${addressLabel} copied to your clipboard`);
+		})
+		.catch((err) => {
+			console.error('Failed to copy the address!', err);
+			showCopyNotification('Unable to copy address', true);
+		});
 }
 
 function set_intro_text(is_campus, network_purpose) {

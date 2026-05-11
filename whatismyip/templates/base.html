@@ -31,6 +31,29 @@
 	<meta name="theme-color" content="#4b9cd3">
 	<meta name="msapplication-TileColor" content="#ffffff">
 	<meta name="msapplication-config" content="/static/logo/browserconfig.xml">
+	<script>
+		(function () {
+			const key = 'unc-theme-preference';
+			const validThemes = ['light', 'dark', 'system'];
+			let preference = 'system';
+
+			try {
+				const savedPreference = localStorage.getItem(key);
+				if (validThemes.includes(savedPreference)) {
+					preference = savedPreference;
+				}
+			} catch (error) {
+				preference = 'system';
+			}
+
+			const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+			const resolvedTheme = preference === 'system' ? (prefersDark ? 'dark' : 'light') : preference;
+
+			document.documentElement.setAttribute('data-theme-preference', preference);
+			document.documentElement.setAttribute('data-theme', resolvedTheme);
+			document.documentElement.style.colorScheme = resolvedTheme;
+		})();
+	</script>
 
 	<!-- Google Fonts -->
 	<link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,10 +87,13 @@
 				<div class="row">
 					<div class="col">
 					  <div class="py-5 text-center fst-italic unc-page-title">
+						<button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="Toggle theme" title="Theme: System">
+							<i id="theme-toggle-icon" class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+						</button>
 						<h1 class="mb-0">
 						<a href="{{ site_url }}" style="text-decoration: none; color: inherit;">
 							<b>What is my IP?</b>
-							<img class="img-fluid" src="{{ url_for('static', filename='logo/android-chrome-192x192.png') }}" alt="Logo">
+							<img class="site-header-logo" src="{{ url_for('static', filename='img/laptop-logo-transparent-cropped.png') }}" alt="Laptop logo">
 						</a>
 						</h1>
 					  </div>
@@ -83,7 +109,7 @@
 			<div class="container">
 				<div class="row">
 					<div class="col">
-						<div class="border-top my-5"></div>
+						<div class="border-top mt-0 mb-5"></div>
 					</div>
 				</div>
 				<div class="row mb-3">
@@ -114,7 +140,7 @@
 						<p style="font-size: 12pt"><a href="https://its.unc.edu/itsnewstechconnect"><i class="fa fa-envelope fa-lg" style="margin-right: 7px"></i>ITS News Tech Connect newsletter</a></p>
 					</div>
 				</div>
-				<div class="row mb-5">
+				<div class="row pb-5">
 					<div class="col">
 						<p class="text-center"><small>Copyright &copy; <script>document.write(new Date().getFullYear())</script> - Information Technology Services</small></p>
 					</div>
@@ -125,6 +151,7 @@
 		<!-- MDB -->
 		<script type="text/javascript" src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>
 		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/theme.js') }}"></script>
 		{% block javascript %}
 		{% endblock %}
  </body>
