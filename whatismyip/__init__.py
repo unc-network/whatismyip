@@ -72,10 +72,20 @@ def ensure_metrics_store():
                 event_type TEXT NOT NULL,
                 ip_version INTEGER,
                 isp TEXT,
+                country TEXT,
                 is_campus INTEGER,
                 network_purpose TEXT
             )
             """)
+
+        # Backward-compatible schema migration for existing DB files.
+        columns = {
+            row[1]
+            for row in conn.execute("PRAGMA table_info(metrics_events)").fetchall()
+        }
+        if "country" not in columns:
+            conn.execute("ALTER TABLE metrics_events ADD COLUMN country TEXT")
+
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_metrics_events_created_at ON metrics_events(created_at)"
         )
@@ -88,10 +98,18 @@ def ensure_metrics_store():
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_metrics_events_isp ON metrics_events(isp)"
         )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_country ON metrics_events(country)"
+        )
 
 
 def log_metrics_event(
-    event_type, ip_version=None, isp=None, is_campus=None, network_purpose=None
+    event_type,
+    ip_version=None,
+    isp=None,
+    country=None,
+    is_campus=None,
+    network_purpose=None,
 ):
     """Store a single aggregate metrics event without persisting raw IP addresses."""
     try:
@@ -104,15 +122,17 @@ def log_metrics_event(
                     event_type,
                     ip_version,
                     isp,
+                    country,
                     is_campus,
                     network_purpose
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     datetime.now(timezone.utc).isoformat(),
                     event_type,
                     ip_version,
                     isp,
+                    country,
                     None if is_campus is None else int(bool(is_campus)),
                     network_purpose,
                 ),
@@ -223,6 +243,21 @@ def get_metrics_dashboard(days=None):
             )
         )
 
+        country_breakdown = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT COALESCE(NULLIF(TRIM(country), ''), 'Unknown') AS label, COUNT(*) AS count
+                FROM metrics_events
+                WHERE event_type = ?
+                GROUP BY label
+                ORDER BY count DESC
+                LIMIT 10
+                """,
+                ("hostinfo",),
+            )
+        )
+
         campus_breakdown = _with_percentages(
             _count_by_query(
                 conn,
@@ -262,6 +297,7 @@ def get_metrics_dashboard(days=None):
         "daily_max": daily_max,
         "ip_versions": ip_versions,
         "isp_breakdown": isp_breakdown,
+        "country_breakdown": country_breakdown,
         "campus_breakdown": campus_breakdown,
         "purpose_breakdown": purpose_breakdown,
     }
@@ -563,6 +599,7 @@ def hostinfo():
         "hostinfo",
         ip_version=ip.version,
         isp=iplocation.get("isp"),
+        country=iplocation.get("country_name") or iplocation.get("country"),
         is_campus=data["is_campus"],
         network_purpose=net_details.get("purpose"),
     )
