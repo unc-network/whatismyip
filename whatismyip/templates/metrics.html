@@ -48,7 +48,7 @@
       <div class="card-body">
         <h3 class="h5 card-title">Lookups over time</h3>
         {% if metrics.daily_series %}
-          {% for row in metrics.daily_series %}
+          {% for row in metrics.daily_series | reverse %}
           <div class="mb-2">
             <div class="d-flex justify-content-between small text-muted mb-1">
               <span>{{ row.day }}</span>
