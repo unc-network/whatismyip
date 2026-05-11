@@ -24,6 +24,11 @@
   --site-border: var(--unc-cornerstone);
 }
 
+html,
+body {
+  height: 100%;
+}
+
 html[data-theme="dark"] {
   --site-bg: var(--unc-navy);
   --site-surface: var(--unc-bolin-creek);
@@ -41,6 +46,13 @@ body {
   font-family: "Open Sans",Helvetica,Arial,sans-serif;
   background-color: var(--site-bg);
   color: var(--site-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main[role="main"] {
+  flex: 1 0 auto;
 }
 
 .unc-ip {
@@ -143,6 +155,7 @@ body {
   background-color: var(--site-subtle-bg);
   color: var(--site-text);
   padding-top: 0;
+  flex-shrink: 0;
 }
 
 /* Modify the background color */
