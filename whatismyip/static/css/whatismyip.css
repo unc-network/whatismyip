@@ -147,6 +147,10 @@ main[role="main"] {
   border-bottom-color: var(--site-border);
 }
 
+.metrics-series-label {
+  color: var(--site-muted-text);
+}
+
 .border-top {
   border-top-color: var(--site-border) !important;
 }

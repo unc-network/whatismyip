@@ -5,17 +5,20 @@ Basic App
 import os
 import logging
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, time, timedelta, timezone
 from functools import wraps
 from hmac import compare_digest
+from zoneinfo import ZoneInfo
 from flask import (
     Flask,
     render_template,
     request,
     jsonify,
     make_response,
+    redirect,
     send_from_directory,
     abort,
+    url_for,
 )
 from flask_cors import CORS
 from flask_compress import Compress
@@ -36,6 +39,8 @@ app = Flask(__name__)
 app.config.from_object("config.Config")
 app.config.from_prefixed_env()
 Compress(app)
+
+METRICS_TIMEZONE = ZoneInfo("America/New_York")
 
 # Dual stack clients need to access both the v6 and v4 versions of this site.
 api_config = {
@@ -163,8 +168,14 @@ def get_metrics_dashboard(days=None):
     if days is None:
         days = app.config["METRICS_TIME_WINDOW_DAYS"]
 
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=days - 1)).isoformat()
-    today = datetime.now(timezone.utc).date()
+    now_local = datetime.now(METRICS_TIMEZONE)
+    today = now_local.date()
+    first_day = today - timedelta(days=days - 1)
+    cutoff = (
+        datetime.combine(first_day, time.min, tzinfo=METRICS_TIMEZONE)
+        .astimezone(timezone.utc)
+        .isoformat()
+    )
 
     with sqlite3.connect(METRICS_DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
@@ -191,18 +202,25 @@ def get_metrics_dashboard(days=None):
             ("hostinfo",),
         ).fetchone()["count"]
 
-        daily_counts = _count_by_query(
-            conn,
+        daily_lookup = {}
+        daily_events = conn.execute(
             """
-            SELECT SUBSTR(created_at, 1, 10) AS day, COUNT(*) AS count
+            SELECT created_at
             FROM metrics_events
             WHERE event_type = ? AND created_at >= ?
-            GROUP BY SUBSTR(created_at, 1, 10)
-            ORDER BY day
+            ORDER BY created_at
             """,
             ("hostinfo", cutoff),
-        )
-        daily_lookup = {row["day"]: row["count"] for row in daily_counts}
+        ).fetchall()
+        for row in daily_events:
+            day = (
+                datetime.fromisoformat(row["created_at"])
+                .astimezone(METRICS_TIMEZONE)
+                .date()
+                .isoformat()
+            )
+            daily_lookup[day] = daily_lookup.get(day, 0) + 1
+
         daily_series = []
         for offset in range(days):
             day = (today - timedelta(days=days - 1 - offset)).isoformat()
@@ -420,7 +438,23 @@ def hostinfo():
 
     # collect isp info
     if ip.is_global:
-        iplocation = get_ip_location(data["client_address"])
+        try:
+            iplocation = get_ip_location(data["client_address"])
+        except Exception as error:
+            app.logger.warning(f"IP location lookup failed: {error}")
+            iplocation = {
+                "country_code2": None,
+                "country_name": "Unknown",
+                "ip": str(ip),
+                "ip_number": None,
+                "ip_version": ip.version,
+                "isp": "Unknown",
+                "response_code": None,
+                "response_message": None,
+                "city": None,
+                "lat": None,
+                "lon": None,
+            }
 
         # ipwhois = getWhoIs( data['client_address'])
         # data['ipwhois'] = ipwhois
@@ -442,7 +476,12 @@ def hostinfo():
     data["iplocation"] = iplocation
 
     # collect information about the network for this address
-    network = get_network(data["client_address"])
+    try:
+        network = get_network(data["client_address"])
+    except Exception as error:
+        app.logger.warning(f"Network lookup failed: {error}")
+        network = None
+
     net_details = {
         "cidr": None,
         "comment": "",
@@ -555,7 +594,12 @@ def hostinfo():
     addr_details["is_link_local"] = ip.is_link_local
 
     # Find any address objects
-    address_records = get_address_objects(data["client_address"])
+    try:
+        address_records = get_address_objects(data["client_address"])
+    except Exception as error:
+        app.logger.warning(f"Address lookup failed: {error}")
+        address_records = None
+
     if address_records:
         addr_details["comment"] = address_records.get("comment", "")
         addr_details["status"] = address_records.get("status", None)
@@ -591,7 +635,12 @@ def hostinfo():
     # collect NAC data to display
     data["nac"] = {}
     if data["is_campus"] and ip.version == 4:
-        nac_data = get_nac_info(data["client_address"], mac=addr_details["mac"])
+        try:
+            nac_data = get_nac_info(data["client_address"], mac=addr_details["mac"])
+        except Exception as error:
+            app.logger.warning(f"NAC info lookup failed: {error}")
+            nac_data = None
+
         if nac_data:
             data["nac"] = nac_data
 
@@ -659,10 +708,22 @@ def about():
     return render_template("about.html")
 
 
+@app.route("/about/")
+def about_redirect():
+    """Redirect slash variant to canonical about page."""
+    return redirect(url_for("about"), code=308)
+
+
 @app.route("/faq")
 def faq():
     """Display a basic webpage with about information."""
     return render_template("faq.html")
+
+
+@app.route("/faq/")
+def faq_redirect():
+    """Redirect slash variant to canonical FAQ page."""
+    return redirect(url_for("faq"), code=308)
 
 
 @app.route("/metrics")

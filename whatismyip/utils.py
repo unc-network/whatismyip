@@ -335,7 +335,7 @@ def get_nac_info(ip_address, mac=None):
     )
     if session.error:
         app.logger.error("ERROR: '%s'" % session.message)
-        exit(1)
+        raise RuntimeError(f"NAC session failed: {session.message}")
     app.logger.debug("XMC session created")
 
     # Try looking up the end system by IP address first, then fall back to MAC if that fails

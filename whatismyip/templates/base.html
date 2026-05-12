@@ -70,16 +70,15 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/whatismyip.css') }}">
 
 	<!-- Alert Carolina -->
-	<script type="text/javascript" src="https://alertcarolina.unc.edu/scripts/webalert.php"></script>
+	<script type="text/javascript" defer src="https://alertcarolina.unc.edu/scripts/webalert.php"></script>
 
 	<!-- UNC Utility Bar -->
-	<script type="text/javascript" id="unc-ub-script" data-color="blue" src="https://unc.edu/web-assets/utility-bar/utility-bar.min.js"></script>
+	<script type="text/javascript" defer id="unc-ub-script" data-color="blue" src="https://unc.edu/web-assets/utility-bar/utility-bar.min.js"></script>
 
 	{% block head_ext %}
 	{% endblock %}
  </head>
  <body>
-	<body>
 
 		<!-- Main Content -->
 		<main role="main">
@@ -148,10 +147,7 @@
 			</div>
 		</footer>
 
-		<!-- MDB -->
-		<script type="text/javascript" src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='js/theme.js') }}"></script>
+		<script type="text/javascript" defer src="{{ url_for('static', filename='js/theme.js') }}"></script>
 		{% block javascript %}
 		{% endblock %}
  </body>
