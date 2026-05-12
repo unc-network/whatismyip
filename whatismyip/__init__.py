@@ -436,7 +436,23 @@ def hostinfo():
 
     # collect isp info
     if ip.is_global:
-        iplocation = get_ip_location(data["client_address"])
+        try:
+            iplocation = get_ip_location(data["client_address"])
+        except Exception as error:
+            app.logger.warning(f"IP location lookup failed: {error}")
+            iplocation = {
+                "country_code2": None,
+                "country_name": "Unknown",
+                "ip": str(ip),
+                "ip_number": None,
+                "ip_version": ip.version,
+                "isp": "Unknown",
+                "response_code": None,
+                "response_message": None,
+                "city": None,
+                "lat": None,
+                "lon": None,
+            }
 
         # ipwhois = getWhoIs( data['client_address'])
         # data['ipwhois'] = ipwhois
@@ -458,7 +474,12 @@ def hostinfo():
     data["iplocation"] = iplocation
 
     # collect information about the network for this address
-    network = get_network(data["client_address"])
+    try:
+        network = get_network(data["client_address"])
+    except Exception as error:
+        app.logger.warning(f"Network lookup failed: {error}")
+        network = None
+
     net_details = {
         "cidr": None,
         "comment": "",
@@ -571,7 +592,12 @@ def hostinfo():
     addr_details["is_link_local"] = ip.is_link_local
 
     # Find any address objects
-    address_records = get_address_objects(data["client_address"])
+    try:
+        address_records = get_address_objects(data["client_address"])
+    except Exception as error:
+        app.logger.warning(f"Address lookup failed: {error}")
+        address_records = None
+
     if address_records:
         addr_details["comment"] = address_records.get("comment", "")
         addr_details["status"] = address_records.get("status", None)
@@ -607,7 +633,12 @@ def hostinfo():
     # collect NAC data to display
     data["nac"] = {}
     if data["is_campus"] and ip.version == 4:
-        nac_data = get_nac_info(data["client_address"], mac=addr_details["mac"])
+        try:
+            nac_data = get_nac_info(data["client_address"], mac=addr_details["mac"])
+        except Exception as error:
+            app.logger.warning(f"NAC info lookup failed: {error}")
+            nac_data = None
+
         if nac_data:
             data["nac"] = nac_data
 
