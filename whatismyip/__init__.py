@@ -15,8 +15,10 @@ from flask import (
     request,
     jsonify,
     make_response,
+    redirect,
     send_from_directory,
     abort,
+    url_for,
 )
 from flask_cors import CORS
 from flask_compress import Compress
@@ -667,19 +669,31 @@ def nacinfo():
 
 
 @app.route("/health")
-@app.route("/about", strict_slashes=False)
+@app.route("/about")
 def about():
     """Display a basic webpage with about information."""
     return render_template("about.html")
 
 
-@app.route("/faq", strict_slashes=False)
+@app.route("/about/")
+def about_redirect():
+    """Redirect slash variant to canonical about page."""
+    return redirect(url_for("about"), code=308)
+
+
+@app.route("/faq")
 def faq():
     """Display a basic webpage with about information."""
     return render_template("faq.html")
 
 
-@app.route("/metrics", strict_slashes=False)
+@app.route("/faq/")
+def faq_redirect():
+    """Redirect slash variant to canonical FAQ page."""
+    return redirect(url_for("faq"), code=308)
+
+
+@app.route("/metrics")
 @metrics_auth_required
 def metrics():
     """Display aggregate usage metrics for authenticated administrators."""
