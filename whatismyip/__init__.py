@@ -5,7 +5,7 @@ Basic App
 import os
 import logging
 import sqlite3
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, time as dt_time, timedelta, timezone
 from functools import wraps
 from hmac import compare_digest
 from zoneinfo import ZoneInfo
@@ -172,7 +172,7 @@ def get_metrics_dashboard(days=None):
     today = now_local.date()
     first_day = today - timedelta(days=days - 1)
     cutoff = (
-        datetime.combine(first_day, time.min, tzinfo=METRICS_TIMEZONE)
+        datetime.combine(first_day, dt_time.min, tzinfo=METRICS_TIMEZONE)
         .astimezone(timezone.utc)
         .isoformat()
     )
