@@ -71,8 +71,14 @@
         {% else %}
           <p class="mb-0 text-muted">No metrics recorded yet.</p>
         {% endif %}
+      </div>
+    </div>
+  </div>
 
-        <h3 class="h5 card-title mt-4">Country breakdown</h3>
+  <div class="col-lg-6">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">Country breakdown</h3>
         {% if metrics.country_breakdown %}
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
@@ -94,46 +100,6 @@
               </tbody>
             </table>
           </div>
-        {% else %}
-          <p class="mb-0 text-muted">No metrics recorded yet.</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-6">
-    <div class="card shadow h-100">
-      <div class="card-body">
-        <h3 class="h5 card-title">Campus mix</h3>
-        {% if metrics.campus_breakdown %}
-          {% for row in metrics.campus_breakdown %}
-          <div class="mb-3">
-            <div class="d-flex justify-content-between small mb-1">
-              <span>{{ row.label }}</span>
-              <span>{{ row.count }} ({{ row.percentage }}%)</span>
-            </div>
-            <div class="progress" style="height: 0.75rem;">
-              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
-            </div>
-          </div>
-          {% endfor %}
-        {% else %}
-          <p class="mb-0 text-muted">No metrics recorded yet.</p>
-        {% endif %}
-
-        <h3 class="h5 card-title mt-4">Network purpose</h3>
-        {% if metrics.purpose_breakdown %}
-          {% for row in metrics.purpose_breakdown %}
-          <div class="mb-3">
-            <div class="d-flex justify-content-between small mb-1">
-              <span>{{ row.label }}</span>
-              <span>{{ row.count }} ({{ row.percentage }}%)</span>
-            </div>
-            <div class="progress" style="height: 0.75rem;">
-              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
-            </div>
-          </div>
-          {% endfor %}
         {% else %}
           <p class="mb-0 text-muted">No metrics recorded yet.</p>
         {% endif %}
@@ -172,6 +138,40 @@
         <h3 class="h5 card-title">IP version mix</h3>
         {% if metrics.ip_versions %}
           {% for row in metrics.ip_versions %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span>{{ row.label }}</span>
+              <span>{{ row.count }} ({{ row.percentage }}%)</span>
+            </div>
+            <div class="progress" style="height: 0.75rem;">
+              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+
+        <h3 class="h5 card-title mt-4">Campus mix</h3>
+        {% if metrics.campus_breakdown %}
+          {% for row in metrics.campus_breakdown %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span>{{ row.label }}</span>
+              <span>{{ row.count }} ({{ row.percentage }}%)</span>
+            </div>
+            <div class="progress" style="height: 0.75rem;">
+              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+
+        <h3 class="h5 card-title mt-4">Network purpose</h3>
+        {% if metrics.purpose_breakdown %}
+          {% for row in metrics.purpose_breakdown %}
           <div class="mb-3">
             <div class="d-flex justify-content-between small mb-1">
               <span>{{ row.label }}</span>
