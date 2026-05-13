@@ -6,6 +6,7 @@ import os
 import logging
 import sqlite3
 from datetime import datetime, time as dt_time, timedelta, timezone
+from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 from flask import (
     Flask,
@@ -62,6 +63,33 @@ def inject_site_name():
 
 
 METRICS_DB_PATH = os.path.join(APP_ROOT, "data", "metrics.sqlite3")
+
+
+def _configured_hostname(url):
+    """Return the lowercase hostname component for a configured URL."""
+    return (urlsplit(url).hostname or "").lower()
+
+
+@app.before_request
+def redirect_split_stack_hosts_to_primary():
+    """Redirect ipv4/ipv6 hostnames to the primary site, except for /hostinfo."""
+    if request.path == "/hostinfo":
+        return None
+
+    incoming_host = (request.host.split(":", 1)[0] or "").lower()
+    split_stack_hosts = {
+        _configured_hostname(app.config["IPV4_SERVER_URL"]),
+        _configured_hostname(app.config["IPV6_SERVER_URL"]),
+    }
+
+    if incoming_host not in split_stack_hosts:
+        return None
+
+    primary = urlsplit(app.config["SERVER_URL"])
+    target = f"{primary.scheme}://{primary.netloc}{request.path}"
+    if request.query_string:
+        target = f"{target}?{request.query_string.decode()}"
+    return redirect(target, code=308)
 
 
 def ensure_metrics_store():
