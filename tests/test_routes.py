@@ -51,7 +51,9 @@ def test_sitemap_includes_metrics(client):
         ("/metrics", "https://whatismyip.unc.edu/metrics"),
     ],
 )
-def test_pages_use_canonical_urls_from_sitemap(client, monkeypatch, path, canonical_url):
+def test_pages_use_canonical_urls_from_sitemap(
+    client, monkeypatch, path, canonical_url
+):
     monkeypatch.setitem(app.config, "SERVER_URL", "https://whatismyip.unc.edu")
     monkeypatch.setattr(
         "whatismyip.get_metrics_dashboard",
