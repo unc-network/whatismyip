@@ -321,7 +321,7 @@ async function test_dns_security_filtering() {
 	// If filtering is ACTIVE: DNS resolves to block page IP, fetch succeeds
 	// If filtering is INACTIVE: DNS returns NXDOMAIN, fetch fails with TypeError
 	const controller = new AbortController();
-	const timeoutId = setTimeout(() => controller.abort(), 2000);
+	const timeoutId = setTimeout(() => controller.abort(), 5000);
 
 	try {
 		await fetch('https://badguys.unc.edu/', {
@@ -391,9 +391,7 @@ function get_dns_info() {
 			} else if (isFiltered === false) {
 				filteringHtml = `<i class="fa-solid fa-circle-xmark text-danger"></i> Inactive`;
 			} else {
-				// Inconclusive/timeout - remove the row
-				$('#security-filtering-row').remove();
-				return;
+				filteringHtml = `<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`;
 			}
 			
 			// Update the Security Filtering row with the result
@@ -401,7 +399,7 @@ function get_dns_info() {
 		})
 		.catch(error => {
 			console.error('DNS security filtering test error:', error);
-			$('#security-filtering-row').remove();
+			$('#security-filtering-row td').html(`<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`);
 		});
 }
 
