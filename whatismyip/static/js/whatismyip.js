@@ -320,20 +320,19 @@ async function test_dns_security_filtering() {
 	// Test if DNS security filtering is active by attempting to fetch a blocked domain
 	// If filtering is ACTIVE: DNS resolves to block page IP, fetch succeeds
 	// If filtering is INACTIVE: DNS returns NXDOMAIN, fetch fails with TypeError
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), 2000);
+
 	try {
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), 2000);
-		
-		await fetch('http://badguys.unc.edu/', {
+		await fetch('https://badguys.unc.edu/', {
 			method: 'HEAD',
 			signal: controller.signal,
+			mode: 'no-cors',
 			cache: 'no-store',
 			credentials: 'omit'
 		});
-		
-		clearTimeout(timeoutId);
+
 		return true; // DNS resolved - filtering is ACTIVE
-		
 	} catch (error) {
 		if (error.name === 'AbortError') {
 			return null; // Timeout - inconclusive
@@ -342,6 +341,8 @@ async function test_dns_security_filtering() {
 			return false; // DNS resolution failed (NXDOMAIN) - filtering is INACTIVE
 		}
 		return null; // Other error - inconclusive
+	} finally {
+		clearTimeout(timeoutId);
 	}
 }
 
