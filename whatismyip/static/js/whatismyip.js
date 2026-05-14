@@ -316,9 +316,43 @@ function createRandomString(length) {
   return result;
 }
 
+async function test_dns_security_filtering() {
+	// Test if DNS security filtering is active by attempting to fetch a blocked domain
+	// If filtering is ACTIVE: DNS resolves to block page IP, fetch succeeds
+	// If filtering is INACTIVE: DNS returns NXDOMAIN, fetch fails with TypeError
+	try {
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 2000);
+		
+		await fetch('http://badguys.unc.edu/', {
+			method: 'HEAD',
+			signal: controller.signal,
+			cache: 'no-store',
+			credentials: 'omit'
+		});
+		
+		clearTimeout(timeoutId);
+		return true; // DNS resolved - filtering is ACTIVE
+		
+	} catch (error) {
+		if (error.name === 'AbortError') {
+			return null; // Timeout - inconclusive
+		}
+		if (error.name === 'TypeError') {
+			return false; // DNS resolution failed (NXDOMAIN) - filtering is INACTIVE
+		}
+		return null; // Other error - inconclusive
+	}
+}
+
 function get_dns_info() {
 	// testing DNS identification
 	// https://ip-api.com/docs/dns
+	
+	// Add Security Filtering row first (will be updated once test completes)
+	$('#dns-table tbody').append(`<tr id="security-filtering-row"><th>Security Filtering <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333" alt="Security Filtering Service"><i class="fa-solid fa-circle-info" alt="More Information"></i></a></th><td><i class="fa-solid fa-question"></i> Testing</td></tr>`);
+	$('#dns-test').show();
+	
 	tmp_name = createRandomString(32);
 	const test_url = `https://${tmp_name}.edns.ip-api.com/json`;
 
@@ -340,28 +374,34 @@ function get_dns_info() {
 				if (geo) {
 					$('#dns-table tbody').append(`<tr><th>DNS Provider</th><td style="word-break: break-word;">${geo}</td></tr>`);
 				}
-				
-				// Add Security Filtering status
-				if ( geo.includes('Akamai') ) {
-					$('#dns-table tbody').append(`<tr><th>Security Filtering <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333" alt="Security Filtering Service"><i class="fa-solid fa-circle-info" alt="More Information"></i></a></th><td><i class="fa-solid fa-circle-check text-success"></i> Active</td></tr>`);
-				} else {
-					$('#dns-table tbody').append(`<tr><th>Security Filtering <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333" alt="Security Filtering Service"><i class="fa-solid fa-circle-info" alt="More Information"></i></a></th><td><i class="fa-solid fa-circle-xmark text-danger"></i> Inactive</td></tr>`);
-				}
-				$('#dns-test').show();
 			}
 		},
 		error: function (xhr, status, error) {
-			console.dir(`DNS test failed: ${error}`)
+			console.dir(`DNS provider test failed: ${error}`)
 		}
 	});
 
-	// fetch('http://www.akamaietpmalwaretest.com/')
-	// .then(response => response.text()) // Parse body as text
-	// .then(text => {
-	// 	console.log(text); // Handle the parsed text
-	// })
-	// .catch(error => console.error('Error:', error));
-
+	// Test DNS security filtering by attempting to fetch the test domain
+	test_dns_security_filtering()
+		.then(isFiltered => {
+			let filteringHtml;
+			if (isFiltered === true) {
+				filteringHtml = `<i class="fa-solid fa-circle-check text-success"></i> Active`;
+			} else if (isFiltered === false) {
+				filteringHtml = `<i class="fa-solid fa-circle-xmark text-danger"></i> Inactive`;
+			} else {
+				// Inconclusive/timeout - remove the row
+				$('#security-filtering-row').remove();
+				return;
+			}
+			
+			// Update the Security Filtering row with the result
+			$('#security-filtering-row td').html(filteringHtml);
+		})
+		.catch(error => {
+			console.error('DNS security filtering test error:', error);
+			$('#security-filtering-row').remove();
+		});
 }
 
 function test_secondary_url(default_version) {
