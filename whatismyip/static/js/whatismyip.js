@@ -350,7 +350,7 @@ function get_dns_info() {
 	// https://ip-api.com/docs/dns
 	
 	// Add Security Filtering row first (will be updated once test completes)
-	$('#dns-table tbody').append(`<tr id="security-filtering-row"><th>Security Filtering <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333" alt="Security Filtering Service"><i class="fa-solid fa-circle-info" alt="More Information"></i></a></th><td><i class="fa-solid fa-question"></i> Testing</td></tr>`);
+	$('#dns-table tbody').append(`<tr id="security-filtering-row"><th>Security Filtering</th><td><i class="fa-solid fa-question"></i> Testing</td></tr>`);
 	$('#dns-test').show();
 	
 	tmp_name = createRandomString(32);
