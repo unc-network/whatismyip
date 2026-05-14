@@ -316,6 +316,20 @@ function createRandomString(length) {
   return result;
 }
 
+function append_dns_table_row(label, value, rowId = null) {
+	const row = $('<tr>');
+	if (rowId) {
+		row.attr('id', rowId);
+	}
+
+	const cell = $('<td colspan="2"></td>');
+	cell.append(`<div class="fw-bold">${label}</div>`);
+	cell.append($('<div class="dns-row-value text-break"></div>').text(value));
+	row.append(cell);
+
+	$('#dns-table tbody').append(row);
+}
+
 async function test_dns_security_filtering() {
 	// Test if DNS security filtering is active by attempting to fetch a blocked domain
 	// If filtering is ACTIVE: DNS resolves to block page IP, fetch succeeds
@@ -351,7 +365,7 @@ function get_dns_info() {
 	// https://ip-api.com/docs/dns
 	
 	// Add Security Filtering row first (will be updated once test completes)
-	$('#dns-table tbody').append(`<tr id="security-filtering-row"><th>Security Filtering</th><td><i class="fa-solid fa-question"></i> Testing</td></tr>`);
+	$('#dns-table tbody').append(`<tr id="security-filtering-row"><td colspan="2"><div class="fw-bold">Security Filtering</div><div class="dns-row-value"><i class="fa-solid fa-question"></i> Testing</div></td></tr>`);
 	$('#dns-test').show();
 	
 	tmp_name = createRandomString(32);
@@ -368,12 +382,12 @@ function get_dns_info() {
 				
 				// Add DNS Provider Name
 				if (geo) {
-					$('#dns-table tbody').append(`<tr><th>Internet DNS Provider</th><td style="word-break: break-word;">${geo}</td></tr>`);
+					append_dns_table_row('Internet DNS Provider', geo);
 				}
 
 				// Add DNS Provider IP
 				if (ip) {
-					$('#dns-table tbody').append(`<tr><th>Internet DNS Provider IP</th><td style="word-break: break-word;">${ip}</td></tr>`);
+					append_dns_table_row('Internet DNS Provider IP', ip);
 				}
 			}
 		},
@@ -395,11 +409,11 @@ function get_dns_info() {
 			}
 			
 			// Update the Security Filtering row with the result
-			$('#security-filtering-row td').html(filteringHtml);
+			$('#security-filtering-row .dns-row-value').html(filteringHtml);
 		})
 		.catch(error => {
 			console.error('DNS security filtering test error:', error);
-			$('#security-filtering-row td').html(`<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`);
+			$('#security-filtering-row .dns-row-value').html(`<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`);
 		});
 }
 
