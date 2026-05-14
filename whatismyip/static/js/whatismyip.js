@@ -316,7 +316,7 @@ function createRandomString(length) {
   return result;
 }
 
-function append_dns_table_row(label, value, rowId = null) {
+function append_dns_table_row(label, value, rowId = null, useHtmlValue = false) {
 	const row = $('<tr>');
 	if (rowId) {
 		row.attr('id', rowId);
@@ -324,7 +324,13 @@ function append_dns_table_row(label, value, rowId = null) {
 
 	const cell = $('<td colspan="2"></td>');
 	cell.append(`<div class="fw-bold">${label}</div>`);
-	cell.append($('<div class="dns-row-value text-break"></div>').text(value));
+	const valueContainer = $('<div class="dns-row-value text-break"></div>');
+	if (useHtmlValue) {
+		valueContainer.html(value);
+	} else {
+		valueContainer.text(value);
+	}
+	cell.append(valueContainer);
 	row.append(cell);
 
 	$('#dns-table tbody').append(row);
@@ -365,7 +371,12 @@ function get_dns_info() {
 	// https://ip-api.com/docs/dns
 	
 	// Add Security Filtering row first (will be updated once test completes)
-	$('#dns-table tbody').append(`<tr id="security-filtering-row"><td colspan="2"><div class="fw-bold">Security Filtering</div><div class="dns-row-value"><i class="fa-solid fa-question"></i> Testing</div></td></tr>`);
+	append_dns_table_row(
+		'Security Filtering',
+		'<i class="fa-solid fa-question"></i> Testing',
+		'security-filtering-row',
+		true
+	);
 	$('#dns-test').show();
 	
 	tmp_name = createRandomString(32);
