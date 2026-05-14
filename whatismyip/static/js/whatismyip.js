@@ -365,14 +365,14 @@ function get_dns_info() {
 				let geo = result['dns']['geo']
 				let ip = result['dns']['ip']
 				
-				// Add DNS Provider IP
-				if (ip) {
-					$('#dns-table tbody').append(`<tr><th>DNS Provider IP</th><td style="word-break: break-word;">${ip}</td></tr>`);
-				}
-				
 				// Add DNS Provider Name
 				if (geo) {
-					$('#dns-table tbody').append(`<tr><th>DNS Provider</th><td style="word-break: break-word;">${geo}</td></tr>`);
+					$('#dns-table tbody').append(`<tr><th>Internet DNS Provider</th><td style="word-break: break-word;">${geo}</td></tr>`);
+				}
+
+				// Add DNS Provider IP
+				if (ip) {
+					$('#dns-table tbody').append(`<tr><th>Internet DNS Provider IP</th><td style="word-break: break-word;">${ip}</td></tr>`);
 				}
 			}
 		},
