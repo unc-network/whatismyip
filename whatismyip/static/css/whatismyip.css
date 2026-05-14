@@ -151,6 +151,10 @@ html[data-theme="dark"] .text-muted {
   border-bottom-color: var(--site-border);
 }
 
+.card .table th {
+  font-weight: 700;
+}
+
 .metrics-series-label {
   color: var(--site-muted-text);
 }
