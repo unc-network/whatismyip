@@ -70,38 +70,40 @@
 
   <div class="col-xl-3"> <!-- start of column 1 -->
 
-    <div id="connect-test" class="card shadow my-3" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}">
+    <div class="card shadow my-3">
       <div class="card-body">
-        <h3 class="card-title h5">Campus Connectivity</h3>
-        <div class="table-responsive">
-        <table class="table table-sm">
-          <tbody>
-              <tr>
-                <th style="width: 20%;">Default</th>
-                <td id="connect-default"></td>
-              </tr>
-              <tr>
-                <th style="width: 20%;">IPv6</th>
-                <td id="connect-ipv6"><i class="fa-solid fa-question text-primary"></i> Testing</td>
-              </tr>
-              <tr>
-                <th style="width: 20%;">IPv4</th>
-                <td id="connect-ipv4"><i class="fa-solid fa-question text-primary"></i> Testing</td>
-              </tr>
-          </tbody>
-        </table>
+        <div id="connect-test" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}">
+          <h3 class="card-title h5">Campus Connectivity</h3>
+          <div class="table-responsive">
+          <table class="table table-sm">
+            <tbody>
+                <tr>
+                  <th style="width: 20%;">Default</th>
+                  <td id="connect-default"></td>
+                </tr>
+                <tr>
+                  <th style="width: 20%;">IPv4</th>
+                  <td id="connect-ipv4"><i class="fa-solid fa-question text-primary"></i> Testing</td>
+                </tr>
+                <tr>
+                  <th style="width: 20%;">IPv6</th>
+                  <td id="connect-ipv6"><i class="fa-solid fa-question text-primary"></i> Testing</td>
+                </tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+
+        <div id="dns-test" class="mt-0 pt-0" style="display:none;">
+        <!-- <div id="dns-test" class="mt-4 pt-2 border-top" style="display:none;"> -->
+          <div class="table-responsive">
+            <table id="dns-table" class="table table-sm">
+              <tbody>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div id="dns-test" class="card shadow card-body" style="display:none;">
-      <h3 class="card-title h5">Campus DNS</h3>
-      <div class="table-responsive">
-        <table id="dns-table" class="table table-sm">
-          <tbody>
-          </tbody>
-        </table>
-        </div>
     </div>
 
     <button id="toggle-button" class="btn btn-primary btn-block my-3" type="button" data-mdb-toggle="collapse" data-mdb-target="#additionalDetails" aria-expanded="false" aria-controls="additionalDetails" style="display:none;">

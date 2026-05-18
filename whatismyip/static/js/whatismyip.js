@@ -225,7 +225,7 @@ function test_primary_url(default_version) {
 		},
 		error: function (xhr, status, error) {
 			// $('#connect-ipv4').text("Not supported");
-			$('#connect-ipv4').html('<i class="fa-solid fa-circle-xmark text-danger"></i> Not supported');
+			$('#connect-ipv4').html('<i class="fa-solid fa-triangle-exclamation text-warning"></i> Not supported');
 			//console.log(error);
 		}
 	});
@@ -316,9 +316,69 @@ function createRandomString(length) {
   return result;
 }
 
+function append_dns_table_row(label, value, rowId = null, useHtmlValue = false) {
+	const row = $('<tr>');
+	if (rowId) {
+		row.attr('id', rowId);
+	}
+
+	const cell = $('<td colspan="2"></td>');
+	cell.append(`<div class="fw-bold">${label}</div>`);
+	const valueContainer = $('<div class="dns-row-value text-break" style="white-space: pre-line;"></div>');
+	if (useHtmlValue) {
+		valueContainer.html(value);
+	} else {
+		valueContainer.text(value);
+	}
+	cell.append(valueContainer);
+	row.append(cell);
+
+	$('#dns-table tbody').append(row);
+}
+
+async function test_dns_security_filtering() {
+	// Test if DNS security filtering is active using Akamai's phishing test URL.
+	// When filtering is INACTIVE: the test site loads successfully (returns a warning page).
+	// When filtering is ACTIVE: the site is blocked by the filter and the fetch fails.
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+	try {
+		await fetch('https://www.akamaietpphishingtest.com/', {
+			method: 'HEAD',
+			signal: controller.signal,
+			mode: 'no-cors',
+			cache: 'no-store',
+			credentials: 'omit'
+		});
+
+		return false; // Site loaded successfully - filtering is INACTIVE
+	} catch (error) {
+		if (error.name === 'AbortError') {
+			return null; // Timeout - inconclusive
+		}
+		if (error.name === 'TypeError') {
+			return true; // Connection blocked - filtering is ACTIVE
+		}
+		return null; // Other error - inconclusive
+	} finally {
+		clearTimeout(timeoutId);
+	}
+}
+
 function get_dns_info() {
 	// testing DNS identification
 	// https://ip-api.com/docs/dns
+	
+	// Add Security Filtering row first (will be updated once test completes)
+	append_dns_table_row(
+		'DNS Security Filtering',
+		'<i class="fa-solid fa-question"></i> Testing',
+		'security-filtering-row',
+		true
+	);
+	$('#dns-test').show();
+	
 	tmp_name = createRandomString(32);
 	const test_url = `https://${tmp_name}.edns.ip-api.com/json`;
 
@@ -329,39 +389,61 @@ function get_dns_info() {
 		success: function (result, status, xhr) {
 			if (result['dns']) {
 				let geo = result['dns']['geo']
-				if ( geo.includes('Akamai') ) {
-					$('#dns-table tbody').append(`<tr><th>Security Filtering <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333" alt="Security Filtering Service"><i class="fa-solid fa-circle-info" alt="More Information"></i></a></th><td><i class="fa-solid fa-circle-check text-success"></i> Active</td></tr>`);
-				} else {
-					$('#dns-table tbody').append(`<tr><th>Security Filtering <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333" alt="Security Filtering Service"><i class="fa-solid fa-circle-info" alt="More Information"></i></a></th><td><i class="fa-solid fa-circle-xmark text-danger"></i> Inactive</td></tr>`);
+				let ip = result['dns']['ip']
+
+				// Add DNS provider details as one section to reduce vertical space.
+				if (geo || ip) {
+					let providerDetails = geo || '';
+					if (geo && ip) {
+						providerDetails = `${geo}\n${ip}`;
+					} else if (ip) {
+						providerDetails = ip;
+					}
+
+					append_dns_table_row('Internet DNS Provider', providerDetails);
 				}
-				$('#dns-test').show();
-				// for (const [key, value] of Object.entries(result['dns'])) {
-				// 	if ( value ) {
-				// 		$('#dns-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
-				// 	}
-				// }
 			}
-			// if (result['edns']) {
-			// 	$('#dns-test').show();
-			// 	for (const [key, value] of Object.entries(result['edns'])) {
-			// 		if ( value ) {
-			// 			$('#dns-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
-			// 		}
-			// 	}
-			// }
+
+			if (result['edns']) {
+				let geo = result['edns']['geo']
+				let ip = result['edns']['ip']
+
+				if (geo || ip) {
+					let clientSubnetDetails = geo || '';
+					if (geo && ip) {
+						clientSubnetDetails = `${geo}\n${ip}`;
+					} else if (ip) {
+						clientSubnetDetails = ip;
+					}
+
+					append_dns_table_row('EDNS Client Subnet', clientSubnetDetails);
+				}
+			}
 		},
 		error: function (xhr, status, error) {
-			console.dir(`DNS test failed: ${error}`)
+			console.dir(`DNS provider test failed: ${error}`)
 		}
 	});
 
-	// fetch('http://www.akamaietpmalwaretest.com/')
-	// .then(response => response.text()) // Parse body as text
-	// .then(text => {
-	// 	console.log(text); // Handle the parsed text
-	// })
-	// .catch(error => console.error('Error:', error));
-
+	// Test DNS security filtering by attempting to fetch the test domain
+	test_dns_security_filtering()
+		.then(isFiltered => {
+			let filteringHtml;
+			if (isFiltered === true) {
+				filteringHtml = `<i class="fa-solid fa-circle-check text-success"></i> Active`;
+			} else if (isFiltered === false) {
+				filteringHtml = `<i class="fa-solid fa-triangle-exclamation text-warning"></i> Inactive`;
+			} else {
+				filteringHtml = `<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`;
+			}
+			
+			// Update the Security Filtering row with the result
+			$('#security-filtering-row .dns-row-value').html(filteringHtml);
+		})
+		.catch(error => {
+			console.error('DNS security filtering test error:', error);
+			$('#security-filtering-row .dns-row-value').html(`<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`);
+		});
 }
 
 function test_secondary_url(default_version) {
@@ -475,7 +557,7 @@ function test_secondary_url(default_version) {
 		},
 		error: function (xhr, status, error) {
 			// $('#connect-ipv6').text("Not supported");
-			$('#connect-ipv6').html('<i class="fa-solid fa-circle-xmark text-danger"></i> Not supported');
+			$('#connect-ipv6').html('<i class="fa-solid fa-triangle-exclamation text-warning"></i> Not supported');
 			//console.log(error);
 		}
 	});
@@ -507,12 +589,12 @@ $(document).ready(function () {
 	test_primary_url(default_version);
 	test_secondary_url(default_version);
 
-	if (isLocalhost || is_campus) {
+	// if (isLocalhost || is_campus) {
 		// console.log(`Doing extended testing for campus`);
 		if ('requestIdleCallback' in window) {
 			window.requestIdleCallback(() => get_dns_info(), { timeout: 2000 });
 		} else {
 			setTimeout(get_dns_info, 0);
 		}
-	}
+	// }
 });
