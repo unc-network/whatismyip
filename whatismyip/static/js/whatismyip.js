@@ -372,7 +372,7 @@ function get_dns_info() {
 	
 	// Add Security Filtering row first (will be updated once test completes)
 	append_dns_table_row(
-		'Security Filtering',
+		'DNS Security Filtering',
 		'<i class="fa-solid fa-question"></i> Testing',
 		'security-filtering-row',
 		true
