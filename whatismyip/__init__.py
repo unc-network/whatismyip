@@ -82,9 +82,9 @@ def redirect_split_stack_hosts_to_primary():
         _configured_hostname(app.config["IPV6_SERVER_URL"]),
     }
 
-    if incoming_host == '127.0.0.1' or incoming_host == 'localhost':
+    if incoming_host == "127.0.0.1" or incoming_host == "localhost":
         # Allow localhost access for testing without redirecting.
-        return None 
+        return None
 
     if incoming_host not in split_stack_hosts:
         return None
