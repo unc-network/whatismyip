@@ -416,7 +416,7 @@ function get_dns_info() {
 						clientSubnetDetails = ip;
 					}
 
-					append_dns_table_row('Client Subnet', clientSubnetDetails);
+					append_dns_table_row('EDNS Client Subnet', clientSubnetDetails);
 				}
 			}
 		},
