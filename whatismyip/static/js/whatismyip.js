@@ -403,6 +403,22 @@ function get_dns_info() {
 					append_dns_table_row('Internet DNS Provider', providerDetails);
 				}
 			}
+
+			if (result['edns']) {
+				let geo = result['edns']['geo']
+				let ip = result['edns']['ip']
+
+				if (geo || ip) {
+					let clientSubnetDetails = geo || '';
+					if (geo && ip) {
+						clientSubnetDetails = `${geo}\n${ip}`;
+					} else if (ip) {
+						clientSubnetDetails = ip;
+					}
+
+					append_dns_table_row('Client Subnet', clientSubnetDetails);
+				}
+			}
 		},
 		error: function (xhr, status, error) {
 			console.dir(`DNS provider test failed: ${error}`)
