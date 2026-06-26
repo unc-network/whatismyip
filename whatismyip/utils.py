@@ -246,13 +246,14 @@ def get_ip_location(ip_address):
         # Hit the remote API to get location information about this IP address.
         # We have a few different APIs to work with.
 
-        # Available for FREE but provides Country information only.
-        api_url = f"https://api.iplocation.net/?ip={ip_address}"
-
         # Free for non-commercial use, no API key required.
-        # Limits to 45 requests per minute.  SSL is not available on free tier.
+        # Limits to 45 requests per minute. SSL is not available on free tier.
         # Also provides DNS test https://ip-api.com/docs/dns
-        # api_url = f"http://ip-api.com/json/{ip_address}"
+        # Returns: lat, lon, city, country, isp, region, timezone, etc.
+        api_url = f"http://ip-api.com/json/{ip_address}"
+
+        # Available for FREE but provides Country and ISP information only — no lat/lon.
+        # api_url = f"https://api.iplocation.net/?ip={ip_address}"
 
         # Free for 30,000 IP lookups per month, no API key required.  SSL is available.
         # api_url = f"https://ipapi.co/{ip_address}/json/"
