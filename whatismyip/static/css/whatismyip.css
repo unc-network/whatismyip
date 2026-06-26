@@ -1,32 +1,25 @@
 @charset "UTF-8";
-/* CUSTOMIZE: Replace the palette variables below with your institution's brand colors.
-   --color-primary    : main brand color (links, accents, header background)
-   --color-dark       : dark variant (nav, dark mode backgrounds)
-   --color-primary-lt : light tint of primary (hover states, dark mode links)
-   --color-bg-tint    : very light tint for subtle backgrounds
-   --color-muted      : muted text and borders
-   --color-gray-*     : neutral grays
-*/
+/* CUSTOMIZE: Replace the --unc-* palette variables below with your institution's brand colors. */
 :root {
-  --color-primary:    #4B9CD3;
-  --color-dark:       #13294B;
-  --color-white:      #FFFFFF;
-  --color-primary-dk: #2C5080;
-  --color-primary-lt: #B7D7ED;
-  --color-bg-tint:    #EDF5FB;
-  --color-muted:      #5B6670;
-  --color-gray-md:    #A2AAAD;
-  --color-gray-lt:    #CFD3D5;
-  --color-gray-xlt:   #ECEDED;
+  --unc-carolina-blue: #4B9CD3;
+  --unc-navy: #13294B;
+  --unc-white: #FFFFFF;
+  --unc-bolin-creek: #2C5080;
+  --unc-fordham-fountain: #B7D7ED;
+  --unc-cloud: #EDF5FB;
+  --unc-old-well-basin: #5B6670;
+  --unc-flat-gray: #A2AAAD;
+  --unc-cornerstone: #CFD3D5;
+  --unc-franklin-fog: #ECEDED;
 
-  --site-bg:          var(--color-white);
-  --site-surface:     var(--color-white);
-  --site-subtle-bg:   var(--color-bg-tint);
-  --site-text:        var(--color-dark);
-  --site-muted-text:  var(--color-muted);
-  --site-link:        var(--color-primary);
-  --site-link-hover:  var(--color-primary-dk);
-  --site-border:      var(--color-gray-lt);
+  --site-bg: var(--unc-white);
+  --site-surface: var(--unc-white);
+  --site-subtle-bg: var(--unc-cloud);
+  --site-text: var(--unc-navy);
+  --site-muted-text: var(--unc-old-well-basin);
+  --site-link: var(--unc-carolina-blue);
+  --site-link-hover: var(--unc-bolin-creek);
+  --site-border: var(--unc-cornerstone);
 }
 
 html,
@@ -35,14 +28,14 @@ body {
 }
 
 html[data-theme="dark"] {
-  --site-bg:          var(--color-dark);
-  --site-surface:     var(--color-primary-dk);
-  --site-subtle-bg:   var(--color-muted);
-  --site-text:        var(--color-white);
-  --site-muted-text:  var(--color-gray-lt);
-  --site-link:        var(--color-primary-lt);
-  --site-link-hover:  var(--color-white);
-  --site-border:      var(--color-gray-md);
+  --site-bg: var(--unc-navy);
+  --site-surface: var(--unc-bolin-creek);
+  --site-subtle-bg: var(--unc-old-well-basin);
+  --site-text: var(--unc-white);
+  --site-muted-text: var(--unc-cornerstone);
+  --site-link: var(--unc-fordham-fountain);
+  --site-link-hover: var(--unc-white);
+  --site-border: var(--unc-flat-gray);
 }
 
 body {
