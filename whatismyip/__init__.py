@@ -120,6 +120,7 @@ def _load_site_config():
         app.config["SITE_LAT"] = 0.0
         app.config["SITE_LON"] = 0.0
         app.config["BING_VERIFICATION_TOKEN"] = ""
+        app.config["INDEXNOW_KEY"] = ""
         return
 
     try:
@@ -155,6 +156,7 @@ def _load_site_config():
         app.config["BING_VERIFICATION_TOKEN"] = site_section.get(
             "bing_verification_token", ""
         )
+        app.config["INDEXNOW_KEY"] = site_section.get("indexnow_key", "")
     except Exception as exc:
         app.logger.error(
             f"Failed to load {SITE_CONFIG_PATH}: {exc} — using built-in defaults."
@@ -168,6 +170,7 @@ def _load_site_config():
         app.config["SITE_LAT"] = 0.0
         app.config["SITE_LON"] = 0.0
         app.config["BING_VERIFICATION_TOKEN"] = ""
+        app.config["INDEXNOW_KEY"] = ""
 
 
 def _write_default_config():
@@ -841,6 +844,15 @@ def metrics():
 def static_from_root():
     """Serve root-level static files."""
     return send_from_directory(app.static_folder or APP_ROOT, request.path[1:])
+
+
+@app.route("/<path:filename>")
+def indexnow_key_file(filename):
+    """Serve the IndexNow key verification file from config.toml."""
+    key = app.config.get("INDEXNOW_KEY", "")
+    if key and filename == f"{key}.txt":
+        return key, 200, {"Content-Type": "text/plain; charset=utf-8"}
+    abort(404)
 
 
 # Custom handler for 404 Not Found errors
