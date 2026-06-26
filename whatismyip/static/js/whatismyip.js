@@ -62,8 +62,6 @@ function copyAddress(addressSelector) {
 
 function set_intro_text(is_campus, network_purpose) {
 	// add some user text at the very top of the page
-	$('#intro_text').html(`<p>hello</p>`);
-
 	if (is_campus) {
 		if ( network_purpose == 'VPN' ) {
 			$('#intro_text').html(`<p>Your IP address indicates that you are connected with the campus VPN service.</p>`);

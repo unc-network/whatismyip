@@ -819,6 +819,16 @@ def faq_redirect():
 @app.route("/metrics")
 def metrics():
     """Display aggregate usage metrics."""
+    username = app.config.get("METRICS_USERNAME", "")
+    password = app.config.get("METRICS_PASSWORD", "")
+    if username and password:
+        auth = request.authorization
+        if not auth or auth.username != username or auth.password != password:
+            return (
+                "Unauthorized",
+                401,
+                {"WWW-Authenticate": 'Basic realm="Metrics"'},
+            )
     return render_template(
         "metrics.html",
         metrics=get_metrics_dashboard(),
@@ -828,9 +838,8 @@ def metrics():
 @app.route("/favicon.ico")
 @app.route("/robots.txt")
 @app.route("/sitemap.xml")
-@app.route("/802ac5bbc6294cada7d2219abb825eb3.txt")
 def static_from_root():
-    """Support basic robots, sitemap, and IndexNow key files"""
+    """Serve root-level static files."""
     return send_from_directory(app.static_folder or APP_ROOT, request.path[1:])
 
 
@@ -847,9 +856,11 @@ def internal_server_error(e):
     return render_template("500.html"), 500
 
 
-@app.route("/trigger-500")
-def trigger_500():
-    abort(500)  # Manually trigger a 500 error for testing
+if app.config.get("TESTING"):
+
+    @app.route("/trigger-500")
+    def trigger_500():
+        abort(500)
 
 
 if __name__ == "__main__":
