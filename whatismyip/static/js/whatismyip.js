@@ -186,11 +186,15 @@ function test_primary_url(default_version) {
 
 			// Do the Map work
 			if (result['nac']['nit_building'] && result['nac']['nit_building']['address']) {
+				// Precise building location via geocoding (street-level)
 				loadCampusMap(result['nac']['nit_building']['address'], result['nac']['nit_building']['full_name']);
+			} else if (result['iplocation']['lat'] && result['iplocation']['lon']) {
+				// Approximate IP geolocation (city-level) for everyone else
+				var mapLat = parseFloat(result['iplocation']['lat']);
+				var mapLon = parseFloat(result['iplocation']['lon']);
+				var mapLabel = result['iplocation']['city'] || 'IP location';
+				loadLatLonMap(mapLat, mapLon, mapLabel);
 			}
-			// } else if (is_campus && result['iplocation']['lat'] && result['iplocation']['lon']) {
-			// 	add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
-			// }
 
 			// dump nac data
 			if (result['nac']['endSystem']) {
@@ -240,6 +244,7 @@ function loadCampusMap(address, title) {
 	}
 
 	$('#map_card').show();
+	$('#map_label').hide();
 
 	if (mapInitialized) {
 		codeAddress(address, title);
@@ -247,7 +252,7 @@ function loadCampusMap(address, title) {
 	}
 
 	mapInitialized = true;
-	initMap()
+	initMap(35.9049, -79.0469, 15)
 		.then(() => {
 			codeAddress(address, title);
 		})
@@ -258,27 +263,44 @@ function loadCampusMap(address, title) {
 		});
 }
 
-async function initMap() {
-	// Request needed libraries asynchronously
+function loadLatLonMap(lat, lon, label) {
+	$('#map_card').show();
+	$('#map_label').show();
+
+	if (mapInitialized) {
+		placeLatLonMarker(lat, lon, label);
+		return;
+	}
+
+	mapInitialized = true;
+	initMap(lat, lon, 11)
+		.then(() => {
+			placeLatLonMarker(lat, lon, label);
+		})
+		.catch((error) => {
+			console.error('Failed to load map', error);
+			$('#map_card').hide();
+			mapInitialized = false;
+		});
+}
+
+async function initMap(lat, lon, zoom) {
 	const { Map } = await google.maps.importLibrary("maps");
 	const { Geocoder } = await google.maps.importLibrary("geocoding");
-	const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
-	// Initialize the map
-	var defaultLocation = {lat: 35.9049, lng: -79.0469};
 	map = new Map(document.getElementById("map"), {
-		center: defaultLocation, 
-		zoom: 15,
+		center: {lat: lat, lng: lon},
+		zoom: zoom,
 		mapId: 'LOCATION_MAP_ID',
 		disableDefaultUI: true,
 	});
 	geocoder = new Geocoder();
 }
 
-async function add_marker (lat, lon, label) {
-	// Translate lat/lon to position to add map marker
-	var position = {lat: lat, lon: lon};
-	addAdvancedMarker(position, label);
+async function placeLatLonMarker(lat, lon, title) {
+	var position = {lat: lat, lng: lon};
+	map.setCenter(position);
+	addAdvancedMarker(position, title);
 }
 
 function codeAddress(address, title) {

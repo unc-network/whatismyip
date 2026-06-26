@@ -20,7 +20,7 @@ Built and operated by [UNC Information Technology Services](https://its.unc.edu/
 - VLAN name and ID
 - DHCP server, router, and lease details from Infoblox IPAM
 - NAC endpoint details from Extreme Networks XMC (switch port, policy, connection type)
-- Building name and map location for wired connections (via building lookup API)
+- Building name and map location for wired and wireless connections (via building lookup API)
 
 **Metrics dashboard** (`/metrics`): aggregate usage statistics — IP version breakdown, campus vs. off-campus ratio, ISP distribution, country distribution, and daily visit trends.
 
@@ -37,7 +37,7 @@ Browser
            ├── ip-api.com / iplocation.net   — geolocation (public API)
            ├── Infoblox IPAM                 — network/VLAN/DHCP details (campus only)
            ├── Extreme Networks XMC          — NAC endpoint details (campus only)
-           └── Building API (NIT)            — building name & location (campus wired only)
+           └── Building API (NIT)            — building name & location (wired switch or wireless AP)
 ```
 
 The front-end fetches `/hostinfo` twice — once over IPv4 and once over IPv6 — to determine which address family is active. All JS/CSS dependencies (Bootstrap/MDB, Font Awesome, jQuery) are served locally with no external CDN calls at runtime.
@@ -67,7 +67,7 @@ Set these three hostnames in `FLASK_SERVER_URL`, `FLASK_IPV4_SERVER_URL`, and `F
 | --------------------- | --------------------------------------------------- | ---------- |
 | Infoblox IPAM         | Network, VLAN, and DHCP details for campus IPs      | Optional   |
 | Extreme Networks XMC  | NAC endpoint details (switch port, policy)          | Optional   |
-| Building API (NIT)    | Building name and map for wired campus connections  | Optional   |
+| Building API (NIT)    | Building name and map (wired switch or wireless AP) | Optional   |
 | Google Maps API       | Embedded map on building location card              | Optional   |
 | Speedtest Custom      | Branded speed test iframe                           | Optional   |
 
