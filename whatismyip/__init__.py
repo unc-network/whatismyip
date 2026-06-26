@@ -64,6 +64,7 @@ def inject_site_name():
         site_url=app.config["SERVER_URL"],
         ipv4_url=app.config["IPV4_SERVER_URL"],
         ipv6_url=app.config["IPV6_SERVER_URL"],
+        bing_verification_token=app.config.get("BING_VERIFICATION_TOKEN", ""),
     )
 
 
@@ -114,6 +115,7 @@ def _load_site_config():
         app.config["SITE_COUNTRY_NAME"] = ""
         app.config["SITE_LAT"] = 0.0
         app.config["SITE_LON"] = 0.0
+        app.config["BING_VERIFICATION_TOKEN"] = ""
         return
 
     try:
@@ -146,6 +148,9 @@ def _load_site_config():
         app.config["SITE_COUNTRY_NAME"] = site_section.get("country_name", "")
         app.config["SITE_LAT"] = site_section.get("lat", 0.0)
         app.config["SITE_LON"] = site_section.get("lon", 0.0)
+        app.config["BING_VERIFICATION_TOKEN"] = site_section.get(
+            "bing_verification_token", ""
+        )
     except Exception as exc:
         app.logger.error(
             f"Failed to load {SITE_CONFIG_PATH}: {exc} — using built-in defaults."
@@ -158,6 +163,7 @@ def _load_site_config():
         app.config["SITE_COUNTRY_NAME"] = ""
         app.config["SITE_LAT"] = 0.0
         app.config["SITE_LON"] = 0.0
+        app.config["BING_VERIFICATION_TOKEN"] = ""
 
 
 def _write_default_config():

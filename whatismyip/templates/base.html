@@ -28,7 +28,12 @@
 	<meta name="twitter:title" content="{% block twitter_title %}What Is My IP? Test Your Campus IP Address Connectivity{% endblock %}">
 	<meta name="twitter:description" content="{% block twitter_description %}Find your IP address and test your connection to the UNC Chapel Hill campus network. Shows IPv4, IPv6, VPN status, DNS security, and campus network details.{% endblock %}">
 	<meta name="twitter:image" content="{{ site_url }}{{ url_for('static', filename='logo/android-chrome-512x512.png') }}">
-   
+
+	{% if bing_verification_token %}
+	<!-- CUSTOMIZE: This Bing Webmaster verification token is set in data/config.toml [site] bing_verification_token -->
+	<meta name="msvalidate.01" content="{{ bing_verification_token }}">
+	{% endif %}
+
 	<link rel="icon" href="/static/logo/favicon.ico" sizes="48x48">
 	<link rel="icon" type="image/svg+xml" href="/static/logo/favicon.svg">
 	<link rel="apple-touch-icon" sizes="180x180" href="/static/logo/apple-touch-icon.png">
