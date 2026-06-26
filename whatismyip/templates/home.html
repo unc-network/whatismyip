@@ -309,13 +309,23 @@
   <div class="col">
     <div class="card shadow card-body">
       <h2 class="card-title h5">What does this tool show?</h2>
-      <p class="mb-1">For campus devices, additional details are provided including:</p>
-      <ul class="mb-0">
-        <li>Campus network and VLAN assignment</li>
-        <li>DNS security filtering status</li>
-        <li>Internet Service Provider (ISP) and geolocation</li>
-        <li>Network Access Control (NAC) details for campus devices</li>
-      </ul>
+      <div class="row mt-2">
+        <div class="col-md-6">
+          <p class="mb-1">All visitors see:</p>
+          <ul class="mb-0">
+            <li>IPv4 and IPv6 address detection</li>
+            <li>Internet Service Provider (ISP) and geolocation</li>
+            <li>Internet DNS provider and security filtering status</li>
+          </ul>
+        </div>
+        <div class="col-md-6 mt-3 mt-md-0">
+          <p class="mb-1">Campus and VPN visitors also see:</p>
+          <ul class="mb-0">
+            <li>Campus network and VLAN assignment</li>
+            <li>Network Access Control (NAC) details</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -340,7 +350,7 @@
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "What Is My IP? — UNC Chapel Hill",
-  "url": "https://whatismyip.unc.edu",
+  "url": "{{ site_url }}",
   "description": "Find your IP address and test your connection to the UNC Chapel Hill campus network. Works for on-campus, VPN, and wireless users. Shows IPv4, IPv6, DNS security filtering status, and detailed campus network information.",
   "applicationCategory": "NetworkingApplication",
   "operatingSystem": "Any",
@@ -365,7 +375,7 @@
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "What Is My IP? — UNC Chapel Hill",
-  "url": "https://whatismyip.unc.edu",
+  "url": "{{ site_url }}",
   "publisher": {
     "@type": "Organization",
     "name": "UNC Information Technology Services",
