@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
+<noscript>
+  <div class="alert alert-warning my-3" role="alert">
+    This tool requires JavaScript to display your IP address and connectivity details.
+    Please enable JavaScript in your browser to use this service.
+  </div>
+</noscript>
 <div class="row p-1 my-3">
   <div class="col">
-    <p>Whether you are on campus, off campus, using a VPN, or behind a proxy, this site 
-      determines your IP address by testing how your device communicates with the campus network. 
+    <p>Whether you are on campus, off campus, using a VPN, or behind a proxy, this site
+      determines your IP address by testing how your device communicates with the campus network.
       See your connection details and IP address below.  Additional details are provided when available.
     </p>
     <div id="intro_text"></div>
@@ -299,18 +305,76 @@
 
 </div>
 
-<div class="row p-1 my-2">
-  <div class="col">
-      <div class="card shadow card-body">
-      <h3 class="card-title h5">Internet Speedtest</h3>
-    <p>Run a speed test using the closest Speedtest server, which is selected by default, 
-      or manually choose “UNC Chapel Hill” to test your connection to the UNC campus.
-    </p>
-      <iframe width="100%" height="650px" frameborder="0" loading="lazy" title="Internet Speedtest" src="https://uncch.speedtestcustom.com"></iframe>
+<div class=”row p-1 my-3”>
+  <div class=”col”>
+    <div class=”card shadow card-body”>
+      <h2 class=”card-title h5”>What does this tool show?</h2>
+      <p>This tool reveals your IP address as seen by the UNC campus network — whether you are
+        on campus, connected via VPN, or accessing from the open Internet. It detects both IPv4
+        and IPv6 addresses and, for campus devices, provides additional details including:</p>
+      <ul class=”mb-0”>
+        <li>Campus network and VLAN assignment</li>
+        <li>DNS security filtering status</li>
+        <li>Internet Service Provider (ISP) and geolocation</li>
+        <li>Network Access Control (NAC) details for campus devices</li>
+      </ul>
     </div>
   </div>
 </div>
 
+<div class=”row p-1 my-2”>
+  <div class=”col”>
+      <div class=”card shadow card-body”>
+      <h3 class=”card-title h5”>Internet Speedtest</h3>
+    <p>Run a speed test using the closest Speedtest server, which is selected by default,
+      or manually choose “UNC Chapel Hill” to test your connection to the UNC campus.
+    </p>
+      <iframe width=”100%” height=”650px” frameborder=”0” loading=”lazy” title=”Internet Speedtest” src=”https://uncch.speedtestcustom.com”></iframe>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "What Is My IP? — UNC Chapel Hill",
+  "url": "https://whatismyip.unc.edu",
+  "description": "Find your IP address and test your connection to the UNC Chapel Hill campus network. Works for on-campus, VPN, and wireless users. Shows IPv4, IPv6, DNS security filtering status, and detailed campus network information.",
+  "applicationCategory": "NetworkingApplication",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "provider": {
+    "@type": "Organization",
+    "name": "UNC Information Technology Services",
+    "url": "https://its.unc.edu"
+  },
+  "featureList": [
+    "IP address lookup",
+    "IPv4 and IPv6 detection",
+    "Campus VPN detection",
+    "DNS security filtering test",
+    "Network and VLAN details",
+    "ISP and geolocation"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "What Is My IP? — UNC Chapel Hill",
+  "url": "https://whatismyip.unc.edu",
+  "publisher": {
+    "@type": "Organization",
+    "name": "UNC Information Technology Services",
+    "url": "https://its.unc.edu"
+  }
+}
+</script>
 {% endblock %}
 
 {% block head_ext %}

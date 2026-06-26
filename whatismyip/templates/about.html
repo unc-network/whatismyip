@@ -1,8 +1,40 @@
 {% extends "base.html" %}
+
+{% block title %}About — What Is My IP? | UNC Network Diagnostic Tool{% endblock %}
+{% block meta_description %}About the UNC Chapel Hill campus IP address diagnostic tool. Provided by ITS, it shows the IP address campus applications see for your device — on campus, via VPN, or over the Internet.{% endblock %}
+{% block og_title %}About — What Is My IP? | UNC Network Diagnostic Tool{% endblock %}
+{% block og_description %}About the UNC Chapel Hill campus IP address diagnostic tool. Provided by ITS, it shows the IP address campus applications see for your device — on campus, via VPN, or over the Internet.{% endblock %}
+{% block og_url %}{{ site_url }}/about{% endblock %}
+{% block twitter_title %}About — What Is My IP? | UNC Network Diagnostic Tool{% endblock %}
+{% block twitter_description %}About the UNC Chapel Hill campus IP address diagnostic tool from ITS. Shows your IP address as seen by campus applications.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "About — What Is My IP?",
+  "url": "{{ site_url }}/about",
+  "description": "About the UNC Chapel Hill campus IP address diagnostic tool provided by Information Technology Services.",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "What Is My IP? — UNC Chapel Hill",
+    "url": "{{ site_url }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "UNC Information Technology Services",
+    "url": "https://its.unc.edu"
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
   <div class="row p-1">
     <div class="col">
+      <h2>About This Tool</h2>
       <p>This site is hosted on the campus network and provided by <a href="https://its.unc.edu/">Information Technology Services</a>
         as a network diagnostic tool.  The IP addresses reported are those visible to campus applications such as addresses provided 
         by the campus VPN service.  Refer to the <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=263">Determine Client IP Address</a> 

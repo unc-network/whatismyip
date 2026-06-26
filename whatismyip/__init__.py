@@ -743,8 +743,9 @@ def metrics():
 @app.route("/favicon.ico")
 @app.route("/robots.txt")
 @app.route("/sitemap.xml")
+@app.route("/802ac5bbc6294cada7d2219abb825eb3.txt")
 def static_from_root():
-    """Support basic robots and sitemap files"""
+    """Support basic robots, sitemap, and IndexNow key files"""
     return send_from_directory(app.static_folder or APP_ROOT, request.path[1:])
 
 

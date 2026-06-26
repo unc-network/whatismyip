@@ -6,20 +6,26 @@
 	<link rel="dns-prefetch" href="{{ ipv6_url }}"/>
 
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>What Is My IP? Test Your Campus IP Address Connectivity</title>
-    <meta name="description" content="Whether you are on campus, off campus, or using a VPN, this site determines your IP address by testing how your device communicates with the campus network.">
-	<meta name="keywords" content="ip address unc campus">
-	<meta name="author" content="">
+    <title>{% block title %}What Is My IP? Test Your Campus IP Address Connectivity{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Find your IP address and test your connection to the UNC Chapel Hill campus network. Shows IPv4, IPv6, VPN status, DNS security filtering, and campus network details.{% endblock %}">
+	<meta name="keywords" content="{% block meta_keywords %}ip address, what is my ip, UNC Chapel Hill, campus network, VPN, IPv6, network diagnostic, DNS security{% endblock %}">
+	<meta name="author" content="UNC Information Technology Services">
     <meta name="robots" content="index, follow">
 
-	<meta property="og:title" content="What Is My IP? Test Your Campus IP Address Connectivity">
-	<meta property="og:site_name" content="WhatIsMyIP?">
-	<meta property="og:url" content="{{ site_url }}">
-    <meta property="og:description" content="Whether you are on campus, off campus, or using a VPN, this site determines your IP address by testing how your device communicates with the campus network.">
+	<meta property="og:title" content="{% block og_title %}What Is My IP? Test Your Campus IP Address Connectivity{% endblock %}">
+	<meta property="og:site_name" content="WhatIsMyIP? — UNC Chapel Hill">
+	<meta property="og:url" content="{% block og_url %}{{ site_url }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Find your IP address and test your connection to the UNC Chapel Hill campus network. Shows IPv4, IPv6, VPN status, DNS security filtering, and campus network details.{% endblock %}">
 	<meta property="og:type" content="website">
 	<meta property="og:image" content="{{ site_url }}{{ url_for('static', filename='logo/android-chrome-512x512.png') }}">
-	<meta property="og:image:width" content="600">
-	<meta property="og:image:height" content="470">
+	<meta property="og:image:width" content="512">
+	<meta property="og:image:height" content="512">
+
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:site" content="@unctarheeltech">
+	<meta name="twitter:title" content="{% block twitter_title %}What Is My IP? Test Your Campus IP Address Connectivity{% endblock %}">
+	<meta name="twitter:description" content="{% block twitter_description %}Find your IP address and test your connection to the UNC Chapel Hill campus network. Shows IPv4, IPv6, VPN status, DNS security, and campus network details.{% endblock %}">
+	<meta name="twitter:image" content="{{ site_url }}{{ url_for('static', filename='logo/android-chrome-512x512.png') }}">
    
 	<link rel="icon" href="/static/logo/favicon.ico" sizes="48x48">
 	<link rel="icon" type="image/svg+xml" href="/static/logo/favicon.svg">
@@ -76,6 +82,9 @@
 	<script type="text/javascript" defer id="unc-ub-script" data-color="blue" src="https://unc.edu/web-assets/utility-bar/utility-bar.min.js"></script>
 
 	{% block head_ext %}
+	{% endblock %}
+
+	{% block structured_data %}
 	{% endblock %}
  </head>
  <body>

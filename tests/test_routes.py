@@ -35,10 +35,13 @@ def test_metrics_route_is_public(client, monkeypatch):
     assert b"Usage Metrics" in response.data
 
 
-def test_sitemap_includes_metrics(client):
+def test_sitemap_includes_core_pages(client):
     response = client.get("/sitemap.xml")
 
     assert response.status_code == 200
+    assert b"https://whatismyip.unc.edu/" in response.data
+    assert b"https://whatismyip.unc.edu/faq" in response.data
+    assert b"https://whatismyip.unc.edu/about" in response.data
     assert b"https://whatismyip.unc.edu/metrics" in response.data
 
 
