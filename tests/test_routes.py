@@ -11,23 +11,26 @@ def client():
         yield client
 
 
-def test_metrics_route_is_public(client, monkeypatch):
-    monkeypatch.setattr(
-        "whatismyip.get_metrics_dashboard",
-        lambda: {
-            "window_days": 30,
-            "total_hostinfo": 0,
-            "total_campus": 0,
-            "total_remote": 0,
-            "daily_series": [],
-            "daily_max": 0,
-            "ip_versions": [],
-            "isp_breakdown": [],
-            "country_breakdown": [],
-            "campus_breakdown": [],
-            "purpose_breakdown": [],
-        },
-    )
+def _metrics_stub():
+    return {
+        "window_days": 30,
+        "total_hostinfo": 0,
+        "total_campus": 0,
+        "total_remote": 0,
+        "daily_series": [],
+        "daily_max": 0,
+        "ip_versions": [],
+        "isp_breakdown": [],
+        "country_breakdown": [],
+        "campus_breakdown": [],
+        "purpose_breakdown": [],
+    }
+
+
+def test_metrics_route_is_public_when_no_auth_configured(client, monkeypatch):
+    monkeypatch.setattr("whatismyip.get_metrics_dashboard", _metrics_stub)
+    monkeypatch.setitem(app.config, "METRICS_USERNAME", "")
+    monkeypatch.setitem(app.config, "METRICS_PASSWORD", "")
 
     response = client.get("/metrics")
 
@@ -35,11 +38,25 @@ def test_metrics_route_is_public(client, monkeypatch):
     assert b"Usage Metrics" in response.data
 
 
-def test_sitemap_includes_metrics(client):
+def test_metrics_route_requires_auth_when_configured(client, monkeypatch):
+    monkeypatch.setattr("whatismyip.get_metrics_dashboard", _metrics_stub)
+    monkeypatch.setitem(app.config, "METRICS_USERNAME", "admin")
+    monkeypatch.setitem(app.config, "METRICS_PASSWORD", "secret")
+
+    assert client.get("/metrics").status_code == 401
+
+    authed = client.get("/metrics", headers={"Authorization": "Basic YWRtaW46c2VjcmV0"})
+    assert authed.status_code == 200
+
+
+def test_sitemap_includes_core_pages(client):
     response = client.get("/sitemap.xml")
 
     assert response.status_code == 200
-    assert b"https://whatismyip.unc.edu/metrics" in response.data
+    assert b"whatismyip.unc.edu/" in response.data
+    assert b"whatismyip.unc.edu/faq" in response.data
+    assert b"whatismyip.unc.edu/about" in response.data
+    assert b"whatismyip.unc.edu/metrics" in response.data
 
 
 @pytest.mark.parametrize(
@@ -55,22 +72,9 @@ def test_pages_use_canonical_urls_from_sitemap(
     client, monkeypatch, path, canonical_url
 ):
     monkeypatch.setitem(app.config, "SERVER_URL", "https://whatismyip.unc.edu")
-    monkeypatch.setattr(
-        "whatismyip.get_metrics_dashboard",
-        lambda: {
-            "window_days": 30,
-            "total_hostinfo": 0,
-            "total_campus": 0,
-            "total_remote": 0,
-            "daily_series": [],
-            "daily_max": 0,
-            "ip_versions": [],
-            "isp_breakdown": [],
-            "country_breakdown": [],
-            "campus_breakdown": [],
-            "purpose_breakdown": [],
-        },
-    )
+    monkeypatch.setitem(app.config, "METRICS_USERNAME", "")
+    monkeypatch.setitem(app.config, "METRICS_PASSWORD", "")
+    monkeypatch.setattr("whatismyip.get_metrics_dashboard", _metrics_stub)
 
     response = client.get(path)
 

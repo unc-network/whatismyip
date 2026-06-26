@@ -1,8 +1,40 @@
 {% extends "base.html" %}
+
+{% block title %}About — What Is My IP? | UNC Network Diagnostic Tool{% endblock %}
+{% block meta_description %}About the UNC Chapel Hill campus IP address diagnostic tool. Provided by ITS, it shows the IP address campus applications see for your device — on campus, via VPN, or over the Internet.{% endblock %}
+{% block og_title %}About — What Is My IP? | UNC Network Diagnostic Tool{% endblock %}
+{% block og_description %}About the UNC Chapel Hill campus IP address diagnostic tool. Provided by ITS, it shows the IP address campus applications see for your device — on campus, via VPN, or over the Internet.{% endblock %}
+{% block og_url %}{{ site_url }}/about{% endblock %}
+{% block twitter_title %}About — What Is My IP? | UNC Network Diagnostic Tool{% endblock %}
+{% block twitter_description %}About the UNC Chapel Hill campus IP address diagnostic tool from ITS. Shows your IP address as seen by campus applications.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "About — What Is My IP?",
+  "url": "{{ site_url }}/about",
+  "description": "About the UNC Chapel Hill campus IP address diagnostic tool provided by Information Technology Services.",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "What Is My IP? — UNC Chapel Hill",
+    "url": "{{ site_url }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "UNC Information Technology Services",
+    "url": "https://its.unc.edu"
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
   <div class="row p-1">
     <div class="col">
+      <h2>About This Tool</h2>
       <p>This site is hosted on the campus network and provided by <a href="https://its.unc.edu/">Information Technology Services</a>
         as a network diagnostic tool.  The IP addresses reported are those visible to campus applications such as addresses provided 
         by the campus VPN service.  Refer to the <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=263">Determine Client IP Address</a> 
@@ -21,8 +53,31 @@
         <li>Additional information about campus addresses is provided if available.</li>
       </ul>
       <p>
-        Further detailed network information is available through the <a href="https://nit.net.unc.edu">Network Information Tool (NIT)</a>.	
+        Further detailed network information is available through the <a href="https://nit.net.unc.edu">Network Information Tool (NIT)</a>.
         Access to NIT is restricted to authorized users.
+      </p>
+    </div>
+  </div>
+  <div class="row p-1 mt-2">
+    <div class="col">
+      <h2>Open Source</h2>
+      <p>
+        The source code for this tool is available on
+        <a href="https://github.com/unc-network/whatismyip">GitHub</a>.
+        It is written in Python using the <a href="https://flask.palletsprojects.com/">Flask</a> framework
+        and is released under the MIT License.
+      </p>
+      <p>
+        The tool was built for the UNC Chapel Hill campus environment but is designed to be
+        adapted by other higher education institutions.
+        Campus network ranges, DNS security filtering settings, and institution branding are
+        all configurable without changing code.
+        Integrations with network management systems such as Infoblox IPAM and
+        Extreme Networks NAC are optional — the core IP address and geolocation features
+        work for any deployment.
+      </p>
+      <p>
+        If your institution runs a similar tool or adapts this one, we'd love to hear about it.
       </p>
     </div>
   </div>

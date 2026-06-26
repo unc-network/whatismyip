@@ -5,6 +5,11 @@ Basic App
 import os
 import logging
 import sqlite3
+
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 from datetime import datetime, time as dt_time, timedelta, timezone
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
@@ -37,6 +42,10 @@ load_dotenv(dotenv_path)
 app = Flask(__name__)
 app.config.from_object("config.Config")
 app.config.from_prefixed_env()
+# from_prefixed_env() reads all values as strings; restore the expected int type.
+app.config["METRICS_TIME_WINDOW_DAYS"] = int(
+    app.config.get("METRICS_TIME_WINDOW_DAYS", 30)
+)
 Compress(app)
 
 METRICS_TIMEZONE = ZoneInfo("America/New_York")
@@ -49,7 +58,7 @@ api_config = {
         app.config["IPV6_SERVER_URL"],
     ]
 }
-CORS(app, resources={"/hostinfo": api_config, "/nacinfo": api_config})
+CORS(app, resources={"/hostinfo": api_config})
 
 
 @app.context_processor
@@ -59,10 +68,127 @@ def inject_site_name():
         site_url=app.config["SERVER_URL"],
         ipv4_url=app.config["IPV4_SERVER_URL"],
         ipv6_url=app.config["IPV6_SERVER_URL"],
+        bing_verification_token=app.config.get("BING_VERIFICATION_TOKEN", ""),
     )
 
 
 METRICS_DB_PATH = os.path.join(APP_ROOT, "data", "metrics.sqlite3")
+SITE_CONFIG_PATH = os.path.join(APP_ROOT, "data", "config.toml")
+
+import ipaddress as _ipaddress
+
+# No built-in campus networks — each deployment must configure data/config.toml.
+# An empty list means all visitors are treated as off-campus, which is the safe default.
+_DEFAULT_CAMPUS_NETWORKS = []
+
+
+def _parse_campus_networks(cidr_list):
+    """Parse a list of CIDR strings into ip_network objects, skipping invalid entries."""
+    networks = []
+    for cidr in cidr_list:
+        try:
+            networks.append(_ipaddress.ip_network(cidr, strict=False))
+        except ValueError:
+            app.logger.warning(f"Skipping invalid campus network CIDR: {cidr!r}")
+    return networks
+
+
+def _load_site_config():
+    """Load data/config.toml and apply settings to app.config.
+
+    If the file does not exist it is written with built-in defaults so that
+    the persistent volume in OpenShift self-bootstraps on first deploy.
+    Falls back silently to built-in defaults on any error so the app always starts.
+    """
+    # Ensure the data directory exists (important for fresh OpenShift PVCs).
+    os.makedirs(os.path.dirname(SITE_CONFIG_PATH), exist_ok=True)
+
+    if not os.path.exists(SITE_CONFIG_PATH):
+        app.logger.warning(
+            f"Site config not found at {SITE_CONFIG_PATH} — writing defaults."
+        )
+        try:
+            _write_default_config()
+        except Exception as exc:
+            app.logger.error(f"Could not write default config: {exc}")
+        app.config["CAMPUS_NETWORKS"] = _DEFAULT_CAMPUS_NETWORKS
+        app.config["DNS_SECURITY_TEST_URL"] = ""
+        app.config["SITE_NAME"] = ""
+        app.config["SITE_CITY"] = ""
+        app.config["SITE_COUNTRY_CODE"] = ""
+        app.config["SITE_COUNTRY_NAME"] = ""
+        app.config["SITE_LAT"] = 0.0
+        app.config["SITE_LON"] = 0.0
+        app.config["BING_VERIFICATION_TOKEN"] = ""
+        return
+
+    try:
+        with open(SITE_CONFIG_PATH, "rb") as fh:
+            site_cfg = tomllib.load(fh)
+        cidr_list = site_cfg.get("campus", {}).get("networks", [])
+        if not cidr_list:
+            app.logger.warning(
+                f"{SITE_CONFIG_PATH} has no campus.networks — all visitors will be treated as off-campus."
+            )
+        networks = _parse_campus_networks(cidr_list)
+        app.config["CAMPUS_NETWORKS"] = networks
+        app.logger.info(
+            f"Loaded {len(networks)} campus networks from {SITE_CONFIG_PATH}"
+        )
+
+        dns_test_url = site_cfg.get("dns", {}).get("security_filter_test_url", "")
+        app.config["DNS_SECURITY_TEST_URL"] = dns_test_url
+        if dns_test_url:
+            app.logger.info(f"DNS security filter test URL: {dns_test_url}")
+        else:
+            app.logger.info(
+                "DNS security filter test URL not configured — test disabled."
+            )
+
+        site_section = site_cfg.get("site", {})
+        app.config["SITE_NAME"] = site_section.get("name", "")
+        app.config["SITE_CITY"] = site_section.get("city", "")
+        app.config["SITE_COUNTRY_CODE"] = site_section.get("country_code", "")
+        app.config["SITE_COUNTRY_NAME"] = site_section.get("country_name", "")
+        app.config["SITE_LAT"] = site_section.get("lat", 0.0)
+        app.config["SITE_LON"] = site_section.get("lon", 0.0)
+        app.config["BING_VERIFICATION_TOKEN"] = site_section.get(
+            "bing_verification_token", ""
+        )
+    except Exception as exc:
+        app.logger.error(
+            f"Failed to load {SITE_CONFIG_PATH}: {exc} — using built-in defaults."
+        )
+        app.config["CAMPUS_NETWORKS"] = _DEFAULT_CAMPUS_NETWORKS
+        app.config["DNS_SECURITY_TEST_URL"] = ""
+        app.config["SITE_NAME"] = ""
+        app.config["SITE_CITY"] = ""
+        app.config["SITE_COUNTRY_CODE"] = ""
+        app.config["SITE_COUNTRY_NAME"] = ""
+        app.config["SITE_LAT"] = 0.0
+        app.config["SITE_LON"] = 0.0
+        app.config["BING_VERIFICATION_TOKEN"] = ""
+
+
+def _write_default_config():
+    """Seed SITE_CONFIG_PATH from data/config.toml.example on first deploy."""
+    import shutil
+
+    example = os.path.join(
+        os.path.dirname(__file__), "..", "data", "config.toml.example"
+    )
+    if os.path.exists(example):
+        shutil.copy2(example, SITE_CONFIG_PATH)
+    else:
+        # Last resort: write a minimal valid stub.
+        with open(SITE_CONFIG_PATH, "w") as fh:
+            fh.write(
+                "# Configure campus networks — see config.toml.example.\n"
+                "[campus]\nnetworks = []\n"
+            )
+
+
+_load_site_config()
 
 
 def _configured_hostname(url):
@@ -382,6 +508,7 @@ def home():
 
     # Add Google Maps API key for client-side use
     data["google_maps_api_key"] = app.config["GOOGLE_MAPS_API_KEY"]
+    data["dns_security_test_url"] = app.config.get("DNS_SECURITY_TEST_URL", "")
 
     return render_template("home.html", context=data)
 
@@ -464,19 +591,19 @@ def hostinfo():
         # ipwhois = getWhoIs( data['client_address'])
         # data['ipwhois'] = ipwhois
     else:
-        # non-global addresses get a default location of campus
+        # non-global addresses get a default location from site config
         iplocation = {
-            "country_code2": "US",
-            "country_name": "United States of America",
+            "country_code2": app.config.get("SITE_COUNTRY_CODE", ""),
+            "country_name": app.config.get("SITE_COUNTRY_NAME", ""),
             "ip": str(ip),
             "ip_number": None,
             "ip_version": ip.version,
-            "isp": "University of North Carolina at Chapel Hill",
+            "isp": app.config.get("SITE_NAME", ""),
             "response_code": None,
             "response_message": None,
-            "city": "Chapel Hill",
-            "lat": 35.9034,
-            "lon": -79.0484,
+            "city": app.config.get("SITE_CITY", ""),
+            "lat": app.config.get("SITE_LAT", 0.0),
+            "lon": app.config.get("SITE_LON", 0.0),
         }
     data["iplocation"] = iplocation
 
@@ -664,48 +791,6 @@ def hostinfo():
     return response
 
 
-@app.route("/nacinfo")
-def nacinfo():
-    """
-    Return JSON structure with IP address information.
-    """
-
-    # get the request headers
-    forwarded_for = request.environ.get("HTTP_X_FORWARDED_FOR", None)
-    remote_address = request.environ.get("REMOTE_ADDR", None)
-
-    # Check for PROXY usage
-    tmp_forwarded_for = os.getenv("FORWARDED_FOR", forwarded_for)
-    tmp_client_address = get_client_address(remote_address, tmp_forwarded_for)
-    client_address = os.getenv("CLIENT_ADDRESS", tmp_client_address)
-    app.logger.info(
-        f"Hostinfo view from {client_address} with forwarded_for {tmp_forwarded_for}"
-    )
-
-    # calculate the IP address basics at the start
-    ip = ipaddress.ip_address(client_address)
-
-    # build the main data dictionary
-    data = {
-        "client_address": client_address,
-    }
-
-    # Check if campus address before checking anything more detailed
-    # if is_campus_ip(client_address):
-    app.logger.debug(
-        f"Client address {client_address} is campus IP, collecting NAC data"
-    )
-    # collect NAC data to display
-    nac_data = get_nac_info(client_address)
-    if nac_data:
-        data["nac"] = nac_data
-
-    # build the json response
-    message = jsonify(data)
-    response = make_response(message)
-    return response
-
-
 @app.route("/health")
 @app.route("/about")
 def about():
@@ -734,6 +819,16 @@ def faq_redirect():
 @app.route("/metrics")
 def metrics():
     """Display aggregate usage metrics."""
+    username = app.config.get("METRICS_USERNAME", "")
+    password = app.config.get("METRICS_PASSWORD", "")
+    if username and password:
+        auth = request.authorization
+        if not auth or auth.username != username or auth.password != password:
+            return (
+                "Unauthorized",
+                401,
+                {"WWW-Authenticate": 'Basic realm="Metrics"'},
+            )
     return render_template(
         "metrics.html",
         metrics=get_metrics_dashboard(),
@@ -744,7 +839,7 @@ def metrics():
 @app.route("/robots.txt")
 @app.route("/sitemap.xml")
 def static_from_root():
-    """Support basic robots and sitemap files"""
+    """Serve root-level static files."""
     return send_from_directory(app.static_folder or APP_ROOT, request.path[1:])
 
 
@@ -761,9 +856,11 @@ def internal_server_error(e):
     return render_template("500.html"), 500
 
 
-@app.route("/trigger-500")
-def trigger_500():
-    abort(500)  # Manually trigger a 500 error for testing
+if app.config.get("TESTING"):
+
+    @app.route("/trigger-500")
+    def trigger_500():
+        abort(500)
 
 
 if __name__ == "__main__":

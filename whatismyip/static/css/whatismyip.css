@@ -1,7 +1,5 @@
 @charset "UTF-8";
-/*! 
- * Rules for UNC
- */
+/* CUSTOMIZE: Replace the --unc-* palette variables below with your institution's brand colors. */
 :root {
   --unc-carolina-blue: #4B9CD3;
   --unc-navy: #13294B;

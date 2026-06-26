@@ -1,3 +1,4 @@
-User-agent: * 
+# CUSTOMIZE: Update the Sitemap URL below to match your site URL.
+User-agent: *
 Disallow:
 Sitemap: https://whatismyip.unc.edu/sitemap.xml

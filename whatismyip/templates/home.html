@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
+<noscript>
+  <div class="alert alert-warning my-3" role="alert">
+    This tool requires JavaScript to display your IP address and connectivity details.
+    Please enable JavaScript in your browser to use this service.
+  </div>
+</noscript>
 <div class="row p-1 my-3">
   <div class="col">
-    <p>Whether you are on campus, off campus, using a VPN, or behind a proxy, this site 
-      determines your IP address by testing how your device communicates with the campus network. 
+    <p>Whether you are on campus, off campus, using a VPN, or behind a proxy, this site
+      determines your IP address by testing how your device communicates with the campus network.
       See your connection details and IP address below.  Additional details are provided when available.
     </p>
     <div id="intro_text"></div>
@@ -94,7 +100,7 @@
           </div>
         </div>
 
-        <div id="dns-test" class="mt-0 pt-0" style="display:none;">
+        <div id="dns-test" class="mt-0 pt-0" style="display:none;" data-dns_test_url="{{ context.dns_security_test_url }}">
         <!-- <div id="dns-test" class="mt-4 pt-2 border-top" style="display:none;"> -->
           <div class="table-responsive">
             <table id="dns-table" class="table table-sm">
@@ -299,18 +305,88 @@
 
 </div>
 
+<div class="row p-1 my-3">
+  <div class="col">
+    <div class="card shadow card-body">
+      <h2 class="card-title h5">What does this tool show?</h2>
+      <div class="row mt-2">
+        <div class="col-md-6">
+          <p class="mb-1">All visitors see:</p>
+          <ul class="mb-0">
+            <li>IPv4 and IPv6 address detection</li>
+            <li>Internet Service Provider (ISP) and geolocation</li>
+            <li>Internet DNS provider and security filtering status</li>
+          </ul>
+        </div>
+        <div class="col-md-6 mt-3 mt-md-0">
+          <p class="mb-1">Campus and VPN visitors also see:</p>
+          <ul class="mb-0">
+            <li>Campus network and VLAN assignment</li>
+            <li>Network Access Control (NAC) details</li>
+            <li>Building location map (where available)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMIZE: Replace the Speedtest Custom URL below with your institution's licensed URL,
+     or remove this entire card if you don't have a Speedtest Custom subscription.
+     Speedtest Custom: https://www.speedtest.net/custom -->
 <div class="row p-1 my-2">
   <div class="col">
       <div class="card shadow card-body">
       <h3 class="card-title h5">Internet Speedtest</h3>
-    <p>Run a speed test using the closest Speedtest server, which is selected by default, 
-      or manually choose “UNC Chapel Hill” to test your connection to the UNC campus.
+    <p>Run a speed test using the closest Speedtest server, which is selected by default,
+      or manually choose "UNC Chapel Hill" to test your connection to the UNC campus.
     </p>
       <iframe width="100%" height="650px" frameborder="0" loading="lazy" title="Internet Speedtest" src="https://uncch.speedtestcustom.com"></iframe>
     </div>
   </div>
 </div>
 
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "What Is My IP? — UNC Chapel Hill",
+  "url": "{{ site_url }}",
+  "description": "Find your IP address and test your connection to the UNC Chapel Hill campus network. Works for on-campus, VPN, and wireless users. Shows IPv4, IPv6, DNS security filtering status, and detailed campus network information.",
+  "applicationCategory": "NetworkingApplication",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "provider": {
+    "@type": "Organization",
+    "name": "UNC Information Technology Services",
+    "url": "https://its.unc.edu"
+  },
+  "featureList": [
+    "IP address lookup",
+    "IPv4 and IPv6 detection",
+    "Campus VPN detection",
+    "DNS security filtering test",
+    "Network and VLAN details",
+    "ISP and geolocation"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "What Is My IP? — UNC Chapel Hill",
+  "url": "{{ site_url }}",
+  "publisher": {
+    "@type": "Organization",
+    "name": "UNC Information Technology Services",
+    "url": "https://its.unc.edu"
+  }
+}
+</script>
 {% endblock %}
 
 {% block head_ext %}

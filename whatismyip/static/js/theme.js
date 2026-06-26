@@ -4,7 +4,7 @@
  */
 
 (function () {
-  const key = 'unc-theme-preference';
+  const key = 'whatismyip-theme-preference';
   const validThemes = ['system', 'light', 'dark'];
   const themeMeta = {
     system: {

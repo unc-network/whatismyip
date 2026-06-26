@@ -62,8 +62,6 @@ function copyAddress(addressSelector) {
 
 function set_intro_text(is_campus, network_purpose) {
 	// add some user text at the very top of the page
-	$('#intro_text').html(`<p>hello</p>`);
-
 	if (is_campus) {
 		if ( network_purpose == 'VPN' ) {
 			$('#intro_text').html(`<p>Your IP address indicates that you are connected with the campus VPN service.</p>`);
@@ -336,15 +334,15 @@ function append_dns_table_row(label, value, rowId = null, useHtmlValue = false) 
 	$('#dns-table tbody').append(row);
 }
 
-async function test_dns_security_filtering() {
-	// Test if DNS security filtering is active using Akamai's phishing test URL.
-	// When filtering is INACTIVE: the test site loads successfully (returns a warning page).
-	// When filtering is ACTIVE: the site is blocked by the filter and the fetch fails.
+async function test_dns_security_filtering(test_url) {
+	// Fetch test_url in the visitor's browser.
+	// When filtering is INACTIVE: the test site loads (returns false).
+	// When filtering is ACTIVE: the connection is blocked (returns true).
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => controller.abort(), 5000);
 
 	try {
-		await fetch('https://www.akamaietpphishingtest.com/', {
+		await fetch(test_url, {
 			method: 'HEAD',
 			signal: controller.signal,
 			mode: 'no-cors',
@@ -369,14 +367,18 @@ async function test_dns_security_filtering() {
 function get_dns_info() {
 	// testing DNS identification
 	// https://ip-api.com/docs/dns
-	
-	// Add Security Filtering row first (will be updated once test completes)
-	append_dns_table_row(
-		'DNS Security Filtering',
-		'<i class="fa-solid fa-question"></i> Testing',
-		'security-filtering-row',
-		true
-	);
+
+	const dns_test_url = $('#dns-test').data('dns_test_url') || '';
+
+	// Add Security Filtering row only if a test URL is configured
+	if (dns_test_url) {
+		append_dns_table_row(
+			'DNS Security Filtering',
+			'<i class="fa-solid fa-question"></i> Testing',
+			'security-filtering-row',
+			true
+		);
+	}
 	$('#dns-test').show();
 	
 	tmp_name = createRandomString(32);
@@ -425,39 +427,43 @@ function get_dns_info() {
 		}
 	});
 
-	// Test DNS security filtering by attempting to fetch the test domain
-	test_dns_security_filtering()
-		.then(isFiltered => {
-			let filteringHtml;
-			if (isFiltered === true) {
-				filteringHtml = `<i class="fa-solid fa-circle-check text-success"></i> Active`;
-			} else if (isFiltered === false) {
-				filteringHtml = `<i class="fa-solid fa-triangle-exclamation text-warning"></i> Inactive`;
-			} else {
-				filteringHtml = `<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`;
-			}
-			
-			// Update the Security Filtering row with the result
-			$('#security-filtering-row .dns-row-value').html(filteringHtml);
-		})
-		.catch(error => {
-			console.error('DNS security filtering test error:', error);
-			$('#security-filtering-row .dns-row-value').html(`<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`);
-		});
+	// Test DNS security filtering by attempting to fetch the configured test URL
+	if (dns_test_url) {
+		test_dns_security_filtering(dns_test_url)
+			.then(isFiltered => {
+				let filteringHtml;
+				if (isFiltered === true) {
+					filteringHtml = `<i class="fa-solid fa-circle-check text-success"></i> Active`;
+				} else if (isFiltered === false) {
+					filteringHtml = `<i class="fa-solid fa-triangle-exclamation text-warning"></i> Inactive`;
+				} else {
+					filteringHtml = `<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`;
+				}
+				$('#security-filtering-row .dns-row-value').html(filteringHtml);
+			})
+			.catch(error => {
+				console.error('DNS security filtering test error:', error);
+				$('#security-filtering-row .dns-row-value').html(`<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`);
+			});
+	}
 }
 
 function test_secondary_url(default_version) {
 	// test secondary url
 
+	var test_url = $('#connect-test').data('ipv6_url');
+	if (!test_url) {
+		$('#connect-ipv6').html('<i class="fa-solid fa-minus text-secondary"></i> Not configured');
+		return;
+	}
+
 	// handle starting state
 	if ( default_version == 6 ) {
 		$('#connect-default').text("IPv6");
-		// $('#connect-ipv6').text("Testing...");
 		$('#connect-ipv6').html('<i class="fa-solid fa-question"></i> Testing');
 	}
 
 	// Make AJAX call to the API to get the ipv6 address
-	var test_url = $('#connect-test').data('ipv6_url')
 	$.ajax({
 		type: "GET",
 		url: test_url + "/hostinfo",

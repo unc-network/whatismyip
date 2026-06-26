@@ -21,25 +21,30 @@ class Config:  # pylint: disable=too-few-public-methods
 
     SERVER_URL = "http://127.0.0.1:5000"
     IPV4_SERVER_URL = "http://127.0.0.1:5000"
-    IPV6_SERVER_URL = "http://127.0.0.1:5000"
+    # Leave empty to disable dual-stack IPv6 detection (appropriate for local dev)
+    IPV6_SERVER_URL = ""
 
     # Infoblox data
     IB_SERVER = "http://127.0.0.1"
     IB_USERNAME = "admin"
     IB_PASSWORD = "infoblox"
 
-    # XMC credentials
+    # XMC / ExtremeCloud IQ Site Engine credentials
     XMC_SERVER = "http://127.0.0.1"
     XMC_CLIENT_ID = "abc"
     XMC_SECRET = "123"
+
+    # Network Information Tool (NIT) — building location API
+    NIT_SERVER = ""
+    NIT_AUTH = ""
 
     # Google Maps API Key
     GOOGLE_MAPS_API_KEY = ""
 
     # Metrics dashboard auth
-    METRICS_USERNAME = os.getenv("METRICS_USERNAME", "")
-    METRICS_PASSWORD = os.getenv("METRICS_PASSWORD", "")
-    METRICS_TIME_WINDOW_DAYS = int(os.getenv("METRICS_TIME_WINDOW_DAYS", "30"))
+    METRICS_USERNAME = ""
+    METRICS_PASSWORD = ""
+    METRICS_TIME_WINDOW_DAYS = 30
 
 
 class ProductionConfig(Config):  # pylint: disable=too-few-public-methods

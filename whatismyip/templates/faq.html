@@ -1,4 +1,72 @@
 {% extends "base.html" %}
+
+{% block title %}Frequently Asked Questions — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block meta_description %}Common questions about the UNC campus IP address diagnostic tool: campus VPN detection, DNS security filtering, IPv4 vs IPv6, off-campus access, and API usage.{% endblock %}
+{% block og_title %}Frequently Asked Questions — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block og_description %}Common questions about the UNC campus IP address diagnostic tool: campus VPN detection, DNS security filtering, IPv4 vs IPv6, off-campus access, and API usage.{% endblock %}
+{% block og_url %}{{ site_url }}/faq{% endblock %}
+{% block twitter_title %}Frequently Asked Questions — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block twitter_description %}Common questions about the UNC campus IP address diagnostic tool: VPN detection, DNS security filtering, IPv4 vs IPv6, and more.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "If I am on campus, what can this tool tell me?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Campus users see the most information, including: IPv4 and IPv6 addresses, whether your device prefers IPv6 or IPv4, DNS security filtering status, network and VLAN details, and Network Access Control details."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "If I am off campus, what can this tool tell me?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Minimal information is provided to devices off campus unless the VPN service is active. VPN users will see the campus address assigned by the VPN."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is campus?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Campus refers to the computer network providing service to hundreds of buildings, predominantly in Chapel Hill, NC. The campus network extends to a number of remote locations throughout North Carolina."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is DNS Security Filtering?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "UNC Information Technology Services provides a layer of malware and phishing protection through the domain name system (DNS) for the campus community. No special client configurations or additional software are required. Clients using campus DNS servers benefit from this service automatically."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I query information about different IP addresses?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. For security reasons, this tool only displays information about the client device communicating with it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is an API available?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "This application is intended for browser-based use, but it is powered by an API that can be accessed directly at /hostinfo for dual stack detection. API responses and data structures may change over time without notice."
+      }
+    }
+  ]
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
   <div class="row p-1">

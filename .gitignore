@@ -57,6 +57,7 @@ local_settings.py
 # Flask stuff:
 instance/
 data/
+!data/config.toml.example
 .webassets-cache
 
 # Scrapy stuff:
@@ -92,3 +93,6 @@ ENV/
 
 # Mac specific files
 .DS_Store
+
+# Search engine verification files (institution-specific — each adopter gets their own)
+whatismyip/static/*.txt
