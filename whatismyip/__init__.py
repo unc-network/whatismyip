@@ -5,6 +5,7 @@ Basic App
 import os
 import logging
 import sqlite3
+
 try:
     import tomllib
 except ImportError:
@@ -134,7 +135,9 @@ def _load_site_config():
         if dns_test_url:
             app.logger.info(f"DNS security filter test URL: {dns_test_url}")
         else:
-            app.logger.info("DNS security filter test URL not configured — test disabled.")
+            app.logger.info(
+                "DNS security filter test URL not configured — test disabled."
+            )
 
         site_section = site_cfg.get("site", {})
         app.config["SITE_NAME"] = site_section.get("name", "")
@@ -160,14 +163,19 @@ def _load_site_config():
 def _write_default_config():
     """Seed SITE_CONFIG_PATH from data/config.toml.example on first deploy."""
     import shutil
-    example = os.path.join(os.path.dirname(__file__), "..", "data", "config.toml.example")
+
+    example = os.path.join(
+        os.path.dirname(__file__), "..", "data", "config.toml.example"
+    )
     if os.path.exists(example):
         shutil.copy2(example, SITE_CONFIG_PATH)
     else:
         # Last resort: write a minimal valid stub.
         with open(SITE_CONFIG_PATH, "w") as fh:
-            fh.write("# Configure campus networks — see config.toml.example.\n"
-                     "[campus]\nnetworks = []\n")
+            fh.write(
+                "# Configure campus networks — see config.toml.example.\n"
+                "[campus]\nnetworks = []\n"
+            )
 
 
 _load_site_config()
