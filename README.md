@@ -32,8 +32,7 @@ Built and operated by [UNC Information Technology Services](https://its.unc.edu/
 Browser
   │
   ├── GET /          → home page (Flask/Jinja2 template)
-  ├── GET /hostinfo  → JSON API (IP details, geolocation, IPAM, NAC)
-  └── GET /nacinfo   → JSON API (NAC only, for dual-stack re-check)
+  └── GET /hostinfo  → JSON API (IP details, geolocation, IPAM, NAC)
            │
            ├── ip-api.com / iplocation.net   — geolocation (public API)
            ├── Infoblox IPAM                 — network/VLAN/DHCP details (campus only)

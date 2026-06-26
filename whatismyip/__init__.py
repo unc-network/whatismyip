@@ -53,7 +53,7 @@ api_config = {
         app.config["IPV6_SERVER_URL"],
     ]
 }
-CORS(app, resources={"/hostinfo": api_config, "/nacinfo": api_config})
+CORS(app, resources={"/hostinfo": api_config})
 
 
 @app.context_processor
@@ -766,48 +766,6 @@ def hostinfo():
         is_campus=data["is_campus"],
         network_purpose=net_details.get("purpose"),
     )
-
-    # build the json response
-    message = jsonify(data)
-    response = make_response(message)
-    return response
-
-
-@app.route("/nacinfo")
-def nacinfo():
-    """
-    Return JSON structure with IP address information.
-    """
-
-    # get the request headers
-    forwarded_for = request.environ.get("HTTP_X_FORWARDED_FOR", None)
-    remote_address = request.environ.get("REMOTE_ADDR", None)
-
-    # Check for PROXY usage
-    tmp_forwarded_for = os.getenv("FORWARDED_FOR", forwarded_for)
-    tmp_client_address = get_client_address(remote_address, tmp_forwarded_for)
-    client_address = os.getenv("CLIENT_ADDRESS", tmp_client_address)
-    app.logger.info(
-        f"Hostinfo view from {client_address} with forwarded_for {tmp_forwarded_for}"
-    )
-
-    # calculate the IP address basics at the start
-    ip = ipaddress.ip_address(client_address)
-
-    # build the main data dictionary
-    data = {
-        "client_address": client_address,
-    }
-
-    # Check if campus address before checking anything more detailed
-    # if is_campus_ip(client_address):
-    app.logger.debug(
-        f"Client address {client_address} is campus IP, collecting NAC data"
-    )
-    # collect NAC data to display
-    nac_data = get_nac_info(client_address)
-    if nac_data:
-        data["nac"] = nac_data
 
     # build the json response
     message = jsonify(data)
