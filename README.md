@@ -113,19 +113,19 @@ Copy `.env.example` to `.env` and fill in values. See that file for descriptions
 
 Key variables:
 
-| Variable                                    | Description                                         |
-| ------------------------------------------- | --------------------------------------------------- |
-| `FLASK_SECRET_KEY`                          | Random secret for Flask sessions                    |
-| `FLASK_SERVER_URL`                          | Primary public URL                                  |
-| `FLASK_IPV4_SERVER_URL`                     | IPv4-only hostname for dual-stack detection         |
-| `FLASK_IPV6_SERVER_URL`                     | IPv6-only hostname for dual-stack detection         |
-| `FLASK_IB_SERVER`                           | Infoblox IPAM hostname                              |
-| `FLASK_IB_USERNAME` / `FLASK_IB_PASSWORD`   | Infoblox API credentials                            |
-| `FLASK_XMC_SERVER`                          | Extreme Networks XMC hostname                       |
-| `FLASK_XMC_CLIENT_ID` / `FLASK_XMC_SECRET`  | XMC OAuth credentials                               |
-| `FLASK_NIT_SERVER` / `FLASK_NIT_AUTH`       | Building API hostname and auth token                |
-| `FLASK_GOOGLE_MAPS_API_KEY`                 | Google Maps embed API key                           |
-| `METRICS_USERNAME` / `METRICS_PASSWORD`     | Basic auth for `/metrics` (leave blank for public)  |
+| Variable                                             | Description                                         |
+| ---------------------------------------------------- | --------------------------------------------------- |
+| `FLASK_SECRET_KEY`                                   | Random secret for Flask sessions                    |
+| `FLASK_SERVER_URL`                                   | Primary public URL                                  |
+| `FLASK_IPV4_SERVER_URL`                              | IPv4-only hostname for dual-stack detection         |
+| `FLASK_IPV6_SERVER_URL`                              | IPv6-only hostname for dual-stack detection         |
+| `FLASK_IB_SERVER`                                    | Infoblox IPAM hostname                              |
+| `FLASK_IB_USERNAME` / `FLASK_IB_PASSWORD`            | Infoblox API credentials                            |
+| `FLASK_XMC_SERVER`                                   | Extreme Networks XMC hostname                       |
+| `FLASK_XMC_CLIENT_ID` / `FLASK_XMC_SECRET`           | XMC OAuth credentials                               |
+| `FLASK_NIT_SERVER` / `FLASK_NIT_AUTH`                | Building API hostname and auth token                |
+| `FLASK_GOOGLE_MAPS_API_KEY`                          | Google Maps embed API key                           |
+| `FLASK_METRICS_USERNAME` / `FLASK_METRICS_PASSWORD`  | Basic auth for `/metrics` (leave blank for public)  |
 
 Flask picks up all `FLASK_`-prefixed variables automatically via `app.config.from_prefixed_env()`.
 
