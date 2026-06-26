@@ -42,9 +42,9 @@ class Config:  # pylint: disable=too-few-public-methods
     GOOGLE_MAPS_API_KEY = ""
 
     # Metrics dashboard auth
-    METRICS_USERNAME = os.getenv("METRICS_USERNAME", "")
-    METRICS_PASSWORD = os.getenv("METRICS_PASSWORD", "")
-    METRICS_TIME_WINDOW_DAYS = int(os.getenv("METRICS_TIME_WINDOW_DAYS", "30"))
+    METRICS_USERNAME = ""
+    METRICS_PASSWORD = ""
+    METRICS_TIME_WINDOW_DAYS = 30
 
 
 class ProductionConfig(Config):  # pylint: disable=too-few-public-methods

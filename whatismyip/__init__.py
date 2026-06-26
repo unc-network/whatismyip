@@ -42,6 +42,10 @@ load_dotenv(dotenv_path)
 app = Flask(__name__)
 app.config.from_object("config.Config")
 app.config.from_prefixed_env()
+# from_prefixed_env() reads all values as strings; restore the expected int type.
+app.config["METRICS_TIME_WINDOW_DAYS"] = int(
+    app.config.get("METRICS_TIME_WINDOW_DAYS", 30)
+)
 Compress(app)
 
 METRICS_TIMEZONE = ZoneInfo("America/New_York")
