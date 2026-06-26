@@ -28,10 +28,14 @@ class Config:  # pylint: disable=too-few-public-methods
     IB_USERNAME = "admin"
     IB_PASSWORD = "infoblox"
 
-    # XMC credentials
+    # XMC / ExtremeCloud IQ Site Engine credentials
     XMC_SERVER = "http://127.0.0.1"
     XMC_CLIENT_ID = "abc"
     XMC_SECRET = "123"
+
+    # Network Information Tool (NIT) — building location API
+    NIT_SERVER = ""
+    NIT_AUTH = ""
 
     # Google Maps API Key
     GOOGLE_MAPS_API_KEY = ""

@@ -57,6 +57,7 @@ local_settings.py
 # Flask stuff:
 instance/
 data/
+!data/config.toml.example
 .webassets-cache
 
 # Scrapy stuff:

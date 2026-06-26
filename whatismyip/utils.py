@@ -17,45 +17,15 @@ from whatismyip.extreme import XMC_NBI
 
 def is_campus_ip(ip_address):
     """
-    Check if the IP address is in a campus block. If so, further testing can take place.
+    Check if the IP address falls within a configured campus network.
+    Networks are loaded from data/config.toml at startup via app.config["CAMPUS_NETWORKS"].
     """
-
-    prefixes = [
-        "152.2.",
-        "152.19.",
-        "152.23.",
-        "10.",
-        "172.16.",
-        "172.17.",
-        "172.18.",
-        "172.19.",
-        "172.20.",
-        "172.21.",
-        "172.22.",
-        "172.23.",
-        "172.24.",
-        "172.25.",
-        "172.26.",
-        "172.27.",
-        "172.28.",
-        "172.29.",
-        "172.30.",
-        "172.31.",
-        "192.168.",
-        "198.85.230.",
-        "198.85.231.",
-        "204.84.",
-        "204.85.",
-        "2610:28:3090:",
-        "2610:28:3091:",
-        "2610:2701:4000:",
-        "2606:f640:",
-    ]
-
-    for prefix in prefixes:
-        if ip_address.startswith(prefix):
-            return True
-    return False
+    networks = app.config.get("CAMPUS_NETWORKS", [])
+    try:
+        ip = ipaddress.ip_address(ip_address)
+    except ValueError:
+        return False
+    return any(ip in net for net in networks)
 
 
 # def getWhoIs(ip):

@@ -7,6 +7,7 @@
 
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{% block title %}What Is My IP? Test Your Campus IP Address Connectivity{% endblock %}</title>
+    <!-- CUSTOMIZE: Update these meta tags with your institution's name and description -->
     <meta name="description" content="{% block meta_description %}Find your IP address and test your connection to the UNC Chapel Hill campus network. Shows IPv4, IPv6, VPN status, DNS security filtering, and campus network details.{% endblock %}">
 	<meta name="keywords" content="{% block meta_keywords %}ip address, what is my ip, UNC Chapel Hill, campus network, VPN, IPv6, network diagnostic, DNS security{% endblock %}">
 	<meta name="author" content="UNC Information Technology Services">
@@ -22,6 +23,7 @@
 	<meta property="og:image:height" content="512">
 
 	<meta name="twitter:card" content="summary">
+	<!-- CUSTOMIZE: Replace with your institution's Twitter/X handle, or remove this tag -->
 	<meta name="twitter:site" content="@unctarheeltech">
 	<meta name="twitter:title" content="{% block twitter_title %}What Is My IP? Test Your Campus IP Address Connectivity{% endblock %}">
 	<meta name="twitter:description" content="{% block twitter_description %}Find your IP address and test your connection to the UNC Chapel Hill campus network. Shows IPv4, IPv6, VPN status, DNS security, and campus network details.{% endblock %}">
@@ -75,10 +77,11 @@
 	<!-- Site Specific -->
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/whatismyip.css') }}">
 
-	<!-- Alert Carolina -->
+	<!-- CUSTOMIZE: Replace or remove these UNC-specific scripts -->
+	<!-- Alert Carolina emergency alert bar — replace with your institution's equivalent -->
 	<script type="text/javascript" defer src="https://alertcarolina.unc.edu/scripts/webalert.php"></script>
 
-	<!-- UNC Utility Bar -->
+	<!-- UNC Utility Bar — remove or replace with your institution's navigation bar -->
 	<script type="text/javascript" defer id="unc-ub-script" data-color="blue" src="https://unc.edu/web-assets/utility-bar/utility-bar.min.js"></script>
 
 	{% block head_ext %}
@@ -112,7 +115,7 @@
 			</div>
 		</main>
 
-		<!-- Footer -->
+		<!-- CUSTOMIZE: Replace all links and branding in this footer with your institution's -->
 		<footer class="main-footer">
 			<div class="container">
 				<div class="row">
@@ -124,8 +127,8 @@
 					<div class="col-lg-4">
 						<p class="h5">Explore</p>
 						<ul class="list-unstyled">
-							<li><a href="{{ site_url }}/faq" aria-label="FAQ">Frequently Asked Questions</a></li>
 							<li><a href="{{ site_url }}/about" aria-label="About">About "What is my IP?"</a></li>
+							<li><a href="{{ site_url }}/faq" aria-label="FAQ">Frequently Asked Questions</a></li>
 							<li><a href="{{ site_url }}/metrics" aria-label="Usage metrics">Usage Metrics</a></li>
 							<li><a href="https://www.speedtest.net/server/14774" aria-label="UNC speedtest server">UNC's Speedtest Server</a></li>
 						</ul>
@@ -140,9 +143,9 @@
 					</div>
 					<div class="col-lg-4">
 						<p class="h5">Connect with tech at UNC</p>
-						<a href="https://instagram.com/unctarheeltech" aria-label="Instagram"> <i class="fab fa-instagram fa-xl" style="color:#4B9CD3;"></i></a> &nbsp; 
-						<a href="https://threads.net/unctarheeltech" aria-label="Threads"> <i class="fa-brands fa-threads fa-xl" style="color:#4B9CD3;"></i></a> &nbsp; 
-						<a href="https://x.com/unctarheeltech" aria-label="X, Twitter"> <i class="fa-brands fa-x-twitter fa-xl" style="color:#4B9CD3;"></i></a> &nbsp; 
+						<a href="https://instagram.com/unctarheeltech" aria-label="Instagram"> <i class="fab fa-instagram fa-xl" style="color:#4B9CD3;"></i></a> &nbsp;
+						<a href="https://threads.net/unctarheeltech" aria-label="Threads"> <i class="fa-brands fa-threads fa-xl" style="color:#4B9CD3;"></i></a> &nbsp;
+						<a href="https://x.com/unctarheeltech" aria-label="X, Twitter"> <i class="fa-brands fa-x-twitter fa-xl" style="color:#4B9CD3;"></i></a> &nbsp;
 						<a href="https://youtube.com/@unctarheeltech" aria-label="YouTube"> <i class="fa-brands fa-youtube fa-xl" style="color:#4B9CD3;"></i></a>
 						<p>
 						</p>

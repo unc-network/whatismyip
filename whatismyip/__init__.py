@@ -5,6 +5,10 @@ Basic App
 import os
 import logging
 import sqlite3
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 from datetime import datetime, time as dt_time, timedelta, timezone
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
@@ -63,6 +67,110 @@ def inject_site_name():
 
 
 METRICS_DB_PATH = os.path.join(APP_ROOT, "data", "metrics.sqlite3")
+SITE_CONFIG_PATH = os.path.join(APP_ROOT, "data", "config.toml")
+
+import ipaddress as _ipaddress
+
+# No built-in campus networks — each deployment must configure data/config.toml.
+# An empty list means all visitors are treated as off-campus, which is the safe default.
+_DEFAULT_CAMPUS_NETWORKS = []
+
+
+def _parse_campus_networks(cidr_list):
+    """Parse a list of CIDR strings into ip_network objects, skipping invalid entries."""
+    networks = []
+    for cidr in cidr_list:
+        try:
+            networks.append(_ipaddress.ip_network(cidr, strict=False))
+        except ValueError:
+            app.logger.warning(f"Skipping invalid campus network CIDR: {cidr!r}")
+    return networks
+
+
+def _load_site_config():
+    """Load data/config.toml and apply settings to app.config.
+
+    If the file does not exist it is written with built-in defaults so that
+    the persistent volume in OpenShift self-bootstraps on first deploy.
+    Falls back silently to built-in defaults on any error so the app always starts.
+    """
+    # Ensure the data directory exists (important for fresh OpenShift PVCs).
+    os.makedirs(os.path.dirname(SITE_CONFIG_PATH), exist_ok=True)
+
+    if not os.path.exists(SITE_CONFIG_PATH):
+        app.logger.warning(
+            f"Site config not found at {SITE_CONFIG_PATH} — writing defaults."
+        )
+        try:
+            _write_default_config()
+        except Exception as exc:
+            app.logger.error(f"Could not write default config: {exc}")
+        app.config["CAMPUS_NETWORKS"] = _DEFAULT_CAMPUS_NETWORKS
+        app.config["DNS_SECURITY_TEST_URL"] = ""
+        app.config["SITE_NAME"] = ""
+        app.config["SITE_CITY"] = ""
+        app.config["SITE_COUNTRY_CODE"] = ""
+        app.config["SITE_COUNTRY_NAME"] = ""
+        app.config["SITE_LAT"] = 0.0
+        app.config["SITE_LON"] = 0.0
+        return
+
+    try:
+        with open(SITE_CONFIG_PATH, "rb") as fh:
+            site_cfg = tomllib.load(fh)
+        cidr_list = site_cfg.get("campus", {}).get("networks", [])
+        if not cidr_list:
+            app.logger.warning(
+                f"{SITE_CONFIG_PATH} has no campus.networks — all visitors will be treated as off-campus."
+            )
+        networks = _parse_campus_networks(cidr_list)
+        app.config["CAMPUS_NETWORKS"] = networks
+        app.logger.info(
+            f"Loaded {len(networks)} campus networks from {SITE_CONFIG_PATH}"
+        )
+
+        dns_test_url = site_cfg.get("dns", {}).get("security_filter_test_url", "")
+        app.config["DNS_SECURITY_TEST_URL"] = dns_test_url
+        if dns_test_url:
+            app.logger.info(f"DNS security filter test URL: {dns_test_url}")
+        else:
+            app.logger.info("DNS security filter test URL not configured — test disabled.")
+
+        site_section = site_cfg.get("site", {})
+        app.config["SITE_NAME"] = site_section.get("name", "")
+        app.config["SITE_CITY"] = site_section.get("city", "")
+        app.config["SITE_COUNTRY_CODE"] = site_section.get("country_code", "")
+        app.config["SITE_COUNTRY_NAME"] = site_section.get("country_name", "")
+        app.config["SITE_LAT"] = site_section.get("lat", 0.0)
+        app.config["SITE_LON"] = site_section.get("lon", 0.0)
+    except Exception as exc:
+        app.logger.error(
+            f"Failed to load {SITE_CONFIG_PATH}: {exc} — using built-in defaults."
+        )
+        app.config["CAMPUS_NETWORKS"] = _DEFAULT_CAMPUS_NETWORKS
+        app.config["DNS_SECURITY_TEST_URL"] = ""
+        app.config["SITE_NAME"] = ""
+        app.config["SITE_CITY"] = ""
+        app.config["SITE_COUNTRY_CODE"] = ""
+        app.config["SITE_COUNTRY_NAME"] = ""
+        app.config["SITE_LAT"] = 0.0
+        app.config["SITE_LON"] = 0.0
+
+
+def _write_default_config():
+    """Seed SITE_CONFIG_PATH from data/config.toml.example on first deploy."""
+    import shutil
+    example = os.path.join(os.path.dirname(__file__), "..", "data", "config.toml.example")
+    if os.path.exists(example):
+        shutil.copy2(example, SITE_CONFIG_PATH)
+    else:
+        # Last resort: write a minimal valid stub.
+        with open(SITE_CONFIG_PATH, "w") as fh:
+            fh.write("# Configure campus networks — see config.toml.example.\n"
+                     "[campus]\nnetworks = []\n")
+
+
+_load_site_config()
 
 
 def _configured_hostname(url):
@@ -382,6 +490,7 @@ def home():
 
     # Add Google Maps API key for client-side use
     data["google_maps_api_key"] = app.config["GOOGLE_MAPS_API_KEY"]
+    data["dns_security_test_url"] = app.config.get("DNS_SECURITY_TEST_URL", "")
 
     return render_template("home.html", context=data)
 
@@ -464,19 +573,19 @@ def hostinfo():
         # ipwhois = getWhoIs( data['client_address'])
         # data['ipwhois'] = ipwhois
     else:
-        # non-global addresses get a default location of campus
+        # non-global addresses get a default location from site config
         iplocation = {
-            "country_code2": "US",
-            "country_name": "United States of America",
+            "country_code2": app.config.get("SITE_COUNTRY_CODE", ""),
+            "country_name": app.config.get("SITE_COUNTRY_NAME", ""),
             "ip": str(ip),
             "ip_number": None,
             "ip_version": ip.version,
-            "isp": "University of North Carolina at Chapel Hill",
+            "isp": app.config.get("SITE_NAME", ""),
             "response_code": None,
             "response_message": None,
-            "city": "Chapel Hill",
-            "lat": 35.9034,
-            "lon": -79.0484,
+            "city": app.config.get("SITE_CITY", ""),
+            "lat": app.config.get("SITE_LAT", 0.0),
+            "lon": app.config.get("SITE_LON", 0.0),
         }
     data["iplocation"] = iplocation
 
