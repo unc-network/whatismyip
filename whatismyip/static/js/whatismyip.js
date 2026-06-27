@@ -242,6 +242,7 @@ function test_primary_url(default_version) {
 			if (result['nac']['nit_building'] && Object.keys(result['nac']['nit_building']).length > 0) {
 				var bldg = result['nac']['nit_building'];
 				$('#bldg-col').show();
+				$('#bldg-card').show();
 				if (bldg['official_name'] || bldg['full_name']) {
 					$('#bldg-name-row').show();
 					$('#bldg-name').text(bldg['official_name'] || bldg['full_name']);
@@ -287,7 +288,6 @@ function test_primary_url(default_version) {
 				$('#net-config-v4').show();
 				$('#net-config-card').show();
 				$('#bldg-col').show();
-				$('#nac-row').show();
 				$('#toggle-button').show();
 			}
 		},
@@ -699,7 +699,6 @@ function test_secondary_url(default_version) {
 				$('#net-config-v6').show();
 				$('#net-config-card').show();
 				$('#bldg-col').show();
-				$('#nac-row').show();
 				$('#toggle-button').show();
 			}
 
