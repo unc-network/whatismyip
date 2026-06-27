@@ -142,7 +142,9 @@ def _load_site_config():
 
         map_provider = site_cfg.get("map", {}).get("provider", "leaflet")
         if map_provider not in ("google", "leaflet"):
-            app.logger.warning(f"Unknown map provider '{map_provider}', falling back to 'leaflet'.")
+            app.logger.warning(
+                f"Unknown map provider '{map_provider}', falling back to 'leaflet'."
+            )
             map_provider = "leaflet"
         app.config["MAP_PROVIDER"] = map_provider
         if dns_test_url:
@@ -274,7 +276,9 @@ def ensure_metrics_store():
             ("hosting", "INTEGER"),
         ]:
             if col not in columns:
-                conn.execute(f"ALTER TABLE metrics_events ADD COLUMN {col} {definition}")
+                conn.execute(
+                    f"ALTER TABLE metrics_events ADD COLUMN {col} {definition}"
+                )
 
         for index_sql in [
             "CREATE INDEX IF NOT EXISTS idx_metrics_events_created_at ON metrics_events(created_at)",
