@@ -172,6 +172,10 @@ function test_primary_url(default_version) {
 				$('#net1-city-row').show();
 				$('#net1-city').text(result['iplocation']["city"]);
 			}
+			if ( result['iplocation']["region"] ) {
+				$('#net1-region-row').show();
+				$('#net1-region').text(result['iplocation']["region"]);
+			}
 			if ( result['iplocation']["country_name"] ) {
 				$('#net1-country-row').show();
 				$('#net1-country').text(result['iplocation']["country_name"]);
@@ -182,6 +186,22 @@ function test_primary_url(default_version) {
 			if ( result['iplocation']["isp"] ) {
 				$('#net1-isp-row').show();
 				$('#net1-isp').text(result['iplocation']["isp"]);
+			}
+			if ( result['iplocation']["org"] ) {
+				$('#net1-org-row').show();
+				$('#net1-org').text(result['iplocation']["org"]);
+			}
+			if ( result['iplocation']["asn"] ) {
+				$('#net1-asn-row').show();
+				$('#net1-asn').text(result['iplocation']["asn"]);
+			}
+			var net1_flags = [];
+			if (result['iplocation']['mobile']) net1_flags.push('<i class="fa-solid fa-mobile-screen text-info" title="Mobile connection"></i> Mobile');
+			if (result['iplocation']['proxy'])  net1_flags.push('<i class="fa-solid fa-shield text-warning" title="Proxy or VPN detected"></i> Proxy / VPN');
+			if (result['iplocation']['hosting']) net1_flags.push('<i class="fa-solid fa-server text-secondary" title="Hosting provider or datacenter"></i> Hosting');
+			if (net1_flags.length > 0) {
+				$('#net1-flags-row').show();
+				$('#net1-flags').html(net1_flags.join('&ensp;'));
 			}
 
 			// Do the Map work
@@ -573,6 +593,10 @@ function test_secondary_url(default_version) {
 				$('#net2-city-row').show();
 				$('#net2-city').text(result['iplocation']["city"]);
 			}
+			if ( result['iplocation']["region"] ) {
+				$('#net2-region-row').show();
+				$('#net2-region').text(result['iplocation']["region"]);
+			}
 			if ( result['iplocation']["country_name"] ) {
 				$('#net2-country-row').show();
 				$('#net2-country').text(result['iplocation']["country_name"]);
@@ -583,6 +607,22 @@ function test_secondary_url(default_version) {
 			if ( result['iplocation']["isp"] ) {
 				$('#net2-isp-row').show();
 				$('#net2-isp').text(result['iplocation']["isp"]);
+			}
+			if ( result['iplocation']["org"] ) {
+				$('#net2-org-row').show();
+				$('#net2-org').text(result['iplocation']["org"]);
+			}
+			if ( result['iplocation']["asn"] ) {
+				$('#net2-asn-row').show();
+				$('#net2-asn').text(result['iplocation']["asn"]);
+			}
+			var net2_flags = [];
+			if (result['iplocation']['mobile']) net2_flags.push('<i class="fa-solid fa-mobile-screen text-info" title="Mobile connection"></i> Mobile');
+			if (result['iplocation']['proxy'])  net2_flags.push('<i class="fa-solid fa-shield text-warning" title="Proxy or VPN detected"></i> Proxy / VPN');
+			if (result['iplocation']['hosting']) net2_flags.push('<i class="fa-solid fa-server text-secondary" title="Hosting provider or datacenter"></i> Hosting');
+			if (net2_flags.length > 0) {
+				$('#net2-flags-row').show();
+				$('#net2-flags').html(net2_flags.join('&ensp;'));
 			}
 
 		},

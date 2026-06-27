@@ -275,7 +275,13 @@ def get_ip_location(ip_address):
                 "country_name": raw.get("country_name") or raw.get("country"),
                 "country_code2": raw.get("country_code2") or raw.get("countryCode"),
                 "city": raw.get("city"),
+                "region": raw.get("regionName"),
                 "isp": raw.get("isp"),
+                "org": raw.get("org"),
+                "asn": raw.get("as"),
+                "mobile": raw.get("mobile"),
+                "proxy": raw.get("proxy"),
+                "hosting": raw.get("hosting"),
                 "lat": raw.get("lat"),
                 "lon": raw.get("lon"),
             }
