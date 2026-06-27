@@ -246,13 +246,14 @@ def get_ip_location(ip_address):
         # Hit the remote API to get location information about this IP address.
         # We have a few different APIs to work with.
 
-        # Available for FREE but provides Country information only.
-        api_url = f"https://api.iplocation.net/?ip={ip_address}"
-
         # Free for non-commercial use, no API key required.
-        # Limits to 45 requests per minute.  SSL is not available on free tier.
+        # Limits to 45 requests per minute. SSL is not available on free tier.
         # Also provides DNS test https://ip-api.com/docs/dns
-        # api_url = f"http://ip-api.com/json/{ip_address}"
+        # Returns: lat, lon, city, country, isp, region, timezone, etc.
+        api_url = f"http://ip-api.com/json/{ip_address}"
+
+        # Available for FREE but provides Country and ISP information only — no lat/lon.
+        # api_url = f"https://api.iplocation.net/?ip={ip_address}"
 
         # Free for 30,000 IP lookups per month, no API key required.  SSL is available.
         # api_url = f"https://ipapi.co/{ip_address}/json/"
@@ -264,9 +265,26 @@ def get_ip_location(ip_address):
             app.logger.error(f"Location API failed {e}")
             return {}
         if response.status_code == 200:
-            ip_location = response.json()
-            app.logger.debug(f"ip_location details: {ip_location}")
-            return ip_location
+            raw = response.json()
+            app.logger.debug(f"ip_location details: {raw}")
+            # Normalize to a consistent structure regardless of which API is active.
+            # ip-api.com uses "country"/"countryCode"; the fallback API uses "country_name"/"country_code2".
+            return {
+                "ip": raw.get("query") or raw.get("ip"),
+                "ip_version": raw.get("ip_version", 4),
+                "country_name": raw.get("country_name") or raw.get("country"),
+                "country_code2": raw.get("country_code2") or raw.get("countryCode"),
+                "city": raw.get("city"),
+                "region": raw.get("regionName"),
+                "isp": raw.get("isp"),
+                "org": raw.get("org"),
+                "asn": raw.get("as"),
+                "mobile": raw.get("mobile"),
+                "proxy": raw.get("proxy"),
+                "hosting": raw.get("hosting"),
+                "lat": raw.get("lat"),
+                "lon": raw.get("lon"),
+            }
         else:
             app.logger.warning(f"ip_location query failed {response}")
             return {}

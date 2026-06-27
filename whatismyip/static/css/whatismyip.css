@@ -222,3 +222,44 @@ a:hover {
 html[data-theme="dark"] #copy-notification {
   border: 1px solid var(--unc-cornerstone);
 }
+
+#additionalDetails.collapsing {
+  transition: none;
+}
+
+.ip-copy-card {
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+.ip-copy-card:hover {
+  filter: brightness(1.12);
+}
+.ip-copy-card:focus {
+  outline: none;
+}
+.ip-copy-card:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.7);
+  outline-offset: -3px;
+}
+
+.ip-bar-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  min-width: 2.5rem;
+}
+
+.toggle-chevron {
+  transition: transform 0.2s ease;
+}
+[aria-expanded="true"] .toggle-chevron {
+  transform: rotate(180deg);
+}
+
+.intro-status {
+  font-size: 1.05rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid currentColor;
+  margin-bottom: 0.5rem;
+}

@@ -20,7 +20,7 @@ Built and operated by [UNC Information Technology Services](https://its.unc.edu/
 - VLAN name and ID
 - DHCP server, router, and lease details from Infoblox IPAM
 - NAC endpoint details from Extreme Networks XMC (switch port, policy, connection type)
-- Building name and map location for wired connections (via building lookup API)
+- Building name and map location for wired and wireless connections (via building lookup API)
 
 **Metrics dashboard** (`/metrics`): aggregate usage statistics — IP version breakdown, campus vs. off-campus ratio, ISP distribution, country distribution, and daily visit trends.
 
@@ -37,7 +37,7 @@ Browser
            ├── ip-api.com / iplocation.net   — geolocation (public API)
            ├── Infoblox IPAM                 — network/VLAN/DHCP details (campus only)
            ├── Extreme Networks XMC          — NAC endpoint details (campus only)
-           └── Building API (NIT)            — building name & location (campus wired only)
+           └── Building API (NIT)            — building name & location (wired switch or wireless AP)
 ```
 
 The front-end fetches `/hostinfo` twice — once over IPv4 and once over IPv6 — to determine which address family is active. All JS/CSS dependencies (Bootstrap/MDB, Font Awesome, jQuery) are served locally with no external CDN calls at runtime.
@@ -67,8 +67,8 @@ Set these three hostnames in `FLASK_SERVER_URL`, `FLASK_IPV4_SERVER_URL`, and `F
 | --------------------- | --------------------------------------------------- | ---------- |
 | Infoblox IPAM         | Network, VLAN, and DHCP details for campus IPs      | Optional   |
 | Extreme Networks XMC  | NAC endpoint details (switch port, policy)          | Optional   |
-| Building API (NIT)    | Building name and map for wired campus connections  | Optional   |
-| Google Maps API       | Embedded map on building location card              | Optional   |
+| Building API (NIT)    | Building name and map (wired switch or wireless AP) | Optional   |
+| Google Maps API       | Embedded map (when `[map] provider = "google"`)     | Optional   |
 | Speedtest Custom      | Branded speed test iframe                           | Optional   |
 
 ---
@@ -146,6 +146,11 @@ lon = 0.0
 # URL blocked by your DNS security filtering service (leave empty to disable the test)
 security_filter_test_url = ""
 
+[map]
+# "leaflet" uses OpenStreetMap tiles — free, no API key required (default)
+# "google"  uses the Google Maps JavaScript API — requires FLASK_GOOGLE_MAPS_API_KEY
+provider = "leaflet"
+
 [campus]
 # CIDR blocks treated as campus addresses
 networks = [
@@ -158,6 +163,20 @@ networks = [
 The `[site]` block provides the ISP name and geolocation used when a visitor's IP is a private or campus address that the public geolocation API cannot resolve.
 
 Networks are parsed into `ipaddress.ip_network` objects at startup — changes require a restart.
+
+### DNS security filtering test
+
+The `[dns] security_filter_test_url` setting enables the **DNS Security Filtering** row in the connectivity card. Leave it empty to hide the row entirely.
+
+**How it works:** The visitor's browser (not the server) performs a `fetch()` to the configured URL using `HEAD` and `no-cors` mode. Because the test runs client-side, it uses the visitor's actual DNS resolver — not the server's.
+
+- If filtering is **active**: the DNS security service blocks the domain (either fails to resolve it or redirects to a block page the browser treats as a network error). The fetch throws a `TypeError` → displayed as **Active**.
+- If filtering is **inactive**: the fetch reaches the server and returns without a network-level error, even if the response is CORS-rejected. → displayed as **Inactive**.
+- A 5-second timeout or any other error → **Unable to verify**.
+
+**Choosing a test URL:** Use a URL your DNS filtering vendor provides specifically for this purpose — a domain that is permanently listed as blocked by their service but is otherwise harmless. Most enterprise DNS filtering vendors (Akamai ETP, Cisco Umbrella, Zscaler, etc.) publish an official phishing or malware test URL for exactly this use. Do not use a real malicious domain; use the vendor's sanctioned test endpoint so the result is reliable and the domain stays consistently blocked.
+
+The test URL **must use `https://`**. Browsers block mixed-content requests — JavaScript on an HTTPS page cannot make outbound HTTP fetch calls, so an `http://` test URL will always fail regardless of filtering status.
 
 ---
 

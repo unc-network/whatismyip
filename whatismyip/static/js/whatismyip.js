@@ -61,18 +61,23 @@ function copyAddress(addressSelector) {
 }
 
 function set_intro_text(is_campus, network_purpose) {
-	// add some user text at the very top of the page
+	var icon, msg, cls;
 	if (is_campus) {
-		if ( network_purpose == 'VPN' ) {
-			$('#intro_text').html(`<p>Your IP address indicates that you are connected with the campus VPN service.</p>`);
-		} else if ( network_purpose == 'Wireless' ) {
-			$('#intro_text').html(`<p>Your IP address indicates that you are connected to the campus wireless network.</p>`);
+		if (network_purpose == 'VPN') {
+			icon = 'fa-shield text-success';
+			msg  = 'You are connected through the campus VPN.';
+		} else if (network_purpose == 'Wireless') {
+			icon = 'fa-wifi text-success';
+			msg  = 'You are connected to the campus wireless network.';
 		} else {
-			$('#intro_text').html(`<p>Your IP address indicates that you are connected to the local campus network.</p>`);
+			icon = 'fa-building text-success';
+			msg  = 'You are connected to the campus network.';
 		}
 	} else {
-		$('#intro_text').html(`<p>Your IP address indicates that you are off campus and connected over the Internet.</p>`);
+		icon = 'fa-earth-americas text-secondary';
+		msg  = 'You are connected from off campus over the Internet.';
 	}
+	$('#intro_text').html(`<div class="intro-status"><i class="fa-solid ${icon} me-2"></i>${msg}</div>`);
 }
 
 function test_primary_url(default_version) {
@@ -97,12 +102,14 @@ function test_primary_url(default_version) {
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 4 ) {
-				$('#first_address_section').show()
+				$('#first_address_section').show();
 				$('#address1').text(result["client_address"]);
+				$('#address_box .ip-bar-label').text('IPv4');
 				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
-				$('#second_address_section').show()
+				$('#second_address_section').show();
 				$('#address2').text(result["client_address"]);
+				$('#additional_ip .ip-bar-label').text('IPv4');
 			}
 
 			// Populate IPv4 address's details
@@ -172,6 +179,10 @@ function test_primary_url(default_version) {
 				$('#net1-city-row').show();
 				$('#net1-city').text(result['iplocation']["city"]);
 			}
+			if ( result['iplocation']["region"] ) {
+				$('#net1-region-row').show();
+				$('#net1-region').text(result['iplocation']["region"]);
+			}
 			if ( result['iplocation']["country_name"] ) {
 				$('#net1-country-row').show();
 				$('#net1-country').text(result['iplocation']["country_name"]);
@@ -183,42 +194,133 @@ function test_primary_url(default_version) {
 				$('#net1-isp-row').show();
 				$('#net1-isp').text(result['iplocation']["isp"]);
 			}
+			if ( result['iplocation']["org"] ) {
+				$('#net1-org-row').show();
+				$('#net1-org').text(result['iplocation']["org"]);
+			}
+			if ( result['iplocation']["asn"] ) {
+				$('#net1-asn-row').show();
+				$('#net1-asn').text(result['iplocation']["asn"]);
+			}
+			var net1_flags = [];
+			if (result['iplocation']['mobile']) net1_flags.push('<i class="fa-solid fa-mobile-screen text-info" title="Mobile connection"></i> Mobile');
+			if (result['iplocation']['proxy'])  net1_flags.push('<i class="fa-solid fa-shield text-warning" title="Proxy or VPN detected"></i> Proxy / VPN');
+			if (result['iplocation']['hosting']) net1_flags.push('<i class="fa-solid fa-server text-secondary" title="Hosting provider or datacenter"></i> Hosting');
+			if (net1_flags.length > 0) {
+				$('#net1-flags-row').show();
+				$('#net1-flags').html(net1_flags.join('&ensp;'));
+			}
 
 			// Do the Map work
 			if (result['nac']['nit_building'] && result['nac']['nit_building']['address']) {
-				loadCampusMap(result['nac']['nit_building']['address'], result['nac']['nit_building']['full_name']);
+				// Building lat/lon preferred; address passed as fallback for Google Maps geocoder
+				var bldgMapLat = parseFloat(result['nac']['nit_building']['latitude']);
+				var bldgMapLon = parseFloat(result['nac']['nit_building']['longitude']);
+				loadCampusMap(result['nac']['nit_building']['address'], result['nac']['nit_building']['full_name'], bldgMapLat, bldgMapLon);
+			} else {
+				// Approximate IP geolocation (city-level) for everyone else
+				var mapLat = parseFloat(result['iplocation']['lat']);
+				var mapLon = parseFloat(result['iplocation']['lon']);
+				// Skip if geolocation failed (null, NaN, or the 0,0 fallback ip-api.com returns on lookup failure)
+				if (!isNaN(mapLat) && !isNaN(mapLon) && !(mapLat === 0 && mapLon === 0)) {
+					var mapLabel = result['iplocation']['city'] || 'IP location';
+					loadLatLonMap(mapLat, mapLon, mapLabel);
+				}
 			}
-			// } else if (is_campus && result['iplocation']['lat'] && result['iplocation']['lon']) {
-			// 	add_marker(result['iplocation']['lat'],result['iplocation']['lon'],'Your IP location');
-			// }
 
 			// dump nac data
+			var nacIp  = result['client_address'];
+			var nacMac = result['address_details'] && result['address_details']['mac']
+				? result['address_details']['mac'].toLowerCase() : null;
+
+			function nacCell(key, value) {
+				var warn = '';
+				if (key === 'ipAddress' && nacIp && value !== nacIp) {
+					warn = ' <i class="fa-solid fa-triangle-exclamation text-warning ms-1" title="Does not match detected IPv4 address (' + nacIp + ')"></i>';
+				}
+				if (key === 'macAddress' && nacMac && value.toLowerCase() !== nacMac) {
+					warn = ' <i class="fa-solid fa-triangle-exclamation text-warning ms-1" title="Does not match MAC from IPAM (' + result['address_details']['mac'] + ')"></i>';
+				}
+				return value + warn;
+			}
+
 			if (result['nac']['endSystem']) {
 				$('#toggle-button').show();
-				$('#nac-row').show();
+				$('#additional-info').show();
+				$('#nac-col').show();
+				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
-					if ( value ) {
-						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+					if (value) {
+						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${nacCell(key, value)}</td></tr>`);
 					}
 				}
 			}
 			if (result['nac']['endSystemInfo']) {
-				$('#nac-row').show();
+				$('#additional-info').show();
+				$('#nac-col').show();
+				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystemInfo'])) {
-					if ( value ) {
-						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+					if (value) {
+						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${nacCell(key, value)}</td></tr>`);
 					}
 				}
 			}
 
 			// dump building data
 			if (result['nac']['nit_building'] && Object.keys(result['nac']['nit_building']).length > 0) {
-				$('#bldg-col').show();
-				for (const [key, value] of Object.entries(result['nac']['nit_building'])) {
-					if ( value ) {
-						$('#bldg-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
-					}
+				var bldg = result['nac']['nit_building'];
+				$('#detail-col').show();
+				$('#bldg-card').show();
+				if (bldg['official_name'] || bldg['full_name']) {
+					$('#bldg-name-row').show();
+					$('#bldg-name').text(bldg['official_name'] || bldg['full_name']);
 				}
+				if (bldg['address']) {
+					$('#bldg-address-row').show();
+					$('#bldg-address').text(bldg['address']);
+				}
+				if (bldg['building_id']) {
+					$('#bldg-id-row').show();
+					$('#bldg-id').text(bldg['building_id']);
+				}
+			}
+
+			// User device card — populate once; both callbacks return identical data
+			populateDeviceCard(result['user_device']);
+
+			// Network configuration card — IPv4 section (populated by primary/IPv4 callback)
+			var hasV4Config = false;
+			if (result['network']['netmask']) {
+				$('#net-config-v4-mask-row').show();
+				$('#net-config-v4-mask').text(result['network']['netmask']);
+				hasV4Config = true;
+			}
+			if (result['network']['dhcp_routers']) {
+				$('#net-config-v4-gateway-row').show();
+				$('#net-config-v4-gateway').text(result['network']['dhcp_routers']);
+				hasV4Config = true;
+			}
+			if (result['network']['dhcp_dns_servers'] && result['network']['dhcp_dns_servers'].length > 0) {
+				$('#net-config-v4-dns-row').show();
+				$('#net-config-v4-dns').html(result['network']['dhcp_dns_servers'].join('<br>'));
+				hasV4Config = true;
+			}
+			if (result['network']['dhcp_domain_name']) {
+				$('#net-config-v4-domain-row').show();
+				$('#net-config-v4-domain').text(result['network']['dhcp_domain_name']);
+				hasV4Config = true;
+			}
+			if (result['network']['router_device']) {
+				$('#net-config-v4-router-row').show();
+				$('#net-config-v4-router').text(result['network']['router_device']);
+				hasV4Config = true;
+			}
+			if (hasV4Config) {
+				$('#net-config-v4').show();
+				$('#net-config-card').show();
+				$('#detail-col').show();
+				$('#additional-info').show();
+				$('#toggle-button').show();
 			}
 		},
 		error: function (xhr, status, error) {
@@ -230,79 +332,43 @@ function test_primary_url(default_version) {
 
 }
 
-let map;
-let geocoder;
-let mapInitialized = false;
-
-function loadCampusMap(address, title) {
-	if (!address) {
-		return;
+function populateDeviceCard(ud) {
+	if (!ud || $('#device-card').is(':visible')) return;
+	var hasInfo = false;
+	if (ud['browser'] && ud['browser'] !== 'Other') {
+		var browser = ud['browser'];
+		if (ud['browser_version']) browser += ' ' + ud['browser_version'];
+		$('#device-browser-row').show();
+		$('#device-browser').text(browser);
+		hasInfo = true;
 	}
-
-	$('#map_card').show();
-
-	if (mapInitialized) {
-		codeAddress(address, title);
-		return;
+	if (ud['os'] && ud['os'] !== 'Other') {
+		var os = ud['os'];
+		if (ud['os_version']) os += ' ' + ud['os_version'];
+		$('#device-os-row').show();
+		$('#device-os').text(os);
+		hasInfo = true;
 	}
-
-	mapInitialized = true;
-	initMap()
-		.then(() => {
-			codeAddress(address, title);
-		})
-		.catch((error) => {
-			console.error('Failed to load campus map', error);
-			$('#map_card').hide();
-			mapInitialized = false;
-		});
-}
-
-async function initMap() {
-	// Request needed libraries asynchronously
-	const { Map } = await google.maps.importLibrary("maps");
-	const { Geocoder } = await google.maps.importLibrary("geocoding");
-	const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-
-	// Initialize the map
-	var defaultLocation = {lat: 35.9049, lng: -79.0469};
-	map = new Map(document.getElementById("map"), {
-		center: defaultLocation, 
-		zoom: 15,
-		mapId: 'LOCATION_MAP_ID',
-		disableDefaultUI: true,
-	});
-	geocoder = new Geocoder();
-}
-
-async function add_marker (lat, lon, label) {
-	// Translate lat/lon to position to add map marker
-	var position = {lat: lat, lon: lon};
-	addAdvancedMarker(position, label);
-}
-
-function codeAddress(address, title) {
-	// Translate address to a map marker
-	console.log(`Mapping address ${address}`);
-	geocoder.geocode({ address: address }, (results, status) => {
-		if (status === "OK") {
-			map.setCenter(results[0].geometry.location);
-			addAdvancedMarker(results[0].geometry.location, title); 
-		} else {
-			console.log("Geocode was not successful for the following reason: " + status);
-		}
-	});
-}
-
-async function addAdvancedMarker(position, title) {
-	// Add a marker to the map
-	console.log(`Adding map marker at ${position} titled ${title}`)
-	const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-	new AdvancedMarkerElement({
-		map: map,
-		position: position,
-		title: title,
-	});
+	var deviceType = ud['is_bot'] ? 'Bot / Crawler' : ud['is_mobile'] ? 'Mobile' : ud['is_tablet'] ? 'Tablet' : ud['is_pc'] ? 'PC / Desktop' : null;
+	if (deviceType) {
+		$('#device-type-row').show();
+		$('#device-type').text(deviceType);
+		hasInfo = true;
+	}
+	if (ud['device_family']) {
+		var model = (ud['device_brand'] && ud['device_brand'] !== ud['device_family'])
+			? ud['device_brand'] + ' ' + ud['device_family']
+			: ud['device_family'];
+		$('#device-model-row').show();
+		$('#device-model').text(model);
+		hasInfo = true;
+	}
+	if (hasInfo) {
+		$('#device-card').show();
+		$('#detail-col').show();
+		$('#additional-info').show();
+		$('#toggle-button').show();
+	}
 }
 
 function createRandomString(length) {
@@ -474,12 +540,14 @@ function test_secondary_url(default_version) {
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 6 ) {
-				$('#first_address_section').show()
+				$('#first_address_section').show();
 				$('#address1').text(result["client_address"]);
+				$('#address_box .ip-bar-label').text('IPv6');
 				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
-				$('#second_address_section').show()
+				$('#second_address_section').show();
 				$('#address2').text(result["client_address"]);
+				$('#additional_ip .ip-bar-label').text('IPv6');
 			}
 			// Populate IPv6 address's details
 			$('#address2-details').show();
@@ -548,6 +616,10 @@ function test_secondary_url(default_version) {
 				$('#net2-city-row').show();
 				$('#net2-city').text(result['iplocation']["city"]);
 			}
+			if ( result['iplocation']["region"] ) {
+				$('#net2-region-row').show();
+				$('#net2-region').text(result['iplocation']["region"]);
+			}
 			if ( result['iplocation']["country_name"] ) {
 				$('#net2-country-row').show();
 				$('#net2-country').text(result['iplocation']["country_name"]);
@@ -558,6 +630,60 @@ function test_secondary_url(default_version) {
 			if ( result['iplocation']["isp"] ) {
 				$('#net2-isp-row').show();
 				$('#net2-isp').text(result['iplocation']["isp"]);
+			}
+			if ( result['iplocation']["org"] ) {
+				$('#net2-org-row').show();
+				$('#net2-org').text(result['iplocation']["org"]);
+			}
+			if ( result['iplocation']["asn"] ) {
+				$('#net2-asn-row').show();
+				$('#net2-asn').text(result['iplocation']["asn"]);
+			}
+			var net2_flags = [];
+			if (result['iplocation']['mobile']) net2_flags.push('<i class="fa-solid fa-mobile-screen text-info" title="Mobile connection"></i> Mobile');
+			if (result['iplocation']['proxy'])  net2_flags.push('<i class="fa-solid fa-shield text-warning" title="Proxy or VPN detected"></i> Proxy / VPN');
+			if (result['iplocation']['hosting']) net2_flags.push('<i class="fa-solid fa-server text-secondary" title="Hosting provider or datacenter"></i> Hosting');
+			if (net2_flags.length > 0) {
+				$('#net2-flags-row').show();
+				$('#net2-flags').html(net2_flags.join('&ensp;'));
+			}
+
+			// User device card — populate once; both callbacks return identical data
+			populateDeviceCard(result['user_device']);
+
+			// Network configuration card — IPv6 section (populated by secondary/IPv6 callback)
+			var hasV6Config = false;
+			if (result['network']['prefixlen']) {
+				$('#net-config-v6-prefix-row').show();
+				$('#net-config-v6-prefix').text('/' + result['network']['prefixlen']);
+				hasV6Config = true;
+			}
+			if (result['network']['dhcp_routers']) {
+				$('#net-config-v6-gateway-row').show();
+				$('#net-config-v6-gateway').text(result['network']['dhcp_routers']);
+				hasV6Config = true;
+			}
+			if (result['network']['dhcp_dns_servers'] && result['network']['dhcp_dns_servers'].length > 0) {
+				$('#net-config-v6-dns-row').show();
+				$('#net-config-v6-dns').html(result['network']['dhcp_dns_servers'].join('<br>'));
+				hasV6Config = true;
+			}
+			if (result['network']['dhcp_domain_name']) {
+				$('#net-config-v6-domain-row').show();
+				$('#net-config-v6-domain').text(result['network']['dhcp_domain_name']);
+				hasV6Config = true;
+			}
+			if (result['network']['router_device']) {
+				$('#net-config-v6-router-row').show();
+				$('#net-config-v6-router').text(result['network']['router_device']);
+				hasV6Config = true;
+			}
+			if (hasV6Config) {
+				$('#net-config-v6').show();
+				$('#net-config-card').show();
+				$('#detail-col').show();
+				$('#additional-info').show();
+				$('#toggle-button').show();
 			}
 
 		},

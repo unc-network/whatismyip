@@ -139,6 +139,14 @@ def _load_site_config():
 
         dns_test_url = site_cfg.get("dns", {}).get("security_filter_test_url", "")
         app.config["DNS_SECURITY_TEST_URL"] = dns_test_url
+
+        map_provider = site_cfg.get("map", {}).get("provider", "leaflet")
+        if map_provider not in ("google", "leaflet"):
+            app.logger.warning(
+                f"Unknown map provider '{map_provider}', falling back to 'leaflet'."
+            )
+            map_provider = "leaflet"
+        app.config["MAP_PROVIDER"] = map_provider
         if dns_test_url:
             app.logger.info(f"DNS security filter test URL: {dns_test_url}")
         else:
@@ -163,6 +171,7 @@ def _load_site_config():
         )
         app.config["CAMPUS_NETWORKS"] = _DEFAULT_CAMPUS_NETWORKS
         app.config["DNS_SECURITY_TEST_URL"] = ""
+        app.config["MAP_PROVIDER"] = "leaflet"
         app.config["SITE_NAME"] = ""
         app.config["SITE_CITY"] = ""
         app.config["SITE_COUNTRY_CODE"] = ""
@@ -236,44 +245,69 @@ def ensure_metrics_store():
                 event_type TEXT NOT NULL,
                 ip_version INTEGER,
                 isp TEXT,
+                org TEXT,
+                asn TEXT,
+                city TEXT,
+                region TEXT,
                 country TEXT,
+                country_code TEXT,
                 is_campus INTEGER,
-                network_purpose TEXT
+                network_purpose TEXT,
+                mobile INTEGER,
+                proxy INTEGER,
+                hosting INTEGER
             )
             """)
 
-        # Backward-compatible schema migration for existing DB files.
+        # Backward-compatible schema migrations for existing DB files.
         columns = {
             row[1]
             for row in conn.execute("PRAGMA table_info(metrics_events)").fetchall()
         }
-        if "country" not in columns:
-            conn.execute("ALTER TABLE metrics_events ADD COLUMN country TEXT")
+        for col, definition in [
+            ("country", "TEXT"),
+            ("org", "TEXT"),
+            ("asn", "TEXT"),
+            ("city", "TEXT"),
+            ("region", "TEXT"),
+            ("country_code", "TEXT"),
+            ("mobile", "INTEGER"),
+            ("proxy", "INTEGER"),
+            ("hosting", "INTEGER"),
+        ]:
+            if col not in columns:
+                conn.execute(
+                    f"ALTER TABLE metrics_events ADD COLUMN {col} {definition}"
+                )
 
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_created_at ON metrics_events(created_at)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_event_type ON metrics_events(event_type)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_ip_version ON metrics_events(ip_version)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_isp ON metrics_events(isp)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_country ON metrics_events(country)"
-        )
+        for index_sql in [
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_created_at ON metrics_events(created_at)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_event_type ON metrics_events(event_type)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_ip_version ON metrics_events(ip_version)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_isp ON metrics_events(isp)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_org ON metrics_events(org)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_country ON metrics_events(country)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_country_code ON metrics_events(country_code)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_city ON metrics_events(city)",
+        ]:
+            conn.execute(index_sql)
 
 
 def log_metrics_event(
     event_type,
     ip_version=None,
     isp=None,
+    org=None,
+    asn=None,
+    city=None,
+    region=None,
     country=None,
+    country_code=None,
     is_campus=None,
     network_purpose=None,
+    mobile=None,
+    proxy=None,
+    hosting=None,
 ):
     """Store a single aggregate metrics event without persisting raw IP addresses."""
     try:
@@ -286,19 +320,35 @@ def log_metrics_event(
                     event_type,
                     ip_version,
                     isp,
+                    org,
+                    asn,
+                    city,
+                    region,
                     country,
+                    country_code,
                     is_campus,
-                    network_purpose
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    network_purpose,
+                    mobile,
+                    proxy,
+                    hosting
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     datetime.now(timezone.utc).isoformat(),
                     event_type,
                     ip_version,
                     isp,
+                    org,
+                    asn,
+                    city,
+                    region,
                     country,
+                    country_code,
                     None if is_campus is None else int(bool(is_campus)),
                     network_purpose,
+                    None if mobile is None else int(bool(mobile)),
+                    None if proxy is None else int(bool(proxy)),
+                    None if hosting is None else int(bool(hosting)),
                 ),
             )
     except Exception as error:  # pragma: no cover - metrics must not break diagnostics
@@ -511,6 +561,7 @@ def home():
 
     # Add Google Maps API key for client-side use
     data["google_maps_api_key"] = app.config["GOOGLE_MAPS_API_KEY"]
+    data["map_provider"] = app.config.get("MAP_PROVIDER", "leaflet")
     data["dns_security_test_url"] = app.config.get("DNS_SECURITY_TEST_URL", "")
 
     return render_template("home.html", context=data)
@@ -556,8 +607,20 @@ def hostinfo():
     data["is_campus"] = is_campus_ip(data["client_address"])
 
     # collect device information
-    # user_agent = parse(http_user_agent)
-    data["user_device"] = parse(data["user_agent"]).__str__()
+    ua = parse(data["user_agent"])
+    data["user_device"] = {
+        "browser": ua.browser.family,
+        "browser_version": ua.browser.version_string,
+        "os": ua.os.family,
+        "os_version": ua.os.version_string,
+        "device_family": ua.device.family if ua.device.family != "Other" else None,
+        "device_brand": ua.device.brand,
+        "device_model": ua.device.model,
+        "is_mobile": ua.is_mobile,
+        "is_tablet": ua.is_tablet,
+        "is_pc": ua.is_pc,
+        "is_bot": ua.is_bot,
+    }
 
     # collect dns data
     reverse_addr = reversename.from_address(data["client_address"])
@@ -783,9 +846,17 @@ def hostinfo():
         "hostinfo",
         ip_version=ip.version,
         isp=iplocation.get("isp"),
+        org=iplocation.get("org"),
+        asn=iplocation.get("asn"),
+        city=iplocation.get("city"),
+        region=iplocation.get("region"),
         country=iplocation.get("country_name") or iplocation.get("country"),
+        country_code=iplocation.get("country_code2"),
         is_campus=data["is_campus"],
         network_purpose=net_details.get("purpose"),
+        mobile=iplocation.get("mobile"),
+        proxy=iplocation.get("proxy"),
+        hosting=iplocation.get("hosting"),
     )
 
     # build the json response
