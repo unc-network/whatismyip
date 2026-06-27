@@ -222,7 +222,8 @@ function test_primary_url(default_version) {
 			// dump nac data
 			if (result['nac']['endSystem']) {
 				$('#toggle-button').show();
-				$('#nac-row').show();
+				$('#additional-info').show();
+				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
 					if ( value ) {
 						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
@@ -230,7 +231,8 @@ function test_primary_url(default_version) {
 				}
 			}
 			if (result['nac']['endSystemInfo']) {
-				$('#nac-row').show();
+				$('#additional-info').show();
+				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystemInfo'])) {
 					if ( value ) {
 						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
@@ -241,7 +243,7 @@ function test_primary_url(default_version) {
 			// dump building data
 			if (result['nac']['nit_building'] && Object.keys(result['nac']['nit_building']).length > 0) {
 				var bldg = result['nac']['nit_building'];
-				$('#bldg-col').show();
+				$('#detail-col').show();
 				$('#bldg-card').show();
 				if (bldg['official_name'] || bldg['full_name']) {
 					$('#bldg-name-row').show();
@@ -287,7 +289,8 @@ function test_primary_url(default_version) {
 			if (hasV4Config) {
 				$('#net-config-v4').show();
 				$('#net-config-card').show();
-				$('#bldg-col').show();
+				$('#detail-col').show();
+				$('#additional-info').show();
 				$('#toggle-button').show();
 			}
 		},
@@ -698,7 +701,8 @@ function test_secondary_url(default_version) {
 			if (hasV6Config) {
 				$('#net-config-v6').show();
 				$('#net-config-card').show();
-				$('#bldg-col').show();
+				$('#detail-col').show();
+				$('#additional-info').show();
 				$('#toggle-button').show();
 			}
 
