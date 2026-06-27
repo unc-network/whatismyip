@@ -236,44 +236,67 @@ def ensure_metrics_store():
                 event_type TEXT NOT NULL,
                 ip_version INTEGER,
                 isp TEXT,
+                org TEXT,
+                asn TEXT,
+                city TEXT,
+                region TEXT,
                 country TEXT,
+                country_code TEXT,
                 is_campus INTEGER,
-                network_purpose TEXT
+                network_purpose TEXT,
+                mobile INTEGER,
+                proxy INTEGER,
+                hosting INTEGER
             )
             """)
 
-        # Backward-compatible schema migration for existing DB files.
+        # Backward-compatible schema migrations for existing DB files.
         columns = {
             row[1]
             for row in conn.execute("PRAGMA table_info(metrics_events)").fetchall()
         }
-        if "country" not in columns:
-            conn.execute("ALTER TABLE metrics_events ADD COLUMN country TEXT")
+        for col, definition in [
+            ("country", "TEXT"),
+            ("org", "TEXT"),
+            ("asn", "TEXT"),
+            ("city", "TEXT"),
+            ("region", "TEXT"),
+            ("country_code", "TEXT"),
+            ("mobile", "INTEGER"),
+            ("proxy", "INTEGER"),
+            ("hosting", "INTEGER"),
+        ]:
+            if col not in columns:
+                conn.execute(f"ALTER TABLE metrics_events ADD COLUMN {col} {definition}")
 
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_created_at ON metrics_events(created_at)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_event_type ON metrics_events(event_type)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_ip_version ON metrics_events(ip_version)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_isp ON metrics_events(isp)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_country ON metrics_events(country)"
-        )
+        for index_sql in [
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_created_at ON metrics_events(created_at)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_event_type ON metrics_events(event_type)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_ip_version ON metrics_events(ip_version)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_isp ON metrics_events(isp)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_org ON metrics_events(org)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_country ON metrics_events(country)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_country_code ON metrics_events(country_code)",
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_city ON metrics_events(city)",
+        ]:
+            conn.execute(index_sql)
 
 
 def log_metrics_event(
     event_type,
     ip_version=None,
     isp=None,
+    org=None,
+    asn=None,
+    city=None,
+    region=None,
     country=None,
+    country_code=None,
     is_campus=None,
     network_purpose=None,
+    mobile=None,
+    proxy=None,
+    hosting=None,
 ):
     """Store a single aggregate metrics event without persisting raw IP addresses."""
     try:
@@ -286,19 +309,35 @@ def log_metrics_event(
                     event_type,
                     ip_version,
                     isp,
+                    org,
+                    asn,
+                    city,
+                    region,
                     country,
+                    country_code,
                     is_campus,
-                    network_purpose
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    network_purpose,
+                    mobile,
+                    proxy,
+                    hosting
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     datetime.now(timezone.utc).isoformat(),
                     event_type,
                     ip_version,
                     isp,
+                    org,
+                    asn,
+                    city,
+                    region,
                     country,
+                    country_code,
                     None if is_campus is None else int(bool(is_campus)),
                     network_purpose,
+                    None if mobile is None else int(bool(mobile)),
+                    None if proxy is None else int(bool(proxy)),
+                    None if hosting is None else int(bool(hosting)),
                 ),
             )
     except Exception as error:  # pragma: no cover - metrics must not break diagnostics
@@ -783,9 +822,17 @@ def hostinfo():
         "hostinfo",
         ip_version=ip.version,
         isp=iplocation.get("isp"),
+        org=iplocation.get("org"),
+        asn=iplocation.get("asn"),
+        city=iplocation.get("city"),
+        region=iplocation.get("region"),
         country=iplocation.get("country_name") or iplocation.get("country"),
+        country_code=iplocation.get("country_code2"),
         is_campus=data["is_campus"],
         network_purpose=net_details.get("purpose"),
+        mobile=iplocation.get("mobile"),
+        proxy=iplocation.get("proxy"),
+        hosting=iplocation.get("hosting"),
     )
 
     # build the json response
