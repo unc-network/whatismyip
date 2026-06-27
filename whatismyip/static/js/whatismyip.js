@@ -247,6 +247,41 @@ function test_primary_url(default_version) {
 					}
 				}
 			}
+
+			// Network configuration card — IPv4 section (populated by primary/IPv4 callback)
+			var hasV4Config = false;
+			if (result['network']['netmask']) {
+				$('#net-config-v4-mask-row').show();
+				$('#net-config-v4-mask').text(result['network']['netmask']);
+				hasV4Config = true;
+			}
+			if (result['network']['dhcp_routers']) {
+				$('#net-config-v4-gateway-row').show();
+				$('#net-config-v4-gateway').text(result['network']['dhcp_routers']);
+				hasV4Config = true;
+			}
+			if (result['network']['dhcp_dns_servers'] && result['network']['dhcp_dns_servers'].length > 0) {
+				$('#net-config-v4-dns-row').show();
+				$('#net-config-v4-dns').html(result['network']['dhcp_dns_servers'].join('<br>'));
+				hasV4Config = true;
+			}
+			if (result['network']['dhcp_domain_name']) {
+				$('#net-config-v4-domain-row').show();
+				$('#net-config-v4-domain').text(result['network']['dhcp_domain_name']);
+				hasV4Config = true;
+			}
+			if (result['network']['router_device']) {
+				$('#net-config-v4-router-row').show();
+				$('#net-config-v4-router').text(result['network']['router_device']);
+				hasV4Config = true;
+			}
+			if (hasV4Config) {
+				$('#net-config-v4').show();
+				$('#net-config-card').show();
+				$('#bldg-col').show();
+				$('#nac-row').show();
+				$('#toggle-button').show();
+			}
 		},
 		error: function (xhr, status, error) {
 			// $('#connect-ipv4').text("Not supported");
@@ -623,6 +658,41 @@ function test_secondary_url(default_version) {
 			if (net2_flags.length > 0) {
 				$('#net2-flags-row').show();
 				$('#net2-flags').html(net2_flags.join('&ensp;'));
+			}
+
+			// Network configuration card — IPv6 section (populated by secondary/IPv6 callback)
+			var hasV6Config = false;
+			if (result['network']['prefixlen']) {
+				$('#net-config-v6-prefix-row').show();
+				$('#net-config-v6-prefix').text('/' + result['network']['prefixlen']);
+				hasV6Config = true;
+			}
+			if (result['network']['dhcp_routers']) {
+				$('#net-config-v6-gateway-row').show();
+				$('#net-config-v6-gateway').text(result['network']['dhcp_routers']);
+				hasV6Config = true;
+			}
+			if (result['network']['dhcp_dns_servers'] && result['network']['dhcp_dns_servers'].length > 0) {
+				$('#net-config-v6-dns-row').show();
+				$('#net-config-v6-dns').html(result['network']['dhcp_dns_servers'].join('<br>'));
+				hasV6Config = true;
+			}
+			if (result['network']['dhcp_domain_name']) {
+				$('#net-config-v6-domain-row').show();
+				$('#net-config-v6-domain').text(result['network']['dhcp_domain_name']);
+				hasV6Config = true;
+			}
+			if (result['network']['router_device']) {
+				$('#net-config-v6-router-row').show();
+				$('#net-config-v6-router').text(result['network']['router_device']);
+				hasV6Config = true;
+			}
+			if (hasV6Config) {
+				$('#net-config-v6').show();
+				$('#net-config-card').show();
+				$('#bldg-col').show();
+				$('#nac-row').show();
+				$('#toggle-button').show();
 			}
 
 		},
