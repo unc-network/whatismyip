@@ -78,6 +78,91 @@
 </div>
 
 <div class="row g-3 p-1 my-1">
+  <div class="col-md-9">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">Lookups over time</h3>
+        {% if metrics.daily_series %}
+          {% set n = metrics.daily_series | length %}
+          {% set denom = (n - 1) if n > 1 else 1 %}
+          {% set cx0 = 55 %}
+          {% set cx1 = 990 %}
+          {% set cy0 = 15 %}
+          {% set cy1 = 205 %}
+          {% set cxspan = cx1 - cx0 %}
+          {% set cyspan = cy1 - cy0 %}
+          {% set ns = namespace(lpts='', apts=cx0|string ~ ',' ~ cy1|string) %}
+          {% for row in metrics.daily_series %}
+            {% set x = (cx0 + (loop.index0 * cxspan / denom)) | round | int %}
+            {% set y = (cy1 - (row.count * cyspan / metrics.daily_max)) | round | int %}
+            {% set pt = x|string ~ ',' ~ y|string %}
+            {% set ns.lpts = ns.lpts ~ ' ' ~ pt %}
+            {% set ns.apts = ns.apts ~ ' ' ~ pt %}
+          {% endfor %}
+          {% set ns.apts = ns.apts ~ ' ' ~ cx1|string ~ ',' ~ cy1|string %}
+          <svg class="w-100" viewBox="0 0 1000 240" style="height:200px;overflow:visible;"
+               role="img" aria-label="Daily lookups over the past {{ metrics.window_days }} days">
+            {% for pct in [0, 25, 50, 75, 100] %}
+              {% set gy = (cy1 - (pct * cyspan / 100)) | round | int %}
+              {% set gv = (metrics.daily_max * pct / 100) | round | int %}
+              <line x1="{{ cx0 }}" y1="{{ gy }}" x2="{{ cx1 }}" y2="{{ gy }}"
+                    stroke="currentColor" stroke-opacity="0.1" stroke-width="1"/>
+              <text x="{{ cx0 - 6 }}" y="{{ gy + 4 }}" text-anchor="end"
+                    font-size="11" fill="currentColor" opacity="0.5">{{ gv }}</text>
+            {% endfor %}
+            <polygon points="{{ ns.apts }}" fill="var(--site-link)" opacity="0.12"/>
+            <polyline points="{{ ns.lpts | trim }}" fill="none"
+                      stroke="var(--site-link)" stroke-width="2.5"
+                      stroke-linejoin="round" stroke-linecap="round"/>
+            {% for row in metrics.daily_series %}
+              {% set x = (cx0 + (loop.index0 * cxspan / denom)) | round | int %}
+              {% if loop.index0 % 5 == 0 or loop.last %}
+                <text x="{{ x }}" y="{{ cy1 + 22 }}" text-anchor="middle"
+                      font-size="10" fill="currentColor" opacity="0.55">
+                  {{ row.day[5:] | replace('-', '/') }}
+                </text>
+              {% endif %}
+            {% endfor %}
+            {% for row in metrics.daily_series %}
+              {% set x = (cx0 + (loop.index0 * cxspan / denom)) | round | int %}
+              {% set y = (cy1 - (row.count * cyspan / metrics.daily_max)) | round | int %}
+              <circle cx="{{ x }}" cy="{{ y }}" r="3.5" fill="var(--site-link)" opacity="0.8">
+                <title>{{ row.day }}: {{ row.count }}</title>
+              </circle>
+            {% endfor %}
+          </svg>
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">IP version mix</h3>
+        {% if metrics.ip_versions %}
+          {% for row in metrics.ip_versions %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span>{{ row.label }}</span>
+              <span>{{ row.count }} ({{ row.percentage }}%)</span>
+            </div>
+            <div class="progress" style="height: 0.75rem;">
+              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 p-1 my-1">
   <div class="col-lg-6">
     <div class="card shadow h-100">
       <div class="card-body">
@@ -144,50 +229,10 @@
 </div>
 
 <div class="row g-3 p-1 my-1">
-  <div class="col-lg-8">
+  <div class="col-lg-6">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">Lookups over time</h3>
-        {% if metrics.daily_series %}
-          {% for row in metrics.daily_series | reverse %}
-          <div class="mb-2">
-            <div class="d-flex justify-content-between small metrics-series-label mb-1">
-              <span>{{ row.day }}</span>
-              <span>{{ row.count }}</span>
-            </div>
-            <div class="progress" style="height: 0.9rem;">
-              <div class="progress-bar bg-primary" role="progressbar" style="width: {{ (row.count / metrics.daily_max * 100) if metrics.daily_max else 0 }}%;" aria-valuenow="{{ row.count }}" aria-valuemin="0" aria-valuemax="{{ metrics.daily_max }}"></div>
-            </div>
-          </div>
-          {% endfor %}
-        {% else %}
-          <p class="mb-0 text-muted">No metrics recorded yet.</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4">
-    <div class="card shadow h-100">
-      <div class="card-body">
-        <h3 class="h5 card-title">IP version mix</h3>
-        {% if metrics.ip_versions %}
-          {% for row in metrics.ip_versions %}
-          <div class="mb-3">
-            <div class="d-flex justify-content-between small mb-1">
-              <span>{{ row.label }}</span>
-              <span>{{ row.count }} ({{ row.percentage }}%)</span>
-            </div>
-            <div class="progress" style="height: 0.75rem;">
-              <div class="progress-bar bg-primary" style="width: {{ row.percentage }}%;"></div>
-            </div>
-          </div>
-          {% endfor %}
-        {% else %}
-          <p class="mb-0 text-muted">No metrics recorded yet.</p>
-        {% endif %}
-
-        <h3 class="h5 card-title mt-4">Campus mix</h3>
+        <h3 class="h5 card-title">Campus mix</h3>
         {% if metrics.campus_breakdown %}
           {% for row in metrics.campus_breakdown %}
           <div class="mb-3">
@@ -203,8 +248,14 @@
         {% else %}
           <p class="mb-0 text-muted">No metrics recorded yet.</p>
         {% endif %}
+      </div>
+    </div>
+  </div>
 
-        <h3 class="h5 card-title mt-4">Network purpose</h3>
+  <div class="col-lg-6">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">Network purpose</h3>
         {% if metrics.purpose_breakdown %}
           {% for row in metrics.purpose_breakdown %}
           <div class="mb-3">
