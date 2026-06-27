@@ -159,6 +159,20 @@ The `[site]` block provides the ISP name and geolocation used when a visitor's I
 
 Networks are parsed into `ipaddress.ip_network` objects at startup — changes require a restart.
 
+### DNS security filtering test
+
+The `[dns] security_filter_test_url` setting enables the **DNS Security Filtering** row in the connectivity card. Leave it empty to hide the row entirely.
+
+**How it works:** The visitor's browser (not the server) performs a `fetch()` to the configured URL using `HEAD` and `no-cors` mode. Because the test runs client-side, it uses the visitor's actual DNS resolver — not the server's.
+
+- If filtering is **active**: the DNS security service blocks the domain (either fails to resolve it or redirects to a block page the browser treats as a network error). The fetch throws a `TypeError` → displayed as **Active**.
+- If filtering is **inactive**: the fetch reaches the server and returns without a network-level error, even if the response is CORS-rejected. → displayed as **Inactive**.
+- A 5-second timeout or any other error → **Unable to verify**.
+
+**Choosing a test URL:** Use a URL your DNS filtering vendor provides specifically for this purpose — a domain that is permanently listed as blocked by their service but is otherwise harmless. Most enterprise DNS filtering vendors (Akamai ETP, Cisco Umbrella, Zscaler, etc.) publish an official phishing or malware test URL for exactly this use. Do not use a real malicious domain; use the vendor's sanctioned test endpoint so the result is reliable and the domain stays consistently blocked.
+
+The test URL **must use `https://`**. Browsers block mixed-content requests — JavaScript on an HTTPS page cannot make outbound HTTP fetch calls, so an `http://` test URL will always fail regardless of filtering status.
+
 ---
 
 ## Running in production
