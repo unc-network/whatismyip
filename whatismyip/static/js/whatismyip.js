@@ -102,12 +102,14 @@ function test_primary_url(default_version) {
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 4 ) {
-				$('#first_address_section').show()
+				$('#first_address_section').show();
 				$('#address1').text(result["client_address"]);
+				$('#address_box .ip-bar-label').text('IPv4');
 				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
-				$('#second_address_section').show()
+				$('#second_address_section').show();
 				$('#address2').text(result["client_address"]);
+				$('#additional_ip .ip-bar-label').text('IPv4');
 			}
 
 			// Populate IPv4 address's details
@@ -629,12 +631,14 @@ function test_secondary_url(default_version) {
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 6 ) {
-				$('#first_address_section').show()
+				$('#first_address_section').show();
 				$('#address1').text(result["client_address"]);
+				$('#address_box .ip-bar-label').text('IPv6');
 				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
-				$('#second_address_section').show()
+				$('#second_address_section').show();
 				$('#address2').text(result["client_address"]);
+				$('#additional_ip .ip-bar-label').text('IPv6');
 			}
 			// Populate IPv6 address's details
 			$('#address2-details').show();
