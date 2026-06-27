@@ -226,3 +226,18 @@ html[data-theme="dark"] #copy-notification {
 #additionalDetails.collapsing {
   transition: none;
 }
+
+.ip-copy-card {
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+.ip-copy-card:hover {
+  filter: brightness(1.12);
+}
+.ip-copy-card:focus {
+  outline: none;
+}
+.ip-copy-card:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.7);
+  outline-offset: -3px;
+}
