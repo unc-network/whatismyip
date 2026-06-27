@@ -238,6 +238,7 @@ function test_primary_url(default_version) {
 			if (result['nac']['endSystem']) {
 				$('#toggle-button').show();
 				$('#additional-info').show();
+				$('#nac-col').show();
 				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
 					if (value) {
@@ -247,6 +248,7 @@ function test_primary_url(default_version) {
 			}
 			if (result['nac']['endSystemInfo']) {
 				$('#additional-info').show();
+				$('#nac-col').show();
 				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystemInfo'])) {
 					if (value) {

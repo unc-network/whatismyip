@@ -309,7 +309,7 @@
 <div class="collapse" id="additionalDetails">
 
 <div id="additional-info" class="row p-1 mt-2" style="display:none;">
-  <div id="nac-col" class="col-xl">
+  <div id="nac-col" class="col-xl" style="display:none;">
     <div id="nac-card" class="card shadow my-3" style="display:none;">
       <div class="card-body">
         <h3 class="card-title h5">Network Access Control</h3>
@@ -324,8 +324,9 @@
   </div>
 
   <div id="detail-col" class="col-xl" style="display:none;">
+  <div style="display:flex; flex-wrap:wrap; align-items:flex-start; gap:1rem; margin-top:1rem;">
 
-    <div id="net-config-card" class="card shadow my-3" style="display:none;">
+    <div id="net-config-card" class="card shadow" style="display:none; flex:1 1 400px;">
       <div class="card-body">
         <h3 class="card-title h5">Network Configuration</h3>
 
@@ -392,7 +393,7 @@
       </div>
     </div>
 
-    <div id="bldg-card" class="card shadow my-3" style="display:none;">
+    <div id="bldg-card" class="card shadow" style="display:none; flex:1 1 400px;">
       <div class="card-body">
         <h3 class="card-title h5">Campus Building</h3>
         <div class="table-responsive">
@@ -416,7 +417,7 @@
       </div>
     </div>
 
-    <div id="device-card" class="card shadow my-3" style="display:none;">
+    <div id="device-card" class="card shadow" style="display:none; flex:1 1 400px;">
       <div class="card-body">
         <h3 class="card-title h5">Your Device</h3>
         <div class="table-responsive">
@@ -443,11 +444,12 @@
         </div>
       </div>
     </div>
-  </div>
+  </div><!-- end flex wrapper -->
+  </div><!-- end detail-col -->
 
-</div>
+</div><!-- end additional-info -->
 
-</div>
+</div><!-- end additionalDetails collapse -->
 
 <div class="row p-1 my-3">
   <div class="col">
