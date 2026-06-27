@@ -541,24 +541,28 @@
 
 {% block head_ext %}
 <link rel="canonical" href="{{site_url}}">
+{% if context['map_provider'] == 'google' %}
 <script>
   (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
     key: "{{ context['google_maps_api_key'] }}",
     v: "weekly",
-    // Use the 'v' parameter to indicate the version to use (weekly, beta, alpha, etc.).
-    // Add other bootstrap parameters as needed, using camel case.
   });
 </script>
+{% elif context['map_provider'] == 'leaflet' %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.min.css') }}">
+{% endif %}
 {% endblock %}
 
 {% block javascript %}
 <script src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>
+{% if context['map_provider'] == 'leaflet' %}
+<script src="{{ url_for('static', filename='js/leaflet.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map-leaflet.js') }}"></script>
+{% elif context['map_provider'] == 'google' %}
+<script src="{{ url_for('static', filename='js/map-google.js') }}"></script>
+{% endif %}
 <script type="application/json" id="is_campus">{{ context['is_campus'] | tojson }}</script>
 <script type="application/json" id="default_address">{{ context['client_address'] | tojson }}</script>
 <script src="{{ url_for('static', filename='js/whatismyip.js') }}"></script>
- <!-- Make sure you put this AFTER Leaflet's CSS -->
- <!-- <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script> -->
 {% endblock %}

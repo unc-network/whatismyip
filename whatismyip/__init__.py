@@ -139,6 +139,12 @@ def _load_site_config():
 
         dns_test_url = site_cfg.get("dns", {}).get("security_filter_test_url", "")
         app.config["DNS_SECURITY_TEST_URL"] = dns_test_url
+
+        map_provider = site_cfg.get("map", {}).get("provider", "leaflet")
+        if map_provider not in ("google", "leaflet"):
+            app.logger.warning(f"Unknown map provider '{map_provider}', falling back to 'leaflet'.")
+            map_provider = "leaflet"
+        app.config["MAP_PROVIDER"] = map_provider
         if dns_test_url:
             app.logger.info(f"DNS security filter test URL: {dns_test_url}")
         else:
@@ -163,6 +169,7 @@ def _load_site_config():
         )
         app.config["CAMPUS_NETWORKS"] = _DEFAULT_CAMPUS_NETWORKS
         app.config["DNS_SECURITY_TEST_URL"] = ""
+        app.config["MAP_PROVIDER"] = "leaflet"
         app.config["SITE_NAME"] = ""
         app.config["SITE_CITY"] = ""
         app.config["SITE_COUNTRY_CODE"] = ""
@@ -550,6 +557,7 @@ def home():
 
     # Add Google Maps API key for client-side use
     data["google_maps_api_key"] = app.config["GOOGLE_MAPS_API_KEY"]
+    data["map_provider"] = app.config.get("MAP_PROVIDER", "leaflet")
     data["dns_security_test_url"] = app.config.get("DNS_SECURITY_TEST_URL", "")
 
     return render_template("home.html", context=data)

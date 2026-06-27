@@ -68,7 +68,7 @@ Set these three hostnames in `FLASK_SERVER_URL`, `FLASK_IPV4_SERVER_URL`, and `F
 | Infoblox IPAM         | Network, VLAN, and DHCP details for campus IPs      | Optional   |
 | Extreme Networks XMC  | NAC endpoint details (switch port, policy)          | Optional   |
 | Building API (NIT)    | Building name and map (wired switch or wireless AP) | Optional   |
-| Google Maps API       | Embedded map on building location card              | Optional   |
+| Google Maps API       | Embedded map (when `[map] provider = "google"`)     | Optional   |
 | Speedtest Custom      | Branded speed test iframe                           | Optional   |
 
 ---
@@ -145,6 +145,11 @@ lon = 0.0
 [dns]
 # URL blocked by your DNS security filtering service (leave empty to disable the test)
 security_filter_test_url = ""
+
+[map]
+# "leaflet" uses OpenStreetMap tiles — free, no API key required (default)
+# "google"  uses the Google Maps JavaScript API — requires FLASK_GOOGLE_MAPS_API_KEY
+provider = "leaflet"
 
 [campus]
 # CIDR blocks treated as campus addresses

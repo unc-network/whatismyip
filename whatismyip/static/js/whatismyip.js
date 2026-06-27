@@ -213,8 +213,10 @@ function test_primary_url(default_version) {
 
 			// Do the Map work
 			if (result['nac']['nit_building'] && result['nac']['nit_building']['address']) {
-				// Precise building location via geocoding (street-level)
-				loadCampusMap(result['nac']['nit_building']['address'], result['nac']['nit_building']['full_name']);
+				// Building lat/lon preferred; address passed as fallback for Google Maps geocoder
+				var bldgMapLat = parseFloat(result['nac']['nit_building']['latitude']);
+				var bldgMapLon = parseFloat(result['nac']['nit_building']['longitude']);
+				loadCampusMap(result['nac']['nit_building']['address'], result['nac']['nit_building']['full_name'], bldgMapLat, bldgMapLon);
 			} else {
 				// Approximate IP geolocation (city-level) for everyone else
 				var mapLat = parseFloat(result['iplocation']['lat']);
@@ -328,99 +330,6 @@ function test_primary_url(default_version) {
 		}
 	});
 
-}
-
-let map;
-let geocoder;
-let mapInitialized = false;
-
-function loadCampusMap(address, title) {
-	if (!address) {
-		return;
-	}
-
-	$('#map_card').show();
-	$('#map_label').hide();
-
-	if (mapInitialized) {
-		codeAddress(address, title);
-		return;
-	}
-
-	mapInitialized = true;
-	initMap(35.9049, -79.0469, 15)
-		.then(() => {
-			codeAddress(address, title);
-		})
-		.catch((error) => {
-			console.error('Failed to load campus map', error);
-			$('#map_card').hide();
-			mapInitialized = false;
-		});
-}
-
-function loadLatLonMap(lat, lon, label) {
-	$('#map_card').show();
-	$('#map_label').show();
-
-	if (mapInitialized) {
-		placeLatLonMarker(lat, lon, label);
-		return;
-	}
-
-	mapInitialized = true;
-	initMap(lat, lon, 11)
-		.then(() => {
-			placeLatLonMarker(lat, lon, label);
-		})
-		.catch((error) => {
-			console.error('Failed to load map', error);
-			$('#map_card').hide();
-			mapInitialized = false;
-		});
-}
-
-async function initMap(lat, lon, zoom) {
-	const { Map } = await google.maps.importLibrary("maps");
-	const { Geocoder } = await google.maps.importLibrary("geocoding");
-
-	map = new Map(document.getElementById("map"), {
-		center: {lat: lat, lng: lon},
-		zoom: zoom,
-		mapId: 'LOCATION_MAP_ID',
-		disableDefaultUI: true,
-	});
-	geocoder = new Geocoder();
-}
-
-async function placeLatLonMarker(lat, lon, title) {
-	var position = {lat: lat, lng: lon};
-	map.setCenter(position);
-	addAdvancedMarker(position, title);
-}
-
-function codeAddress(address, title) {
-	// Translate address to a map marker
-	console.log(`Mapping address ${address}`);
-	geocoder.geocode({ address: address }, (results, status) => {
-		if (status === "OK") {
-			map.setCenter(results[0].geometry.location);
-			addAdvancedMarker(results[0].geometry.location, title); 
-		} else {
-			console.log("Geocode was not successful for the following reason: " + status);
-		}
-	});
-}
-
-async function addAdvancedMarker(position, title) {
-	// Add a marker to the map
-	console.log(`Adding map marker at ${position} titled ${title}`)
-	const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-	new AdvancedMarkerElement({
-		map: map,
-		position: position,
-		title: title,
-	});
 }
 
 function populateDeviceCard(ud) {
