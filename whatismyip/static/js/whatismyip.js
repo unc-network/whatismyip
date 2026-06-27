@@ -220,13 +220,28 @@ function test_primary_url(default_version) {
 			}
 
 			// dump nac data
+			var nacIp  = result['client_address'];
+			var nacMac = result['address_details'] && result['address_details']['mac']
+				? result['address_details']['mac'].toLowerCase() : null;
+
+			function nacCell(key, value) {
+				var warn = '';
+				if (key === 'ipAddress' && nacIp && value !== nacIp) {
+					warn = ' <i class="fa-solid fa-triangle-exclamation text-warning ms-1" title="Does not match detected IPv4 address (' + nacIp + ')"></i>';
+				}
+				if (key === 'macAddress' && nacMac && value.toLowerCase() !== nacMac) {
+					warn = ' <i class="fa-solid fa-triangle-exclamation text-warning ms-1" title="Does not match MAC from IPAM (' + result['address_details']['mac'] + ')"></i>';
+				}
+				return value + warn;
+			}
+
 			if (result['nac']['endSystem']) {
 				$('#toggle-button').show();
 				$('#additional-info').show();
 				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
-					if ( value ) {
-						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+					if (value) {
+						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${nacCell(key, value)}</td></tr>`);
 					}
 				}
 			}
@@ -234,8 +249,8 @@ function test_primary_url(default_version) {
 				$('#additional-info').show();
 				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystemInfo'])) {
-					if ( value ) {
-						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${value}</td></tr>`);
+					if (value) {
+						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${nacCell(key, value)}</td></tr>`);
 					}
 				}
 			}
