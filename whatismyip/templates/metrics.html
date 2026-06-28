@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
 {% block title %}Site Statistics — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block meta_description %}Usage statistics for the UNC Chapel Hill IP address tool: daily lookup counts, campus vs. off-campus ratio, IPv4/IPv6 mix, and ISP and country breakdown.{% endblock %}
+{% block meta_description %}Usage statistics for the UNC Chapel Hill IP address tool: daily visit counts, campus vs. off-campus ratio, IPv4/IPv6 mix, and ISP and country breakdown.{% endblock %}
 {% block og_title %}Site Statistics — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block og_description %}Usage statistics for the UNC Chapel Hill IP address tool: daily lookup counts, campus vs. off-campus ratio, IPv4/IPv6 mix, and ISP and country breakdown.{% endblock %}
+{% block og_description %}Usage statistics for the UNC Chapel Hill IP address tool: daily visit counts, campus vs. off-campus ratio, IPv4/IPv6 mix, and ISP and country breakdown.{% endblock %}
 {% block og_url %}{{ site_url }}/metrics{% endblock %}
 {% block twitter_title %}Site Statistics — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block twitter_description %}Aggregated usage statistics for the UNC Chapel Hill IP address diagnostic tool: lookup counts, campus split, IPv4/IPv6 mix, and ISP breakdown.{% endblock %}
+{% block twitter_description %}Aggregated usage statistics for the UNC Chapel Hill IP address diagnostic tool: visit counts, campus split, IPv4/IPv6 mix, and ISP breakdown.{% endblock %}
 
 {% block structured_data %}
 <script type="application/ld+json">
@@ -37,7 +37,6 @@
 {% block content %}
 <div class="row p-1 my-3">
   <div class="col">
-    <h2 class="h4 mb-2">Site Statistics</h2>
     <p class="mb-0">Aggregated page visits for the last {{ metrics.window_days }} days. The database stores counts and classifications only, not raw client IP addresses.</p>
   </div>
 </div>
@@ -46,7 +45,7 @@
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small">Total visits</div>
+        <div class="text-muted small"><i class="fa-solid fa-users me-1" aria-hidden="true"></i>Total visits</div>
         <div class="display-6 mb-0">{{ metrics.total_hostinfo }}</div>
       </div>
     </div>
@@ -54,7 +53,7 @@
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small">On-campus visits</div>
+        <div class="text-muted small"><i class="fa-solid fa-building me-1" aria-hidden="true"></i>On-campus visits</div>
         <div class="display-6 mb-0">{{ metrics.total_campus }}</div>
       </div>
     </div>
@@ -62,7 +61,7 @@
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small">Off-campus visits</div>
+        <div class="text-muted small"><i class="fa-solid fa-house me-1" aria-hidden="true"></i>Off-campus visits</div>
         <div class="display-6 mb-0">{{ metrics.total_remote }}</div>
       </div>
     </div>
@@ -70,7 +69,7 @@
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small">Reporting period</div>
+        <div class="text-muted small"><i class="fa-solid fa-calendar-days me-1" aria-hidden="true"></i>Reporting period</div>
         <div class="display-6 mb-0">Last {{ metrics.window_days }} days</div>
       </div>
     </div>
@@ -311,7 +310,7 @@
           tooltip: {
             callbacks: {
               title: function(items) { return items[0].label; },
-              label: function(item)  { return ' ' + item.raw + ' lookups'; }
+              label: function(item)  { return ' ' + item.raw + ' visits'; }
             }
           }
         },

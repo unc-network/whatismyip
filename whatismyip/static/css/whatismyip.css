@@ -168,6 +168,22 @@ html[data-theme="dark"] .text-muted {
   flex-shrink: 0;
 }
 
+.site-navbar {
+  background-color: var(--site-subtle-bg);
+}
+.site-navbar .nav-link {
+  color: var(--site-text);
+  opacity: 0.75;
+}
+.site-navbar .nav-link:hover {
+  color: var(--site-link);
+  opacity: 1;
+}
+.site-navbar .nav-link.active {
+  color: var(--site-link) !important;
+  opacity: 1;
+}
+
 /* Modify the background color */
 .navbar-unc {
   background-color: #4B9CD3;
