@@ -1,0 +1,75 @@
+# whatismyip site configuration
+# Copy this file to config.toml and edit it for your deployment.
+# The application must be restarted to pick up changes.
+
+[site]
+
+# Your institution's display name.
+# Used as the ISP/organization label when a visitor's IP is a private (RFC 1918)
+# or campus address that cannot be looked up through the public geolocation API.
+name = "Your Institution Name"
+
+# Primary campus location — used as the geolocation fallback for private/campus IPs.
+city = "Your City"
+region = "Your State or Province"
+country_code = "US"
+country_name = "United States"
+lat = 0.0
+lon = 0.0
+
+# Bing Webmaster Tools verification token.
+# The 32-character hex token from your Bing Webmaster verification file.
+# Leave empty ("") to omit the tag. Each institution gets its own token from
+# https://www.bing.com/webmasters/
+bing_verification_token = ""
+
+# IndexNow key — used to push URL change notifications to Bing (and other
+# supporting search engines) immediately after a deploy, rather than waiting
+# for the next crawl. Different from the verification token above.
+# Generate a key at https://www.bing.com/webmasters/indexnow
+# The key file is served automatically at /{key}.txt once set.
+# To notify Bing of a changed page after deploying:
+#   curl "https://api.indexnow.org/indexnow?url=https://yoursite.edu/about&key={key}&keyLocation=https://yoursite.edu/{key}.txt"
+indexnow_key = ""
+
+[dns]
+
+# URL of a page that your DNS security filtering service is known to block.
+# The tool fetches this URL in the visitor's browser; a connection failure
+# indicates filtering is active, a successful response indicates it is not.
+# Leave empty ("") to disable the DNS security filtering test entirely.
+#
+# Examples by provider:
+#   Akamai ETP:         "https://www.akamaietpphishingtest.com/"
+#   Cisco Umbrella:     "https://internetbadguys.com/"
+#   Cloudflare Gateway: "https://malware.testcategory.com/"
+security_filter_test_url = ""
+
+[map]
+
+# Map provider for displaying IP and campus building locations.
+# "leaflet" — free, uses OpenStreetMap tiles, no API key required (default)
+# "google"  — uses Google Maps JavaScript API, requires FLASK_GOOGLE_MAPS_API_KEY
+provider = "leaflet"
+
+[campus]
+
+# CIDR blocks that are considered campus/local network addresses.
+# Devices matching any of these networks receive full diagnostics including
+# network/VLAN details and NAC information. Devices that do not match are
+# treated as off-campus and receive only basic IP and geolocation information.
+#
+# Add your institution's public and private IP ranges here.
+networks = [
+    # Example: your institution's assigned public IPv4 ranges
+    # "192.0.2.0/24",
+    # "198.51.100.0/24",
+
+    # Example: RFC 1918 private ranges in use on your network
+    # "10.0.0.0/8",
+    # "172.16.0.0/12",
+    # "192.168.0.0/16",
+
+    # Example: your institution's IPv6 ranges
+    # "2001:db8::/32",
+]
