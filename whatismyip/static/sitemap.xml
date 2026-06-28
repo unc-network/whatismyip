@@ -10,15 +10,21 @@
 </url>
 <url>
     <loc>https://whatismyip.unc.edu/faq</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+</url>
+<url>
+    <loc>https://whatismyip.unc.edu/speedtest</loc>
+    <lastmod>2026-06-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
 </url>
 <url>
     <loc>https://whatismyip.unc.edu/about</loc>
     <lastmod>2026-06-26</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.6</priority>
 </url>
 <url>
     <loc>https://whatismyip.unc.edu/metrics</loc>

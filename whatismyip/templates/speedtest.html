@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Speed Test — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block meta_description %}Test your internet connection speed using Ookla Speedtest Custom. Select the UNC Chapel Hill server to measure your connection to the campus network.{% endblock %}
+{% block og_title %}Speed Test — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block og_description %}Test your internet connection speed using Ookla Speedtest Custom. Select the UNC Chapel Hill server to measure your connection to the campus network.{% endblock %}
+{% block og_url %}{{ site_url }}/speedtest{% endblock %}
+{% block twitter_title %}Speed Test — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block twitter_description %}Test your internet speed using Ookla Speedtest Custom with the UNC Chapel Hill server.{% endblock %}
+
+{% block content %}
+<div class="row p-1 my-3">
+  <div class="col">
+    <p>Test your internet connection speed using Ookla Speedtest Custom.
+      The nearest server is selected by default — choose <b>UNC Chapel Hill</b> from the server list
+      to measure your connection specifically to the campus network.
+      Results reflect your connection at that moment; Wi-Fi signal strength, VPN overhead, and
+      network congestion can all affect the numbers.
+    </p>
+    <div class="card shadow card-body">
+      <iframe width="100%" height="650px" frameborder="0" loading="lazy" title="Internet Speedtest" src="https://uncch.speedtestcustom.com"></iframe>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block head_ext %}
+    <link rel="canonical" href="{{ site_url }}/speedtest">
+{% endblock %}

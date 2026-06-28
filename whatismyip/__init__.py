@@ -915,6 +915,18 @@ def faq_redirect():
     return redirect(url_for("faq"), code=308)
 
 
+@app.route("/speedtest")
+def speedtest():
+    """Display the dedicated speed test page."""
+    return render_template("speedtest.html")
+
+
+@app.route("/speedtest/")
+def speedtest_redirect():
+    """Redirect slash variant to canonical speedtest page."""
+    return redirect(url_for("speedtest"), code=308)
+
+
 @app.route("/metrics")
 def metrics():
     """Display aggregate usage metrics."""

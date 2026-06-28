@@ -56,7 +56,12 @@ main[role="main"] {
 .unc-ip {
   /* font-family: TimesNewRoman, "Times New Roman", Times, Baskerville, Georgia, serif; */
   font-family: "Open Sans",Helvetica,Arial,sans-serif;
-  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.unc-ip .flex-grow-1 {
+  min-width: 0;
 }
 
 .bg-primary {
