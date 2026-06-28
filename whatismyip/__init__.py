@@ -3,6 +3,7 @@ Basic App
 """
 
 import os
+import time
 import logging
 import sqlite3
 
@@ -373,9 +374,17 @@ def _with_percentages(rows):
     return result
 
 
+_metrics_cache: dict = {"data": None, "ts": 0.0}
+_METRICS_CACHE_TTL = 300  # seconds
+
+
 def get_metrics_dashboard(days=None):
     """Build the metrics summary data for the admin dashboard."""
     ensure_metrics_store()
+    if _metrics_cache["data"] is not None and (
+        time.monotonic() - _metrics_cache["ts"] < _METRICS_CACHE_TTL
+    ):
+        return _metrics_cache["data"]
     if days is None:
         days = app.config["METRICS_TIME_WINDOW_DAYS"]
 
@@ -532,7 +541,7 @@ def get_metrics_dashboard(days=None):
             )
         )
 
-    return {
+    result = {
         "window_days": days,
         "total_hostinfo": total_hostinfo,
         "total_campus": total_campus,
@@ -546,6 +555,9 @@ def get_metrics_dashboard(days=None):
         "campus_breakdown": campus_breakdown,
         "purpose_breakdown": purpose_breakdown,
     }
+    _metrics_cache["data"] = result
+    _metrics_cache["ts"] = time.monotonic()
+    return result
 
 
 # Routes
@@ -582,7 +594,10 @@ def home():
     data["map_provider"] = app.config.get("MAP_PROVIDER", "leaflet")
     data["dns_security_test_url"] = app.config.get("DNS_SECURITY_TEST_URL", "")
 
-    return render_template("home.html", context=data)
+    resp = make_response(render_template("home.html", context=data))
+    resp.cache_control.public = True
+    resp.cache_control.max_age = 300
+    return resp
 
 
 # @app.route("/hostinfo.php")
@@ -890,11 +905,19 @@ def hostinfo():
     return response
 
 
+def _cacheable(template):
+    """Render a template with a short public Cache-Control header."""
+    resp = make_response(render_template(template))
+    resp.cache_control.public = True
+    resp.cache_control.max_age = 300
+    return resp
+
+
 @app.route("/health")
 @app.route("/about")
 def about():
     """Display a basic webpage with about information."""
-    return render_template("about.html")
+    return _cacheable("about.html")
 
 
 @app.route("/about/")
@@ -905,8 +928,8 @@ def about_redirect():
 
 @app.route("/faq")
 def faq():
-    """Display a basic webpage with about information."""
-    return render_template("faq.html")
+    """Display the FAQ page."""
+    return _cacheable("faq.html")
 
 
 @app.route("/faq/")
@@ -918,7 +941,7 @@ def faq_redirect():
 @app.route("/speedtest")
 def speedtest():
     """Display the dedicated speed test page."""
-    return render_template("speedtest.html")
+    return _cacheable("speedtest.html")
 
 
 @app.route("/speedtest/")

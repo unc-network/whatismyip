@@ -46,6 +46,9 @@ class Config:  # pylint: disable=too-few-public-methods
     METRICS_PASSWORD = ""
     METRICS_TIME_WINDOW_DAYS = 30
 
+    # Browser cache lifetime for static assets (CSS, JS, images) in seconds
+    SEND_FILE_MAX_AGE_DEFAULT = 86400  # 1 day
+
 
 class ProductionConfig(Config):  # pylint: disable=too-few-public-methods
     """
@@ -61,6 +64,7 @@ class DevelopmentConfig(Config):  # pylint: disable=too-few-public-methods
     """
 
     DEBUG = True
+    SEND_FILE_MAX_AGE_DEFAULT = 0  # No static file caching in development
 
 
 class TestingConfig(Config):  # pylint: disable=too-few-public-methods
