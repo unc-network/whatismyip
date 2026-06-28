@@ -389,9 +389,9 @@
                 API responses and data structures may change over time without notice.
               </p>
               <ul class="mb-0">
-                <li><a href="{{ site_url }}/hostinfo">{{ site_url }}/hostinfo</a> for dual stack detection</li>
-                <li><a href="{{ ipv4_url }}/hostinfo">{{ ipv4_url }}/hostinfo</a> for IPv4 only testing</li>
-                <li><a href="{{ ipv6_url }}/hostinfo">{{ ipv6_url }}/hostinfo</a> for IPv6 only testing</li>
+                <li><a href="{{ site_url }}/hostinfo">Dual stack hostinfo</a> for dual stack detection</li>
+                <li><a href="{{ ipv4_url }}/hostinfo">IPv4 hostinfo</a> for IPv4 only testing</li>
+                {% if ipv6_url %}<li><a href="{{ ipv6_url }}/hostinfo">IPv6 hostinfo</a> for IPv6 only testing</li>{% endif %}
               </ul>
             </div>
           </div>
