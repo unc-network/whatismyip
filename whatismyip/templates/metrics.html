@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Usage Metrics — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block title %}Site Statistics — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
 {% block meta_description %}Usage statistics for the UNC Chapel Hill IP address tool: daily lookup counts, campus vs. off-campus ratio, IPv4/IPv6 mix, and ISP and country breakdown.{% endblock %}
-{% block og_title %}Usage Metrics — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block og_title %}Site Statistics — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
 {% block og_description %}Usage statistics for the UNC Chapel Hill IP address tool: daily lookup counts, campus vs. off-campus ratio, IPv4/IPv6 mix, and ISP and country breakdown.{% endblock %}
 {% block og_url %}{{ site_url }}/metrics{% endblock %}
-{% block twitter_title %}Usage Metrics — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block twitter_title %}Site Statistics — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
 {% block twitter_description %}Aggregated usage statistics for the UNC Chapel Hill IP address diagnostic tool: lookup counts, campus split, IPv4/IPv6 mix, and ISP breakdown.{% endblock %}
 
 {% block structured_data %}
@@ -13,7 +13,7 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "name": "Usage Metrics — What Is My IP?",
+  "name": "Site Statistics — What Is My IP?",
   "url": "{{ site_url }}/metrics",
   "description": "Aggregated usage statistics for the UNC Chapel Hill IP address diagnostic tool. Shows daily lookup counts, campus vs. off-campus split, IPv4/IPv6 mix, ISP breakdown, and country distribution.",
   "isPartOf": {
@@ -37,8 +37,8 @@
 {% block content %}
 <div class="row p-1 my-3">
   <div class="col">
-    <h2 class="h4 mb-2">Usage Metrics</h2>
-    <p class="mb-0">Aggregated diagnostic lookups for the last {{ metrics.window_days }} days. The database stores counts and classifications only, not raw client IP addresses.</p>
+    <h2 class="h4 mb-2">Site Statistics</h2>
+    <p class="mb-0">Aggregated page visits for the last {{ metrics.window_days }} days. The database stores counts and classifications only, not raw client IP addresses.</p>
   </div>
 </div>
 
@@ -46,7 +46,7 @@
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small">Total lookups</div>
+        <div class="text-muted small">Total visits</div>
         <div class="display-6 mb-0">{{ metrics.total_hostinfo }}</div>
       </div>
     </div>
@@ -54,7 +54,7 @@
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small">Campus lookups</div>
+        <div class="text-muted small">On-campus visits</div>
         <div class="display-6 mb-0">{{ metrics.total_campus }}</div>
       </div>
     </div>
@@ -62,7 +62,7 @@
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small">Off-campus lookups</div>
+        <div class="text-muted small">Off-campus visits</div>
         <div class="display-6 mb-0">{{ metrics.total_remote }}</div>
       </div>
     </div>
@@ -81,7 +81,7 @@
   <div class="col-md-9">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">Lookups over time</h3>
+        <h3 class="h5 card-title">Visits over time</h3>
         {% if metrics.daily_series %}
           <div style="position:relative;height:200px;">
             <canvas id="chartLookupsOverTime"
@@ -126,17 +126,17 @@
 </div>
 
 <div class="row g-3 p-1 my-1">
-  <div class="col-lg-6">
+  <div class="col-lg-4">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">ISP breakdown</h3>
+        <h3 class="h5 card-title">Internet provider</h3>
         {% if metrics.isp_breakdown %}
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
               <thead>
                 <tr>
-                  <th>ISP</th>
-                  <th class="text-end">Hits</th>
+                  <th>Provider</th>
+                  <th class="text-end">Visits</th>
                   <th class="text-end">Share</th>
                 </tr>
               </thead>
@@ -158,17 +158,49 @@
     </div>
   </div>
 
-  <div class="col-lg-6">
+  <div class="col-lg-4">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">Country breakdown</h3>
+        <h3 class="h5 card-title">Organization</h3>
+        {% if metrics.org_breakdown %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Organization</th>
+                  <th class="text-end">Visits</th>
+                  <th class="text-end">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in metrics.org_breakdown %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end">{{ row.count }}</td>
+                  <td class="text-end">{{ row.percentage }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">Country</h3>
         {% if metrics.country_breakdown %}
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
               <thead>
                 <tr>
                   <th>Country</th>
-                  <th class="text-end">Hits</th>
+                  <th class="text-end">Visits</th>
                   <th class="text-end">Share</th>
                 </tr>
               </thead>

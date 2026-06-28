@@ -472,6 +472,21 @@ def get_metrics_dashboard(days=None):
             )
         )
 
+        org_breakdown = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT COALESCE(NULLIF(TRIM(org), ''), 'Unknown') AS label, COUNT(*) AS count
+                FROM metrics_events
+                WHERE event_type = ?
+                GROUP BY label
+                ORDER BY count DESC
+                LIMIT 10
+                """,
+                ("hostinfo",),
+            )
+        )
+
         country_breakdown = _with_percentages(
             _count_by_query(
                 conn,
@@ -526,6 +541,7 @@ def get_metrics_dashboard(days=None):
         "daily_max": daily_max,
         "ip_versions": ip_versions,
         "isp_breakdown": isp_breakdown,
+        "org_breakdown": org_breakdown,
         "country_breakdown": country_breakdown,
         "campus_breakdown": campus_breakdown,
         "purpose_breakdown": purpose_breakdown,

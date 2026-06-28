@@ -19,7 +19,7 @@
       "name": "If I am on campus, what can this tool tell me?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Campus users see the most information, including: IPv4 and IPv6 addresses, whether your device prefers IPv6 or IPv4, DNS security filtering status, network and VLAN details, and Network Access Control details."
+        "text": "Every visitor sees their IP address, internet provider, approximate geolocation, and DNS security filtering status. On-campus and VPN users additionally see campus network and VLAN assignment, DHCP and network configuration details, Network Access Control (NAC) details including switch port and connection policy, and a building location map for wired and wireless connections."
       }
     },
     {
@@ -27,7 +27,23 @@
       "name": "If I am off campus, what can this tool tell me?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Minimal information is provided to devices off campus unless the VPN service is active. VPN users will see the campus address assigned by the VPN."
+        "text": "Off-campus visitors see their IP address, internet provider, approximate location, and DNS security filtering status. Campus network details are not available from off-campus addresses. If you are connected via the UNC VPN, the tool will recognize your VPN address and show campus network details as if you were on campus."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why am I seeing an off-campus result when I am physically on campus?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Several things can cause this: you may be on a guest or visitor Wi-Fi network, using a personal mobile hotspot, on a specialized network segment not recognized as a standard campus range, or have a VPN from another organization active. Try connecting to the main campus Wi-Fi (eduroam) or a wired network port and reloading the page."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does this site show a different IP address than other lookup sites?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most general IP lookup tools show the address your device presents to arbitrary internet servers. This tool tests connectivity specifically to the UNC campus network, so a VPN connection will show your campus VPN address here while a general lookup site would still show your home internet address. Additionally, this tool tests both IPv4 and IPv6 separately and shows whichever your device uses by default when reaching campus — which may be IPv6."
       }
     },
     {
@@ -40,10 +56,58 @@
     },
     {
       "@type": "Question",
+      "name": "What is Network Access Control (NAC)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Network Access Control (NAC) is a system that manages which devices are allowed to connect to the campus network and under what conditions. When you connect, NAC checks whether your device meets security requirements such as being registered or having current software. The connection policy shown in this tool reflects the access level your device has been granted."
+      }
+    },
+    {
+      "@type": "Question",
       "name": "What is DNS Security Filtering?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "UNC Information Technology Services provides a layer of malware and phishing protection through the domain name system (DNS) for the campus community. No special client configurations or additional software are required. Clients using campus DNS servers benefit from this service automatically."
+        "text": "UNC Information Technology Services provides malware and phishing protection through the domain name system (DNS). Devices using campus DNS servers receive this protection automatically — no software or configuration changes required."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my IP address being stored or tracked?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "This tool does not log or store your IP address. Site statistics track only aggregate counts — such as how many visits came from IPv4 vs. IPv6, or what general region visitors came from — but individual IP addresses are never written to disk. No cookies are used for tracking."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my IP location look inaccurate?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "IP geolocation is a city-level estimate based on where an internet provider registered its address block, not your physical location. A residential ISP may register its IP ranges at a regional office, so your location might appear as a different city. For campus addresses, location is set to Chapel Hill regardless of where on the network you are connected."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "The location data for my IP address doesn't look right. Can it be updated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. The geolocation service used by this tool offers a data correction page for submitting requests."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does the speed test on this site work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The speed test uses Ookla Speedtest Custom to measure download speed, upload speed, and latency. By default it selects the closest server. To test your connection specifically to the UNC campus network, select UNC Chapel Hill from the server list in the widget or use the UNC Chapel Hill server directly on Speedtest.net."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between Internet provider and Organization in the site statistics?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Internet provider is the company that sells you internet access — the legal business name registered as the owner of your IP address range. Organization is the entity registered as the operator of your specific IP address block. For home users these are often the same or closely related (such as a brand name vs. the parent company). For universities and businesses that manage their own IP allocations, the organization is typically the institution itself."
       }
     },
     {
@@ -72,71 +136,269 @@
   <div class="row p-1">
     <div class="col">
 
-      <h2>Frequently Asked Questions</h2>
+      <h2 class="h4 mb-2">Frequently Asked Questions</h2>
+      <p>Browse common questions about this tool below. For additional help or to share feedback, contact the <a href="https://help.unc.edu">ITS Service Desk</a>.</p>
 
-      <ul class="list-group my-3">
+      <div class="accordion my-3" id="faqAccordion">
 
-        <li class="list-group-item"><b>If I am on campus, what can this tool tell me?</b>
-          <p>Users on campus are the primary audience of this tool and will see the most information.
-             You will see the following, if available:
-          </p>
-          <ul>
-            <li>The IPv4 and/or IPv6 addresses your device uses to talk to campus resources</li>
-            <li>What your device prefers, IPv6 or IPv4</li>
-            <li>DNS Security Filtering status</li>
-            <li>Network and VLAN details</li>
-            <li>Network Access Control details</li>
-          </ul>
-        </li>
+        <p class="faq-section-label text-primary mb-1">What you see</p>
 
-        <li class="list-group-item"><b>If I am off campus, what can this tool tell me?</b>
-          <p>Minimal information is provided to devices off campus, unless the VPN service is active.
-          </p>
-        </li>
+        <div class="accordion-item faq-accent-primary">
+          <h2 class="accordion-header" id="faq-on-campus-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-on-campus" aria-expanded="false" aria-controls="faq-on-campus">
+              <i class="fa-solid fa-building text-primary me-2" aria-hidden="true"></i>
+              If I am on campus, what can this tool tell me?
+            </button>
+          </h2>
+          <div id="faq-on-campus" class="accordion-collapse collapse" aria-labelledby="faq-on-campus-heading">
+            <div class="accordion-body">
+              <p>Every visitor sees your IP address, internet provider, approximate geolocation, and DNS security filtering status. On-campus and VPN users additionally see:</p>
+              <ul class="mb-3">
+                <li>Campus network and VLAN assignment</li>
+                <li>DHCP and network configuration details</li>
+                <li>Network Access Control (NAC) details, including switch port and connection policy</li>
+                <li>Building location map for wired and wireless connections</li>
+              </ul>
+              <p class="mb-0">Knowing these details helps diagnose connectivity problems and confirm that a VPN connection is active before accessing IP-restricted resources.</p>
+            </div>
+          </div>
+        </div>
 
-        <li class="list-group-item"><b>What is campus?</b>
-          <p>Campus refers to the computer network providing service to hundreds of buildings, predominantly in Chapel Hill, NC.
-            The campus network extends to a number of remote locations throughout North Carolina.
-            More information is available in the 
-            <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=331">Campus Subnets</a>
-            help article.
-          </p>
-        </li>
+        <div class="accordion-item faq-accent-primary">
+          <h2 class="accordion-header" id="faq-off-campus-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-off-campus" aria-expanded="false" aria-controls="faq-off-campus">
+              <i class="fa-solid fa-house text-primary me-2" aria-hidden="true"></i>
+              If I am off campus, what can this tool tell me?
+            </button>
+          </h2>
+          <div id="faq-off-campus" class="accordion-collapse collapse" aria-labelledby="faq-off-campus-heading">
+            <div class="accordion-body">
+              <p>Off-campus visitors see their IP address, internet provider, approximate location, and DNS security filtering status. Campus network details — VLAN assignment, NAC information, and building location — are not available from off-campus addresses.</p>
+              <p class="mb-0">If you are connected via the UNC VPN, the tool will recognize your VPN address and show campus network details as if you were on campus.</p>
+            </div>
+          </div>
+        </div>
 
-        <li class="list-group-item"><b>What is DNS Security Filtering?</b>
-          <p>UNC Information Technology Services provides a layer of malware and phishing protection 
-            through the domain name system (DNS) for the campus community.  Special client configurations 
-            or additional software packages are not required.  Clients using 
-            <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=131">campus DNS servers</a>
-            benefit from the service.  More information is available in the
-            <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333">DNS Security Filtering Service</a>
-            help article.
-          </p>
-        </li>
-        
-        <li class="list-group-item"><b>Can I query information about different IP addresses?</b>
-          <p>No. For security reasons, this tool only displays information about the client device communicating with it.
-          </p>
-        </li>
+        <div class="accordion-item faq-accent-primary">
+          <h2 class="accordion-header" id="faq-off-campus-result-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-off-campus-result" aria-expanded="false" aria-controls="faq-off-campus-result">
+              <i class="fa-solid fa-circle-question text-primary me-2" aria-hidden="true"></i>
+              Why am I seeing an off-campus result when I am physically on campus?
+            </button>
+          </h2>
+          <div id="faq-off-campus-result" class="accordion-collapse collapse" aria-labelledby="faq-off-campus-result-heading">
+            <div class="accordion-body">
+              <p>Several things can cause this:</p>
+              <ul class="mb-3">
+                <li>You are connected to a guest or visitor Wi-Fi network rather than the main campus network</li>
+                <li>Your device is using a personal mobile hotspot instead of campus Wi-Fi or a wired connection</li>
+                <li>Your device is on a specialized network segment not recognized as a standard campus address range</li>
+                <li>A VPN from another organization is active, routing your traffic through a different IP</li>
+              </ul>
+              <p class="mb-0">Try connecting to the main campus Wi-Fi (eduroam) or a wired network port and reloading the page.</p>
+            </div>
+          </div>
+        </div>
 
-        <li class="list-group-item"><b>The location data for my IP address doesn't look right.  Can it be updated?</b>
-          <p>Yes, the service <a href="https://ip-api.com/">IP-API.com</a> being used offers a <a href="https://ip-api.com/docs/correction">Data correction</a> page for 
-            submitting requests.
-          </p>
-        </li>
+        <div class="accordion-item faq-accent-primary">
+          <h2 class="accordion-header" id="faq-different-ip-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-different-ip" aria-expanded="false" aria-controls="faq-different-ip">
+              <i class="fa-solid fa-arrow-right-arrow-left text-primary me-2" aria-hidden="true"></i>
+              Why does this site show a different IP address than other lookup sites?
+            </button>
+          </h2>
+          <div id="faq-different-ip" class="accordion-collapse collapse" aria-labelledby="faq-different-ip-heading">
+            <div class="accordion-body">
+              <p>Most general IP lookup tools show the address your device presents to arbitrary servers on the internet. This tool is different — it tests connectivity specifically to the UNC campus network. That distinction matters: a VPN connection routes your traffic through a campus address, so this tool shows your VPN IP while a general lookup site would still show your home internet address.</p>
+              <p class="mb-0">Additionally, most lookup sites force a connection over IPv4. This tool tests both IPv4 and IPv6 separately and shows whichever your device uses by default when reaching campus — which may be IPv6. Both addresses are correct; your device can use different protocols to reach different destinations simultaneously.</p>
+            </div>
+          </div>
+        </div>
 
-        <li class="list-group-item"><b>Is an API available?</b>
-          <p>This application is intended for browser-based use, but it is powered by an API that can be accessed directly. 
-            API responses and data structures may change over time without notice.
-          </p>
-          <ul>
-            <li><a href="{{ site_url }}/hostinfo">{{ site_url }}/hostinfo</a> for dual stack detection</li>
-            <li><a href="{{ ipv4_url }}/hostinfo">{{ ipv4_url }}/hostinfo</a> for IPv4 only testing</li>
-            <li><a href="{{ ipv6_url }}/hostinfo">{{ ipv6_url }}/hostinfo</a> for IPv6 only testing</li>
-          </ul>
-        </li>
+        <p class="faq-section-label text-success mt-3 mb-1">Campus network</p>
 
-      </ul>
+        <div class="accordion-item faq-accent-success">
+          <h2 class="accordion-header" id="faq-campus-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-campus" aria-expanded="false" aria-controls="faq-campus">
+              <i class="fa-solid fa-network-wired text-success me-2" aria-hidden="true"></i>
+              What is campus?
+            </button>
+          </h2>
+          <div id="faq-campus" class="accordion-collapse collapse" aria-labelledby="faq-campus-heading">
+            <div class="accordion-body">
+              <p class="mb-0">Campus refers to the computer network providing service to hundreds of buildings, predominantly in Chapel Hill, NC.
+                The campus network extends to a number of remote locations throughout North Carolina.
+                More information is available in the
+                <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=331">Campus Subnets</a>
+                help article.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item faq-accent-success">
+          <h2 class="accordion-header" id="faq-nac-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-nac" aria-expanded="false" aria-controls="faq-nac">
+              <i class="fa-solid fa-lock text-success me-2" aria-hidden="true"></i>
+              What is Network Access Control (NAC)?
+            </button>
+          </h2>
+          <div id="faq-nac" class="accordion-collapse collapse" aria-labelledby="faq-nac-heading">
+            <div class="accordion-body">
+              <p class="mb-0">Network Access Control is a system that manages which devices are allowed to connect to the campus network and under what conditions.
+                When you connect, NAC checks whether your device meets security requirements — such as being registered or having current software.
+                The connection policy shown in this tool reflects the access level your device has been granted.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item faq-accent-success">
+          <h2 class="accordion-header" id="faq-dns-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-dns" aria-expanded="false" aria-controls="faq-dns">
+              <i class="fa-solid fa-shield-halved text-success me-2" aria-hidden="true"></i>
+              What is DNS Security Filtering?
+            </button>
+          </h2>
+          <div id="faq-dns" class="accordion-collapse collapse" aria-labelledby="faq-dns-heading">
+            <div class="accordion-body">
+              <p class="mb-0">UNC Information Technology Services provides malware and phishing protection through the domain name system (DNS).
+                Devices using <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=131">campus DNS servers</a>
+                receive this protection automatically — no software or configuration changes required.
+                More information is available in the
+                <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333">DNS Security Filtering Service</a>
+                help article.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p class="faq-section-label text-warning mt-3 mb-1">Privacy &amp; location</p>
+
+        <div class="accordion-item faq-accent-warning">
+          <h2 class="accordion-header" id="faq-privacy-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-privacy" aria-expanded="false" aria-controls="faq-privacy">
+              <i class="fa-solid fa-eye-slash text-warning me-2" aria-hidden="true"></i>
+              Is my IP address being stored or tracked?
+            </button>
+          </h2>
+          <div id="faq-privacy" class="accordion-collapse collapse" aria-labelledby="faq-privacy-heading">
+            <div class="accordion-body">
+              <p class="mb-0">This tool does not log or store your IP address. Site statistics track only aggregate counts — such as how many visits came from IPv4 vs. IPv6, or what general region visitors came from — but individual IP addresses are never written to disk. No cookies are used for tracking.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item faq-accent-warning">
+          <h2 class="accordion-header" id="faq-location-accuracy-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-location-accuracy" aria-expanded="false" aria-controls="faq-location-accuracy">
+              <i class="fa-solid fa-location-dot text-warning me-2" aria-hidden="true"></i>
+              Why does my IP location look inaccurate?
+            </button>
+          </h2>
+          <div id="faq-location-accuracy" class="accordion-collapse collapse" aria-labelledby="faq-location-accuracy-heading">
+            <div class="accordion-body">
+              <p class="mb-0">IP geolocation is a city-level estimate based on where an internet provider registered its address block — not your physical location or GPS position.
+                A residential ISP may register its IP ranges at a regional office or data center, so your location might appear as a different city or part of the state.
+                For campus addresses, location is set to Chapel Hill regardless of where on the network you are connected.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item faq-accent-warning">
+          <h2 class="accordion-header" id="faq-location-update-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-location-update" aria-expanded="false" aria-controls="faq-location-update">
+              <i class="fa-solid fa-pen-to-square text-warning me-2" aria-hidden="true"></i>
+              The location data for my IP address doesn't look right. Can it be updated?
+            </button>
+          </h2>
+          <div id="faq-location-update" class="accordion-collapse collapse" aria-labelledby="faq-location-update-heading">
+            <div class="accordion-body">
+              <p class="mb-0">Yes, the service <a href="https://ip-api.com/">IP-API.com</a> being used offers a <a href="https://ip-api.com/docs/correction">data correction</a> page for submitting requests.</p>
+            </div>
+          </div>
+        </div>
+
+        <p class="faq-section-label text-info mt-3 mb-1">Technical</p>
+
+        <div class="accordion-item faq-accent-info">
+          <h2 class="accordion-header" id="faq-speedtest-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-speedtest" aria-expanded="false" aria-controls="faq-speedtest">
+              <i class="fa-solid fa-gauge-high text-info me-2" aria-hidden="true"></i>
+              How does the speed test on this site work?
+            </button>
+          </h2>
+          <div id="faq-speedtest" class="accordion-collapse collapse" aria-labelledby="faq-speedtest-heading">
+            <div class="accordion-body">
+              <p>The speed test embedded on this site uses <a href="https://www.ookla.com/">Ookla Speedtest Custom</a>, the same technology behind Speedtest.net.
+                It measures your download speed, upload speed, and latency by transferring data between your device and a test server.
+              </p>
+              <p>By default, Ookla selects the closest available server. To measure your connection specifically to the UNC campus network,
+                manually select <b>UNC Chapel Hill</b> from the server list within the widget, or use the
+                <a href="https://www.speedtest.net/server/14774">UNC Chapel Hill server</a> directly on Speedtest.net.
+              </p>
+              <p class="mb-0">Speed test results reflect your connection to that specific server at that moment — network congestion,
+                Wi-Fi signal strength, and VPN overhead can all affect the numbers.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item faq-accent-info">
+          <h2 class="accordion-header" id="faq-isp-org-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-isp-org" aria-expanded="false" aria-controls="faq-isp-org">
+              <i class="fa-solid fa-sitemap text-info me-2" aria-hidden="true"></i>
+              What is the difference between Internet provider and Organization in the site statistics?
+            </button>
+          </h2>
+          <div id="faq-isp-org" class="accordion-collapse collapse" aria-labelledby="faq-isp-org-heading">
+            <div class="accordion-body">
+              <p>Both come from geolocation data associated with your IP address, but they describe different things:</p>
+              <ul class="mb-3">
+                <li><b>Internet provider</b> is the company that sells you internet access — the legal business name registered as the owner of your IP address range. Examples: "Charter Communications", "Comcast Cable Communications LLC", "AT&T Enterprises LLC".</li>
+                <li><b>Organization</b> is the entity registered as the operator of your specific IP address block with the regional internet registry. For home users this is often a brand or subsidiary name (e.g., "Spectrum" is Charter's consumer brand). For universities, businesses, and enterprises that manage their own IP allocations, it is typically the institution itself — for example, a UNC campus device would show "University of North Carolina at Chapel Hill" as the organization.</li>
+              </ul>
+              <p class="mb-0">The two fields are often the same or closely related for residential connections, but can differ significantly for business and campus users.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item faq-accent-info">
+          <h2 class="accordion-header" id="faq-query-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-query" aria-expanded="false" aria-controls="faq-query">
+              <i class="fa-solid fa-ban text-info me-2" aria-hidden="true"></i>
+              Can I query information about different IP addresses?
+            </button>
+          </h2>
+          <div id="faq-query" class="accordion-collapse collapse" aria-labelledby="faq-query-heading">
+            <div class="accordion-body">
+              <p class="mb-0">No. For security reasons, this tool only displays information about the client device communicating with it.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item faq-accent-info">
+          <h2 class="accordion-header" id="faq-api-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-api" aria-expanded="false" aria-controls="faq-api">
+              <i class="fa-solid fa-code text-info me-2" aria-hidden="true"></i>
+              Is an API available?
+            </button>
+          </h2>
+          <div id="faq-api" class="accordion-collapse collapse" aria-labelledby="faq-api-heading">
+            <div class="accordion-body">
+              <p>This application is intended for browser-based use, but it is powered by an API that can be accessed directly.
+                API responses and data structures may change over time without notice.
+              </p>
+              <ul class="mb-0">
+                <li><a href="{{ site_url }}/hostinfo">{{ site_url }}/hostinfo</a> for dual stack detection</li>
+                <li><a href="{{ ipv4_url }}/hostinfo">{{ ipv4_url }}/hostinfo</a> for IPv4 only testing</li>
+                <li><a href="{{ ipv6_url }}/hostinfo">{{ ipv6_url }}/hostinfo</a> for IPv6 only testing</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
 
     </div>
   </div>
@@ -145,4 +407,15 @@
 
 {% block head_ext %}
     <link rel="canonical" href="{{ site_url }}/faq">
+    <style>
+      .faq-accent-primary { border-left: 4px solid var(--bs-primary) !important; }
+      .faq-accent-success { border-left: 4px solid var(--bs-success) !important; }
+      .faq-accent-warning { border-left: 4px solid var(--bs-warning) !important; }
+      .faq-accent-info    { border-left: 4px solid var(--bs-info)    !important; }
+      .faq-section-label  { font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    </style>
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>
 {% endblock %}
