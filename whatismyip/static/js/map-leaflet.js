@@ -11,6 +11,14 @@ function initLeafletMap(lat, lon, zoom) {
 		maxZoom: 19,
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 	}).addTo(map);
+
+	// Stamp alt="" on every img Leaflet injects (tiles, marker icons, shadows).
+	// Empty alt is correct for decorative/functional map imagery.
+	const mapEl = document.getElementById('map');
+	new MutationObserver(function () {
+		mapEl.querySelectorAll('img:not([alt])').forEach(function (img) { img.alt = ''; });
+	}).observe(mapEl, { childList: true, subtree: true });
+
 	mapInitialized = true;
 }
 
