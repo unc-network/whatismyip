@@ -3,6 +3,16 @@
   * Helper library for https://whatismyip.unc.edu
   */
 
+var reportDataPrimary = null;
+var reportDataSecondary = null;
+var reportConnectV4 = '—';
+var reportConnectV6 = '—';
+var reportDnsProviderGeo = null;
+var reportDnsProviderIp = null;
+var reportDnsEdnsGeo = null;
+var reportDnsEdnsIp = null;
+var reportDnsFiltering = null;
+
 function showCopyNotification(message, isError = false) {
 	let notification = $('#copy-notification');
 
@@ -78,6 +88,216 @@ function set_intro_text(is_campus, network_purpose) {
 		msg  = 'You are connected from off campus over the Internet.';
 	}
 	$('#intro_text').html(`<div class="intro-status"><i class="fa-solid ${icon} me-2"></i>${msg}</div>`);
+}
+
+function downloadReport() {
+	if (!reportDataPrimary) {
+		alert('Connection data is still loading — please try again in a moment.');
+		return;
+	}
+
+	var now = new Date();
+	var ts = now.toLocaleString('en-US', {
+		weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+		hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short'
+	});
+
+	function e(str) {
+		var d = document.createElement('div');
+		d.textContent = String(str);
+		return d.innerHTML;
+	}
+	function rpt(label, value) {
+		if (!value) return '';
+		return `<tr><th>${e(String(label))}</th><td>${e(String(value))}</td></tr>`;
+	}
+	function section(title, rows) {
+		var content = rows.filter(Boolean).join('');
+		if (!content) return '';
+		return `<h2>${e(title)}</h2><table><tbody>${content}</tbody></table>`;
+	}
+
+	var r = reportDataPrimary;
+	var primaryIsV6 = r.client_address && r.client_address.includes(':');
+	var primaryLabel = primaryIsV6 ? 'IPv6' : 'IPv4';
+	var secondaryLabel = primaryIsV6 ? 'IPv4' : 'IPv6';
+
+	var statusMsg;
+	if (r.is_campus) {
+		var purpose = r.network && r.network.purpose;
+		if (purpose === 'VPN') statusMsg = 'Connected through the campus VPN';
+		else if (purpose === 'Wireless') statusMsg = 'Connected to the campus wireless network';
+		else statusMsg = 'Connected to the campus network';
+	} else {
+		statusMsg = 'Connected from off campus over the Internet';
+	}
+
+	var ad = r.address_details || {};
+	var net = r.network || {};
+	var loc = r.iplocation || {};
+
+	var primaryNames = (ad.names && ad.names.length)
+		? [...new Set(ad.names.map(n => n.toLowerCase()))].join(', ')
+		: (r.ptr || '');
+	var primaryFlags = [loc.mobile ? 'Mobile' : null, loc.proxy ? 'Proxy/VPN' : null, loc.hosting ? 'Hosting' : null].filter(Boolean).join(', ');
+
+	var primarySection = section('Primary Address (' + primaryLabel + ')', [
+		rpt('IP Address', r.client_address),
+		rpt('PTR / Host Names', primaryNames),
+		rpt('Network', net.cidr ? (net.comment ? net.cidr + ' (' + net.comment + ')' : net.cidr) : null),
+		rpt('VLAN', net.vlan_id ? net.vlan_id + ' (' + net.vlan_name + ')' : null),
+		rpt('City', loc.city),
+		rpt('Region', loc.region),
+		rpt('Country', loc.country_name || loc.country),
+		rpt('ISP', loc.isp),
+		rpt('Organization', loc.org),
+		rpt('ASN', loc.asn),
+		rpt('Connection Flags', primaryFlags),
+		rpt('MAC Address', ad.mac),
+		rpt('Username', ad.username),
+		rpt('IPAM Comment', ad.comment),
+	]);
+
+	var secondarySection = '';
+	if (reportDataSecondary) {
+		var r2 = reportDataSecondary;
+		var ad2 = r2.address_details || {};
+		var net2 = r2.network || {};
+		var loc2 = r2.iplocation || {};
+		var s2Names = (ad2.names && ad2.names.length)
+			? [...new Set(ad2.names.map(n => n.toLowerCase()))].join(', ')
+			: (r2.ptr || '');
+		secondarySection = section('Secondary Address (' + secondaryLabel + ')', [
+			rpt('IP Address', r2.client_address),
+			rpt('PTR / Host Names', s2Names),
+			rpt('Network', net2.cidr ? (net2.comment ? net2.cidr + ' (' + net2.comment + ')' : net2.cidr) : null),
+			rpt('VLAN', net2.vlan_id ? net2.vlan_id + ' (' + net2.vlan_name + ')' : null),
+			rpt('City', loc2.city),
+			rpt('Region', loc2.region),
+			rpt('Country', loc2.country_name || loc2.country),
+			rpt('ISP', loc2.isp),
+			rpt('Organization', loc2.org),
+			rpt('ASN', loc2.asn),
+		]);
+	}
+
+	var connectSection = section('Connectivity', [
+		rpt('IPv4', reportConnectV4),
+		rpt('IPv6', reportConnectV6),
+	]);
+
+	var dnsProvider = [reportDnsProviderGeo, reportDnsProviderIp].filter(Boolean).join(' — ');
+	var dnsEdns = [reportDnsEdnsGeo, reportDnsEdnsIp].filter(Boolean).join(' — ');
+	var dnsSection = section('DNS', [
+		rpt('Internet DNS Provider', dnsProvider),
+		rpt('EDNS Client Subnet', dnsEdns),
+		rpt('DNS Security Filtering', reportDnsFiltering),
+	]);
+
+	var nacRows = [];
+	if (r.nac) {
+		if (r.nac.endSystem) Object.entries(r.nac.endSystem).forEach(([k, v]) => { if (v) nacRows.push(rpt(k, v)); });
+		if (r.nac.endSystemInfo) Object.entries(r.nac.endSystemInfo).forEach(([k, v]) => { if (v) nacRows.push(rpt(k, v)); });
+	}
+	var nacSection = nacRows.length ? section('Campus NAC Details', nacRows) : '';
+
+	var bldgSection = '';
+	if (r.nac && r.nac.nit_building && Object.keys(r.nac.nit_building).length) {
+		var bldg = r.nac.nit_building;
+		bldgSection = section('Building', [
+			rpt('Name', bldg.official_name || bldg.full_name),
+			rpt('Address', bldg.address),
+			rpt('Building ID', bldg.building_id),
+		]);
+	}
+
+	var cfgRows = [];
+	var hasV4cfg = net.netmask || net.dhcp_routers || (net.dhcp_dns_servers && net.dhcp_dns_servers.length) || net.dhcp_domain_name || net.router_device;
+	if (hasV4cfg) {
+		cfgRows.push('<tr><td colspan="2" style="font-weight:700;background:#edf5fb;padding:4px 8px;">IPv4</td></tr>');
+		if (net.netmask) cfgRows.push(rpt('Subnet Mask', net.netmask));
+		if (net.dhcp_routers) cfgRows.push(rpt('Default Gateway', net.dhcp_routers));
+		if (net.dhcp_dns_servers && net.dhcp_dns_servers.length) cfgRows.push(rpt('DNS Servers', net.dhcp_dns_servers.join(', ')));
+		if (net.dhcp_domain_name) cfgRows.push(rpt('Search Domain', net.dhcp_domain_name));
+		if (net.router_device) cfgRows.push(rpt('Router Device', net.router_device));
+	}
+	if (reportDataSecondary) {
+		var net2b = reportDataSecondary.network || {};
+		var hasV6cfg = net2b.prefixlen || net2b.dhcp_routers || (net2b.dhcp_dns_servers && net2b.dhcp_dns_servers.length) || net2b.dhcp_domain_name || net2b.router_device;
+		if (hasV6cfg) {
+			cfgRows.push('<tr><td colspan="2" style="font-weight:700;background:#edf5fb;padding:4px 8px;">IPv6</td></tr>');
+			if (net2b.prefixlen) cfgRows.push(rpt('Prefix Length', '/' + net2b.prefixlen));
+			if (net2b.dhcp_routers) cfgRows.push(rpt('Default Gateway', net2b.dhcp_routers));
+			if (net2b.dhcp_dns_servers && net2b.dhcp_dns_servers.length) cfgRows.push(rpt('DNS Servers', net2b.dhcp_dns_servers.join(', ')));
+			if (net2b.dhcp_domain_name) cfgRows.push(rpt('Search Domain', net2b.dhcp_domain_name));
+			if (net2b.router_device) cfgRows.push(rpt('Router Device', net2b.router_device));
+		}
+	}
+	var netConfigSection = cfgRows.filter(Boolean).length
+		? `<h2>Network Configuration</h2><table><tbody>${cfgRows.filter(Boolean).join('')}</tbody></table>`
+		: '';
+
+	var ud = r.user_device || {};
+	var browser = (ud.browser && ud.browser !== 'Other') ? (ud.browser + (ud.browser_version ? ' ' + ud.browser_version : '')) : null;
+	var os = (ud.os && ud.os !== 'Other') ? (ud.os + (ud.os_version ? ' ' + ud.os_version : '')) : null;
+	var deviceType = ud.is_bot ? 'Bot / Crawler' : ud.is_mobile ? 'Mobile' : ud.is_tablet ? 'Tablet' : ud.is_pc ? 'PC / Desktop' : null;
+	var model = ud.device_family ? ((ud.device_brand && ud.device_brand !== ud.device_family) ? ud.device_brand + ' ' + ud.device_family : ud.device_family) : null;
+	var deviceSection = section('Device Information', [
+		rpt('Browser', browser),
+		rpt('Operating System', os),
+		rpt('Device Type', deviceType),
+		rpt('Device Model', model),
+	]);
+
+	var origin = window.location.origin;
+
+	var html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Network Diagnostic Report</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#222;margin:15mm 20mm}
+  h1{font-size:16pt;color:#13294B;margin:0 0 2px}
+  h2{font-size:10.5pt;font-weight:700;color:#13294B;background:#EDF5FB;border-left:4px solid #4B9CD3;padding:5px 10px;margin:14px 0 0}
+  table{width:100%;border-collapse:collapse;font-size:10pt}
+  th{text-align:left;font-weight:600;width:38%;padding:3px 8px;vertical-align:top;background:#fafafa}
+  td{padding:3px 8px;vertical-align:top;word-break:break-all}
+  tr{border-bottom:1px solid #e8e8e8}
+  .hdr{border-bottom:3px solid #4B9CD3;padding-bottom:10px;margin-bottom:12px}
+  .sub{color:#5B6670;font-size:10pt;margin:2px 0 0}
+  .ts{color:#888;font-size:9.5pt;margin:4px 0 0}
+  .status{background:#EDF5FB;border-left:4px solid #4B9CD3;padding:7px 12px;margin:12px 0 14px;font-size:11pt;font-weight:600;color:#13294B}
+  .ftr{margin-top:20px;border-top:1px solid #ddd;padding-top:8px;color:#aaa;font-size:9pt}
+  a{color:#4B9CD3}
+  @media print{body{margin:8mm 12mm}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>Network Diagnostic Report</h1>
+  <p class="sub">UNC Chapel Hill ITS &mdash; What Is My IP?</p>
+  <p class="ts">${e(ts)}</p>
+</div>
+<div class="status">${e(statusMsg)}</div>
+${primarySection}
+${secondarySection}
+${connectSection}
+${dnsSection}
+${nacSection}
+${bldgSection}
+${netConfigSection}
+${deviceSection}
+<div class="ftr">Generated by <a href="${origin}">${e(origin)}</a> &nbsp;&bull;&nbsp; ${e(ts)}</div>
+<script>window.print();<\/script>
+</body>
+</html>`;
+
+	var win = window.open('', '_blank', 'width=820,height=960');
+	if (win) {
+		win.document.write(html);
+		win.document.close();
+	}
 }
 
 function test_primary_url(default_version) {
@@ -323,11 +543,18 @@ function test_primary_url(default_version) {
 				$('#additional-info').show();
 				$('#toggle-button').show();
 			}
+
+			reportDataPrimary = result;
+			if (default_version == 4) reportConnectV4 = 'Supported';
+			else reportConnectV6 = 'Supported';
+			$('#report-btn').removeClass('disabled').removeAttr('aria-disabled');
 		},
 		error: function (xhr, status, error) {
 			// $('#connect-ipv4').text("Not supported");
 			$('#connect-ipv4').html('<i class="fa-solid fa-triangle-exclamation text-warning"></i> Not supported');
 			//console.log(error);
+			if (default_version == 4) reportConnectV4 = 'Not detected';
+			else reportConnectV6 = 'Not detected';
 		}
 	});
 
@@ -470,6 +697,8 @@ function get_dns_info() {
 					}
 
 					append_dns_table_row('Internet DNS Provider', providerDetails);
+				reportDnsProviderGeo = geo || null;
+				reportDnsProviderIp = ip || null;
 				}
 			}
 
@@ -486,6 +715,8 @@ function get_dns_info() {
 					}
 
 					append_dns_table_row('EDNS Client Subnet', clientSubnetDetails);
+					reportDnsEdnsGeo = geo || null;
+					reportDnsEdnsIp = ip || null;
 				}
 			}
 		},
@@ -501,10 +732,13 @@ function get_dns_info() {
 				let filteringHtml;
 				if (isFiltered === true) {
 					filteringHtml = `<i class="fa-solid fa-circle-check text-success"></i> Active`;
+					reportDnsFiltering = 'Active';
 				} else if (isFiltered === false) {
 					filteringHtml = `<i class="fa-solid fa-triangle-exclamation text-warning"></i> Inactive`;
+					reportDnsFiltering = 'Inactive';
 				} else {
 					filteringHtml = `<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`;
+					reportDnsFiltering = 'Unable to verify';
 				}
 				$('#security-filtering-row .dns-row-value').html(filteringHtml);
 			})
@@ -692,11 +926,16 @@ function test_secondary_url(default_version) {
 				$('#toggle-button').show();
 			}
 
+			reportDataSecondary = result;
+			if (default_version == 4) reportConnectV6 = 'Supported';
+			else reportConnectV4 = 'Supported';
 		},
 		error: function (xhr, status, error) {
 			// $('#connect-ipv6').text("Not supported");
 			$('#connect-ipv6').html('<i class="fa-solid fa-triangle-exclamation text-warning"></i> Not supported');
 			//console.log(error);
+			if (default_version == 4) reportConnectV6 = 'Not detected';
+			else reportConnectV4 = 'Not detected';
 		}
 	});
 

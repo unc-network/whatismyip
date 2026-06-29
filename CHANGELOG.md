@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.1.0] - 2026-06-29
+
+### Added
+
+- Support report download: a **Report** button in the navigation bar (home page only) generates a self-contained, print-ready HTML page containing the user's IP addresses, connection status, campus network details, NAC information, network configuration, and device details. The button is disabled until connection data has loaded, then activates automatically. Clicking it opens a new window from which the user can Save as PDF via the browser's Print dialog and attach the file to a help ticket.
+- FAQ entry explaining how to use the Report feature, including keyboard shortcuts and popup blocker guidance.
+
+---
+
 ## [1.0.2] - 2026-06-29
 
 ### Changed
