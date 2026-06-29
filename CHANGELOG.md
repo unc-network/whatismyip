@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.0.1] - 2026-06-28
+
+### Added
+
+- `?simulate=1` URL parameter returns anonymized RFC 5737 / RFC 3849 demo data (`192.0.2.50`, `2001:db8::50`) for both IPv4 and IPv6 hostinfo calls — useful for screenshots and local UI development without campus network access
+- Screenshot added to `docs/` and displayed in README
+
+### Fixed
+
+- Dark mode: FAQ accordion items now inherit `--site-surface` / `--site-text` theme variables; collapsed chevron icon inverted for visibility
+- Dark mode: Leaflet map tile pane rendered with CSS `invert` + `hue-rotate` filter so the map tracks the theme toggle automatically
+- Dark mode: Metrics doughnut charts — replaced `#2C5080` (matches dark card surface, invisible) with lighter alternatives; added 2 px segment borders using the card surface color so adjacent slices remain distinct
+
+---
+
 ## [1.0.0] - 2026-06-28
 
 ### Added
