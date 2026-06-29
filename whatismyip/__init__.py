@@ -40,6 +40,8 @@ APP_ROOT = os.path.join(os.path.dirname(__file__), "..")  # refers to applicatio
 dotenv_path = os.path.join(APP_ROOT, ".env")
 load_dotenv(dotenv_path)
 
+__version__ = "1.0.0"
+
 app = Flask(__name__)
 app.config.from_object("config.Config")
 app.config.from_prefixed_env()
@@ -64,12 +66,13 @@ CORS(app, resources={"/hostinfo": api_config})
 
 @app.context_processor
 def inject_site_name():
-    """Inject site urls into templates."""
+    """Inject site urls and version into templates."""
     return dict(
         site_url=app.config["SERVER_URL"],
         ipv4_url=app.config["IPV4_SERVER_URL"],
         ipv6_url=app.config["IPV6_SERVER_URL"],
         bing_verification_token=app.config.get("BING_VERIFICATION_TOKEN", ""),
+        app_version=__version__,
     )
 
 

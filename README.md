@@ -4,6 +4,8 @@ A Flask web application that tells users their IP address and provides detailed 
 
 Built and operated by [UNC Information Technology Services](https://its.unc.edu/). Designed to be adapted for other higher-education institutions.
 
+> **Note:** This GitHub repository is a read-only mirror. The canonical repository is hosted on UNC's internal GitLab instance, which is not reachable from the public internet. Please open issues here on GitHub and we will review them.
+
 ---
 
 ## What it does
