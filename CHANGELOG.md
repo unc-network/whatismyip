@@ -9,6 +9,10 @@ All notable changes to this project will be documented here. This project follow
 - `?simulate=1` URL parameter returns anonymized RFC 5737 / RFC 3849 demo data (`192.0.2.50`, `2001:db8::50`) for both IPv4 and IPv6 hostinfo calls — useful for screenshots and local UI development without campus network access
 - Screenshot added to `docs/` and displayed in README
 
+### Changed
+
+- Header logo replaced with a new flat-style illustration; favicon and web app manifest icon set regenerated from the new source; old favicon files removed from `static/img/`
+
 ### Fixed
 
 - Dark mode: FAQ accordion items now inherit `--site-surface` / `--site-text` theme variables; collapsed chevron icon inverted for visibility
