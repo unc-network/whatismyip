@@ -276,7 +276,11 @@
   var gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
   var accentBlue = '#4B9CD3';
   var accentFill = isDark ? 'rgba(75,156,211,0.18)' : 'rgba(75,156,211,0.12)';
-  var pieColors  = ['#4B9CD3', '#2C5080', '#B7D7ED', '#5B6670'];
+  // In dark mode avoid --unc-bolin-creek (#2C5080) — it matches the card surface and disappears.
+  var pieColors  = isDark
+    ? ['#4B9CD3', '#90C8E8', '#B7D7ED', '#CFD3D5']
+    : ['#4B9CD3', '#2C5080', '#B7D7ED', '#5B6670'];
+  var pieBorder  = isDark ? '#2C5080' : '#ffffff';
 
   Chart.defaults.font.family = '"Open Sans", Helvetica, Arial, sans-serif';
   Chart.defaults.font.size   = 12;
@@ -345,7 +349,8 @@
         datasets: [{
           data: d.values,
           backgroundColor: pieColors,
-          borderWidth: 0,
+          borderColor: pieBorder,
+          borderWidth: 2,
           hoverOffset: 6,
         }]
       },

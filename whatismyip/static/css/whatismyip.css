@@ -140,6 +140,31 @@ main[role="main"] {
   border-color: var(--site-border);
 }
 
+.accordion-item {
+  background-color: var(--site-surface);
+  color: var(--site-text);
+  border-color: var(--site-border);
+}
+
+.accordion-button {
+  background-color: var(--site-surface);
+  color: var(--site-text);
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--site-subtle-bg);
+  color: var(--site-text);
+  box-shadow: inset 0 -1px 0 var(--site-border);
+}
+
+html[data-theme="dark"] .accordion-button::after {
+  filter: invert(1) brightness(1.5);
+}
+
+html[data-theme="dark"] .leaflet-tile-pane {
+  filter: invert(100%) hue-rotate(180deg) brightness(90%) contrast(90%);
+}
+
 html[data-theme="dark"] .text-muted {
   color: var(--site-muted-text) !important;
 }
