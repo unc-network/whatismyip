@@ -89,7 +89,7 @@ main[role="main"] {
 
 .site-header-logo {
   width: auto;
-  height: 104px;
+  height: 130px;
   margin-left: 0.6rem;
   vertical-align: middle;
 }
@@ -124,7 +124,7 @@ main[role="main"] {
 
 @media (max-width: 576px) {
   .site-header-logo {
-    height: 76px;
+    height: 96px;
   }
 
   .theme-toggle-btn {
