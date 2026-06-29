@@ -105,9 +105,9 @@
       <div class="card-body">
         <h3 class="h5 card-title">Protocol version</h3>
         {% if metrics.ip_versions %}
-          <div style="position:relative;height:160px;" class="d-flex justify-content-center">
+          <div style="position:relative;height:200px;">
             <canvas id="chartIpVersionMix"
-                    aria-label="IP version mix pie chart"
+                    aria-label="IP version mix bar chart"
                     role="img"></canvas>
           </div>
           <script type="application/json" id="dataIpVersionMix">
@@ -116,26 +116,6 @@
               "values": {{ metrics.ip_versions | map(attribute='count') | list | tojson }}
             }
           </script>
-          <div class="table-responsive mt-2">
-            <table class="table table-sm align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Version</th>
-                  <th class="text-end">Visits</th>
-                  <th class="text-end">Share</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for row in metrics.ip_versions %}
-                <tr>
-                  <td>{{ row.label }}</td>
-                  <td class="text-end">{{ row.count }}</td>
-                  <td class="text-end">{{ row.percentage }}%</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
         {% else %}
           <p class="mb-0 text-muted">No metrics recorded yet.</p>
         {% endif %}
@@ -515,8 +495,44 @@
   makeDoughnut('chartNetworkPurpose', 'dataNetworkPurpose');
   makeDoughnut('chartDnsFiltering',   'dataDnsFiltering');
 
-  // Doughnut chart — IP version mix
-  makeDoughnut('chartIpVersionMix', 'dataIpVersionMix');
+  // Bar chart — IP version mix
+  var barVersionEl   = document.getElementById('chartIpVersionMix');
+  var barVersionData = document.getElementById('dataIpVersionMix');
+  if (barVersionEl && barVersionData) {
+    var bvd = JSON.parse(barVersionData.textContent);
+    new Chart(barVersionEl, {
+      type: 'bar',
+      data: {
+        labels: bvd.labels,
+        datasets: [{
+          data: bvd.values,
+          backgroundColor: pieColors,
+          borderColor: isDark ? '#2C5080' : '#ffffff',
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(item) {
+                var total = item.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                var pct   = total ? Math.round(item.raw / total * 100) : 0;
+                return ' ' + item.raw + ' visits (' + pct + '%)';
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: textColor } },
+          y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
+        }
+      }
+    });
+  }
 })();
 </script>
 {% endblock %}
