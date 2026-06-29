@@ -913,7 +913,7 @@ def hostinfo():
             )  # pylint: disable=logging-fstring-interpolation
             data["ptr"] = val.to_text()
     except dns.exception.DNSException:
-        app.logger.warning("reverse DNS lookup failed")
+        app.logger.debug("reverse DNS lookup failed")
 
     # collect isp info
     if ip.is_global:
@@ -1057,6 +1057,12 @@ def hostinfo():
             net_details["vlan_name"] = vlan_list[0].get("name", None)
 
     data["network"] = net_details
+
+    if data["is_campus"] and not net_details["purpose"]:
+        app.logger.warning(
+            f"On-campus IP {data['client_address']} matched network "
+            f"{net_details['cidr'] or 'unknown'} with no Purpose defined"
+        )
 
     # collect details about this address
     addr_details = {
