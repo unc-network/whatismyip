@@ -116,6 +116,26 @@
               "values": {{ metrics.ip_versions | map(attribute='count') | list | tojson }}
             }
           </script>
+          <div class="table-responsive mt-2">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  <th class="text-end">Visits</th>
+                  <th class="text-end">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in metrics.ip_versions %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end">{{ row.count }}</td>
+                  <td class="text-end">{{ row.percentage }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% else %}
           <p class="mb-0 text-muted">No metrics recorded yet.</p>
         {% endif %}
@@ -237,6 +257,26 @@
               "values": {{ metrics.campus_breakdown | map(attribute='count') | list | tojson }}
             }
           </script>
+          <div class="table-responsive mt-2">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Origin</th>
+                  <th class="text-end">Visits</th>
+                  <th class="text-end">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in metrics.campus_breakdown %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end">{{ row.count }}</td>
+                  <td class="text-end">{{ row.percentage }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% else %}
           <p class="mb-0 text-muted">No metrics recorded yet.</p>
         {% endif %}
@@ -258,6 +298,26 @@
               "values": {{ metrics.purpose_breakdown | map(attribute='count') | list | tojson }}
             }
           </script>
+          <div class="table-responsive mt-2">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th class="text-end">Visits</th>
+                  <th class="text-end">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in metrics.purpose_breakdown %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end">{{ row.count }}</td>
+                  <td class="text-end">{{ row.percentage }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% else %}
           <p class="mb-0 text-muted">No campus data recorded yet.</p>
         {% endif %}
@@ -281,6 +341,26 @@
               "values": {{ metrics.dns_filtering_breakdown | map(attribute='count') | list | tojson }}
             }
           </script>
+          <div class="table-responsive mt-2">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th class="text-end">Tests</th>
+                  <th class="text-end">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in metrics.dns_filtering_breakdown %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end">{{ row.count }}</td>
+                  <td class="text-end">{{ row.percentage }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% else %}
           <p class="mb-0 text-muted">No DNS filtering data recorded yet.</p>
         {% endif %}
