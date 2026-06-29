@@ -261,7 +261,12 @@ def ensure_metrics_store():
                 network_purpose TEXT,
                 mobile INTEGER,
                 proxy INTEGER,
-                hosting INTEGER
+                hosting INTEGER,
+                dns_filtering TEXT,
+                dns_ip TEXT,
+                dns_geo TEXT,
+                edns_ip TEXT,
+                edns_geo TEXT
             )
             """)
 
@@ -280,6 +285,11 @@ def ensure_metrics_store():
             ("mobile", "INTEGER"),
             ("proxy", "INTEGER"),
             ("hosting", "INTEGER"),
+            ("dns_filtering", "TEXT"),
+            ("dns_ip", "TEXT"),
+            ("dns_geo", "TEXT"),
+            ("edns_ip", "TEXT"),
+            ("edns_geo", "TEXT"),
         ]:
             if col not in columns:
                 conn.execute(
@@ -314,6 +324,11 @@ def log_metrics_event(
     mobile=None,
     proxy=None,
     hosting=None,
+    dns_filtering=None,
+    dns_ip=None,
+    dns_geo=None,
+    edns_ip=None,
+    edns_geo=None,
 ):
     """Store a single aggregate metrics event without persisting raw IP addresses."""
     try:
@@ -336,8 +351,13 @@ def log_metrics_event(
                     network_purpose,
                     mobile,
                     proxy,
-                    hosting
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    hosting,
+                    dns_filtering,
+                    dns_ip,
+                    dns_geo,
+                    edns_ip,
+                    edns_geo
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     datetime.now(timezone.utc).isoformat(),
@@ -355,6 +375,11 @@ def log_metrics_event(
                     None if mobile is None else int(bool(mobile)),
                     None if proxy is None else int(bool(proxy)),
                     None if hosting is None else int(bool(hosting)),
+                    dns_filtering,
+                    dns_ip,
+                    dns_geo,
+                    edns_ip,
+                    edns_geo,
                 ),
             )
     except Exception as error:  # pragma: no cover - metrics must not break diagnostics
@@ -544,6 +569,41 @@ def get_metrics_dashboard(days=None):
             )
         )
 
+        dns_filtering_breakdown = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT CASE dns_filtering
+                         WHEN 'active'       THEN 'Active'
+                         WHEN 'inactive'     THEN 'Inactive'
+                         WHEN 'inconclusive' THEN 'Unable to verify'
+                         ELSE 'Unknown'
+                       END AS label,
+                       COUNT(*) AS count
+                FROM metrics_events
+                WHERE event_type = ? AND dns_filtering IS NOT NULL
+                GROUP BY dns_filtering
+                ORDER BY count DESC
+                """,
+                ("dns_result",),
+            )
+        )
+
+        dns_geo_breakdown = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT COALESCE(NULLIF(TRIM(dns_geo), ''), 'Unknown') AS label, COUNT(*) AS count
+                FROM metrics_events
+                WHERE event_type = ? AND dns_geo IS NOT NULL
+                GROUP BY label
+                ORDER BY count DESC
+                LIMIT 8
+                """,
+                ("dns_result",),
+            )
+        )
+
     result = {
         "window_days": days,
         "total_hostinfo": total_hostinfo,
@@ -557,6 +617,8 @@ def get_metrics_dashboard(days=None):
         "country_breakdown": country_breakdown,
         "campus_breakdown": campus_breakdown,
         "purpose_breakdown": purpose_breakdown,
+        "dns_filtering_breakdown": dns_filtering_breakdown,
+        "dns_geo_breakdown": dns_geo_breakdown,
     }
     _metrics_cache["data"] = result
     _metrics_cache["ts"] = time.monotonic()
@@ -1097,6 +1159,30 @@ def _cacheable(template):
     resp.cache_control.public = True
     resp.cache_control.max_age = 300
     return resp
+
+
+@app.route("/dns-result", methods=["POST"])
+def dns_result():
+    """Accept client-reported DNS test results for aggregate metrics."""
+    if request.args.get("simulate"):
+        return jsonify({"ok": True})
+    data = request.get_json(silent=True) or {}
+    filtering = data.get("filtering")
+    if filtering not in ("active", "inactive", "inconclusive"):
+        filtering = None
+    dns_ip = data.get("dns_ip") or None
+    dns_geo = data.get("dns_geo") or None
+    edns_ip = data.get("edns_ip") or None
+    edns_geo = data.get("edns_geo") or None
+    log_metrics_event(
+        "dns_result",
+        dns_filtering=filtering,
+        dns_ip=dns_ip,
+        dns_geo=dns_geo,
+        edns_ip=edns_ip,
+        edns_geo=edns_geo,
+    )
+    return jsonify({"ok": True})
 
 
 @app.route("/health")

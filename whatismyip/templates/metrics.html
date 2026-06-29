@@ -265,6 +265,50 @@
     </div>
   </div>
 </div>
+
+<div class="row g-3 p-1 my-1">
+  <div class="col-lg-6">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">DNS security filtering <small class="text-muted fw-normal" style="font-size:0.75em;">when configured</small></h3>
+        {% if metrics.dns_filtering_breakdown %}
+          <div style="position:relative;height:180px;" class="d-flex justify-content-center">
+            <canvas id="chartDnsFiltering" aria-label="DNS security filtering pie chart" role="img"></canvas>
+          </div>
+          <script type="application/json" id="dataDnsFiltering">
+            {
+              "labels": {{ metrics.dns_filtering_breakdown | map(attribute='label') | list | tojson }},
+              "values": {{ metrics.dns_filtering_breakdown | map(attribute='count') | list | tojson }}
+            }
+          </script>
+        {% else %}
+          <p class="mb-0 text-muted">No DNS filtering data recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title">DNS provider</h3>
+        {% if metrics.dns_geo_breakdown %}
+          <div style="position:relative;height:180px;" class="d-flex justify-content-center">
+            <canvas id="chartDnsGeo" aria-label="DNS provider pie chart" role="img"></canvas>
+          </div>
+          <script type="application/json" id="dataDnsGeo">
+            {
+              "labels": {{ metrics.dns_geo_breakdown | map(attribute='label') | list | tojson }},
+              "values": {{ metrics.dns_geo_breakdown | map(attribute='count') | list | tojson }}
+            }
+          </script>
+        {% else %}
+          <p class="mb-0 text-muted">No DNS provider data recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block javascript %}
@@ -376,8 +420,10 @@
     });
   }
 
-  makeDoughnut('chartCampusMix',     'dataCampusMix');
-  makeDoughnut('chartNetworkPurpose','dataNetworkPurpose');
+  makeDoughnut('chartCampusMix',      'dataCampusMix');
+  makeDoughnut('chartNetworkPurpose', 'dataNetworkPurpose');
+  makeDoughnut('chartDnsFiltering',   'dataDnsFiltering');
+  makeDoughnut('chartDnsGeo',         'dataDnsGeo');
 
   // Doughnut chart — IP version mix
   makeDoughnut('chartIpVersionMix', 'dataIpVersionMix');

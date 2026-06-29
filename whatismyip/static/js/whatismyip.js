@@ -664,6 +664,7 @@ function get_dns_info() {
 	// https://ip-api.com/docs/dns
 
 	const dns_test_url = $('#dns-test').data('dns_test_url') || '';
+	const simulate = !!$('#connect-test').data('simulate');
 
 	// Add Security Filtering row only if a test URL is configured
 	if (dns_test_url) {
@@ -675,7 +676,7 @@ function get_dns_info() {
 		);
 	}
 	$('#dns-test').show();
-	
+
 	tmp_name = createRandomString(32);
 	const test_url = `https://${tmp_name}.edns.ip-api.com/json`;
 
@@ -698,8 +699,8 @@ function get_dns_info() {
 					}
 
 					append_dns_table_row('Internet DNS Provider', providerDetails);
-				reportDnsProviderGeo = geo || null;
-				reportDnsProviderIp = ip || null;
+					reportDnsProviderGeo = geo || null;
+					reportDnsProviderIp = ip || null;
 				}
 			}
 
@@ -720,6 +721,21 @@ function get_dns_info() {
 					reportDnsEdnsIp = ip || null;
 				}
 			}
+
+			// Post provider data as soon as it arrives — independent of the filtering test.
+			if (!simulate && (reportDnsProviderGeo || reportDnsProviderIp)) {
+				fetch('/dns-result', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						dns_ip: reportDnsProviderIp,
+						dns_geo: reportDnsProviderGeo,
+						edns_ip: reportDnsEdnsIp,
+						edns_geo: reportDnsEdnsGeo,
+					}),
+					keepalive: true
+				}).catch(() => {});
+			}
 		},
 		error: function (xhr, status, error) {
 			console.dir(`DNS provider test failed: ${error}`)
@@ -730,18 +746,29 @@ function get_dns_info() {
 	if (dns_test_url) {
 		test_dns_security_filtering(dns_test_url)
 			.then(isFiltered => {
-				let filteringHtml;
+				let filteringHtml, filteringKey;
 				if (isFiltered === true) {
 					filteringHtml = `<i class="fa-solid fa-circle-check text-success"></i> Active`;
+					filteringKey = 'active';
 					reportDnsFiltering = 'Active';
 				} else if (isFiltered === false) {
 					filteringHtml = `<i class="fa-solid fa-triangle-exclamation text-warning"></i> Inactive`;
+					filteringKey = 'inactive';
 					reportDnsFiltering = 'Inactive';
 				} else {
 					filteringHtml = `<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`;
+					filteringKey = 'inconclusive';
 					reportDnsFiltering = 'Unable to verify';
 				}
 				$('#security-filtering-row .dns-row-value').html(filteringHtml);
+				if (!simulate) {
+					fetch('/dns-result', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ filtering: filteringKey }),
+						keepalive: true
+					}).catch(() => {});
+				}
 			})
 			.catch(error => {
 				console.error('DNS security filtering test error:', error);
