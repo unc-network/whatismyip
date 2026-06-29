@@ -9,7 +9,9 @@ All notable changes to this project will be documented here. This project follow
 - Support report download: a **Report** button in the navigation bar (home page only) generates a self-contained, print-ready HTML page containing the user's IP addresses, connection status, campus network details, NAC information, network configuration, DNS results, and device details. The button is disabled until connection data has loaded, then activates automatically. Clicking it opens a new window from which the user can Save as PDF via the browser's Print dialog and attach the file to a help ticket.
 - FAQ entry explaining how to use the Report feature, including keyboard shortcuts and popup blocker guidance.
 - DNS metrics: client-side DNS test results are now reported back to the server for aggregate tracking. DNS provider (geo and IP from ip-api.com) and DNS security filtering status (active/inactive/inconclusive) are recorded as separate `dns_result` events so neither depends on the other's timing. The metrics database schema gains `dns_filtering`, `dns_ip`, `dns_geo`, `edns_ip`, and `edns_geo` columns with backward-compatible migrations.
-- Site Statistics page gains two new doughnut charts: **DNS security filtering** (active/inactive/unable to verify split) and **DNS provider** (top providers by geo label).
+- Site Statistics page gains two new charts: **DNS security filtering** doughnut (active/inactive/unable to verify split, with summary count table) and **DNS provider** breakdown table (top providers by geo label).
+- All doughnut charts on the Site Statistics page now include a summary table beneath them showing exact counts and percentages.
+- Protocol version chart changed from a doughnut to a vertical bar chart for better use of space and readability when only one or two protocols are present.
 
 ---
 
