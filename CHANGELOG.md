@@ -12,6 +12,14 @@ All notable changes to this project will be documented here. This project follow
 - Site Statistics page gains two new charts: **DNS security filtering** doughnut (active/inactive/unable to verify split, with summary count table) and **DNS provider** breakdown table (top providers by geo label).
 - All doughnut charts on the Site Statistics page now include a summary table beneath them showing exact counts and percentages.
 - Protocol version chart changed from a doughnut to a vertical bar chart for better use of space and readability when only one or two protocols are present.
+- Protocol version bar chart summary table removed; the y-axis and x-axis labels already convey the same information.
+
+### Fixed
+
+- Duplicate log lines in production: Flask's logger was propagating to Python's root logger, which gunicorn also captures, causing every `app.logger` call to appear twice. Fixed by setting `app.logger.propagate = False`.
+- Reverse DNS lookup failures downgraded from WARNING to DEBUG; PTR records are absent for the majority of ISP and IPv6 addresses, making this a normal condition rather than an actionable warning.
+- On-campus IPs with no matching network in IPAM now log at ERROR level with a distinct message (`has no matching network in IPAM`) rather than being silently folded into the no-Purpose warning.
+- On-campus IPs found in IPAM but missing a Purpose extattr continue to log at WARNING, now clearly separated from the no-match case above.
 
 ---
 

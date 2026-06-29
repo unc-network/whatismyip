@@ -45,6 +45,9 @@ __version__ = "1.1.0"
 app = Flask(__name__)
 app.config.from_object("config.Config")
 app.config.from_prefixed_env()
+# Prevent Flask's logger from propagating to the root logger, which gunicorn
+# also captures — without this every app.logger call appears twice in prod logs.
+app.logger.propagate = False
 # from_prefixed_env() reads all values as strings; restore the expected int type.
 app.config["METRICS_TIME_WINDOW_DAYS"] = int(
     app.config.get("METRICS_TIME_WINDOW_DAYS", 30)
@@ -913,7 +916,7 @@ def hostinfo():
             )  # pylint: disable=logging-fstring-interpolation
             data["ptr"] = val.to_text()
     except dns.exception.DNSException:
-        app.logger.warning("reverse DNS lookup failed")
+        app.logger.debug("reverse DNS lookup failed")
 
     # collect isp info
     if ip.is_global:
@@ -1057,6 +1060,17 @@ def hostinfo():
             net_details["vlan_name"] = vlan_list[0].get("name", None)
 
     data["network"] = net_details
+
+    if data["is_campus"]:
+        if network is not None and not network:
+            app.logger.error(
+                f"On-campus IP {data['client_address']} has no matching network in IPAM"
+            )
+        elif network and not net_details["purpose"]:
+            app.logger.warning(
+                f"On-campus IP {data['client_address']} matched network "
+                f"{net_details['cidr']} with no Purpose defined"
+            )
 
     # collect details about this address
     addr_details = {
