@@ -18,7 +18,7 @@
 	<meta property="og:url" content="{% block og_url %}{{ site_url }}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Find your IP address and test your connection to the UNC Chapel Hill campus network. Shows IPv4, IPv6, VPN status, DNS security filtering, and campus network details.{% endblock %}">
 	<meta property="og:type" content="website">
-	<meta property="og:image" content="{{ site_url }}{{ url_for('static', filename='logo/android-chrome-512x512.png') }}">
+	<meta property="og:image" content="{{ site_url }}{{ url_for('static', filename='logo/web-app-manifest-512x512.png') }}">
 	<meta property="og:image:width" content="512">
 	<meta property="og:image:height" content="512">
 
@@ -27,7 +27,7 @@
 	<meta name="twitter:site" content="@unctarheeltech">
 	<meta name="twitter:title" content="{% block twitter_title %}What Is My IP? Test Your Campus IP Address Connectivity{% endblock %}">
 	<meta name="twitter:description" content="{% block twitter_description %}Find your IP address and test your connection to the UNC Chapel Hill campus network. Shows IPv4, IPv6, VPN status, DNS security, and campus network details.{% endblock %}">
-	<meta name="twitter:image" content="{{ site_url }}{{ url_for('static', filename='logo/android-chrome-512x512.png') }}">
+	<meta name="twitter:image" content="{{ site_url }}{{ url_for('static', filename='logo/web-app-manifest-512x512.png') }}">
 
 	{% if bing_verification_token %}
 	<!-- CUSTOMIZE: This Bing Webmaster verification token is set in data/config.toml [site] bing_verification_token -->
@@ -131,7 +131,7 @@
 						<h1 class="mb-0">
 						<a href="{{ site_url }}" style="text-decoration: none; color: inherit;">
 							<b>What is my IP?</b>
-							<img class="site-header-logo" src="{{ url_for('static', filename='img/laptop-logo-transparent-cropped.png') }}" alt="Laptop logo">
+							<img class="site-header-logo" src="{{ url_for('static', filename='logo/logo.png') }}" alt="Laptop logo">
 						</a>
 						</h1>
 					  </div>
