@@ -79,7 +79,7 @@
 
     <div class="card shadow my-3">
       <div class="card-body">
-        <div id="connect-test" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}">
+        <div id="connect-test" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}" data-simulate="{{ '1' if context.simulate else '' }}">
           <h3 class="card-title h5"><i class="fa-solid fa-tower-broadcast text-primary me-2" aria-hidden="true"></i>Campus Connectivity</h3>
           <div class="table-responsive">
           <table class="table table-sm">
@@ -548,7 +548,7 @@
 {% elif context['map_provider'] == 'google' %}
 <script src="{{ url_for('static', filename='js/map-google.js') }}"></script>
 {% endif %}
-<script type="application/json" id="is_campus">{{ context['is_campus'] | tojson }}</script>
-<script type="application/json" id="default_address">{{ context['client_address'] | tojson }}</script>
+<script type="application/json" id="is_campus">{{ (true if context.simulate else context['is_campus']) | tojson }}</script>
+<script type="application/json" id="default_address">{{ ("2001:db8::50" if context.simulate else context['client_address']) | tojson }}</script>
 <script src="{{ url_for('static', filename='js/whatismyip.js') }}"></script>
 {% endblock %}

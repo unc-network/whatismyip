@@ -82,6 +82,7 @@ function set_intro_text(is_campus, network_purpose) {
 
 function test_primary_url(default_version) {
 	// call the test url and display address information
+	var simulate = !!$('#connect-test').data('simulate');
 
 	// handle starting state
 	if ( default_version == 4 ) {
@@ -94,7 +95,7 @@ function test_primary_url(default_version) {
 	var test_url = $('#connect-test').data('ipv4_url')
 	$.ajax({
 		type: "GET",
-		url: test_url + "/hostinfo",
+		url: test_url + "/hostinfo" + (simulate ? '?simulate=4' : ''),
 		dataType: "json",
 		success: function (result, status, xhr) {
 			// $('#connect-ipv4').text("Supported");
@@ -516,11 +517,16 @@ function get_dns_info() {
 
 function test_secondary_url(default_version) {
 	// test secondary url
+	var simulate = !!$('#connect-test').data('simulate');
 
 	var test_url = $('#connect-test').data('ipv6_url');
 	if (!test_url) {
-		$('#connect-ipv6').html('<i class="fa-solid fa-minus text-secondary"></i> Not configured');
-		return;
+		if (!simulate) {
+			$('#connect-ipv6').html('<i class="fa-solid fa-minus text-secondary"></i> Not configured');
+			return;
+		}
+		// In simulate mode, fall back to the IPv4 server so ?simulate=6 still works
+		test_url = $('#connect-test').data('ipv4_url') || window.location.origin;
 	}
 
 	// handle starting state
@@ -532,7 +538,7 @@ function test_secondary_url(default_version) {
 	// Make AJAX call to the API to get the ipv6 address
 	$.ajax({
 		type: "GET",
-		url: test_url + "/hostinfo",
+		url: test_url + "/hostinfo" + (simulate ? '?simulate=6' : ''),
 		dataType: "json",
 		success: function (result, status, xhr) {
 			// $('#connect-ipv6').text("Supported");

@@ -597,10 +597,188 @@ def home():
     data["map_provider"] = app.config.get("MAP_PROVIDER", "leaflet")
     data["dns_security_test_url"] = app.config.get("DNS_SECURITY_TEST_URL", "")
 
+    data["simulate"] = bool(request.args.get("simulate"))
+
     resp = make_response(render_template("home.html", context=data))
-    resp.cache_control.public = True
-    resp.cache_control.max_age = 300
+    if not data["simulate"]:
+        resp.cache_control.public = True
+        resp.cache_control.max_age = 300
     return resp
+
+
+_SIMULATE_HOSTINFO = {
+    4: {
+        "forwarded_for": "",
+        "remote_address": "192.0.2.50",
+        "remote_port": "44321",
+        "request_method": "GET",
+        "server_protocol": "HTTP/1.1",
+        "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+        "proxy_detected": None,
+        "client_address": "192.0.2.50",
+        "is_campus": True,
+        "user_device": {
+            "browser": "Chrome",
+            "browser_version": "125.0.0",
+            "os": "Mac OS X",
+            "os_version": "10.15.7",
+            "device_family": None,
+            "device_brand": None,
+            "device_model": None,
+            "is_mobile": False,
+            "is_tablet": False,
+            "is_pc": True,
+            "is_bot": False,
+        },
+        "ptr": "demo-device.net.unc.edu",
+        "iplocation": {
+            "country_code2": "US",
+            "country_name": "United States",
+            "ip": "192.0.2.50",
+            "ip_number": None,
+            "ip_version": 4,
+            "isp": "University of North Carolina at Chapel Hill",
+            "org": "University of North Carolina at Chapel Hill",
+            "asn": "AS36105",
+            "region": "North Carolina",
+            "response_code": None,
+            "response_message": None,
+            "city": "Chapel Hill",
+            "lat": 35.9049,
+            "lon": -79.0469,
+            "mobile": False,
+            "proxy": False,
+            "hosting": False,
+        },
+        "network": {
+            "cidr": "192.0.2.0/24",
+            "comment": "Demo network",
+            "ip_version": "4",
+            "netmask": "255.255.255.0",
+            "prefixlen": "24",
+            "contact": None,
+            "contact_name": None,
+            "contact_email": None,
+            "contact_dept": "ITS",
+            "cost_center": None,
+            "purpose": "Wired",
+            "router_device": None,
+            "dhcp_servers": [],
+            "dhcp_routers": None,
+            "dhcp_dns_servers": [],
+            "dhcp_domain_name": None,
+            "dhcp_lease_time": None,
+            "dhcp_ntp_servers": [],
+            "vlan_id": "100",
+            "vlan_name": "ITS-Demo-Users",
+        },
+        "address_details": {
+            "mac": "00:00:5e:00:53:01",
+            "names": ["demo-device.net.unc.edu"],
+            "types": ["A"],
+            "usage": ["Static"],
+            "contact": None,
+            "contact_name": None,
+            "contact_email": None,
+            "contact_dept": None,
+            "comment": "Demo device",
+        },
+        "nac": {
+            "endSystem": {
+                "macAddress": "00:00:5e:00:53:01",
+                "ipAddress": "192.0.2.50",
+                "switchPortId": "GigabitEthernet1/0/1",
+                "switchIP": "192.0.2.1",
+                "policy": "Standard_Access",
+                "connection_type": "wired",
+            },
+            "nit_building": {
+                "name": "Phillips Hall",
+                "number": "0162",
+                "lat": 35.9049,
+                "lon": -79.0469,
+            },
+        },
+    },
+    6: {
+        "forwarded_for": "",
+        "remote_address": "2001:db8::50",
+        "remote_port": "55012",
+        "request_method": "GET",
+        "server_protocol": "HTTP/1.1",
+        "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+        "proxy_detected": None,
+        "client_address": "2001:db8::50",
+        "is_campus": True,
+        "user_device": {
+            "browser": "Chrome",
+            "browser_version": "125.0.0",
+            "os": "Mac OS X",
+            "os_version": "10.15.7",
+            "device_family": None,
+            "device_brand": None,
+            "device_model": None,
+            "is_mobile": False,
+            "is_tablet": False,
+            "is_pc": True,
+            "is_bot": False,
+        },
+        "ptr": "demo-device.net.unc.edu",
+        "iplocation": {
+            "country_code2": "US",
+            "country_name": "United States",
+            "ip": "2001:db8::50",
+            "ip_number": None,
+            "ip_version": 6,
+            "isp": "University of North Carolina at Chapel Hill",
+            "org": "University of North Carolina at Chapel Hill",
+            "asn": "AS36105",
+            "region": "North Carolina",
+            "response_code": None,
+            "response_message": None,
+            "city": "Chapel Hill",
+            "lat": 35.9049,
+            "lon": -79.0469,
+            "mobile": False,
+            "proxy": False,
+            "hosting": False,
+        },
+        "network": {
+            "cidr": "2001:db8::/32",
+            "comment": "Demo IPv6 network",
+            "ip_version": "6",
+            "netmask": None,
+            "prefixlen": "32",
+            "contact": None,
+            "contact_name": None,
+            "contact_email": None,
+            "contact_dept": "ITS",
+            "cost_center": None,
+            "purpose": "Wired",
+            "router_device": None,
+            "dhcp_servers": [],
+            "dhcp_routers": None,
+            "dhcp_dns_servers": [],
+            "dhcp_domain_name": None,
+            "dhcp_lease_time": None,
+            "dhcp_ntp_servers": [],
+            "vlan_id": "100",
+            "vlan_name": "ITS-Demo-Users",
+        },
+        "address_details": {
+            "mac": None,
+            "names": ["demo-device.net.unc.edu"],
+            "types": ["AAAA"],
+            "usage": ["Static"],
+            "contact": None,
+            "contact_name": None,
+            "contact_email": None,
+            "contact_dept": None,
+            "comment": None,
+        },
+        "nac": {},
+    },
+}
 
 
 # @app.route("/hostinfo.php")
@@ -609,6 +787,11 @@ def hostinfo():
     """
     Return JSON structure with IP address information.
     """
+
+    simulate = request.args.get("simulate")
+    if simulate:
+        ip_ver = int(simulate) if simulate in ("4", "6") else 4
+        return jsonify(_SIMULATE_HOSTINFO[ip_ver])
 
     # get the request headers
     forwarded_for = request.environ.get("HTTP_X_FORWARDED_FOR", None)
