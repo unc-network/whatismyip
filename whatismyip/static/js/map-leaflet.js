@@ -23,7 +23,14 @@ function initLeafletMap(lat, lon, zoom) {
 }
 
 function placeLeafletMarker(lat, lon, title) {
-	L.marker([lat, lon]).addTo(map).bindPopup(title).openPopup();
+	var label = title || 'Location marker';
+	var marker = L.marker([lat, lon]).addTo(map).bindPopup(label).openPopup();
+	marker.on('add', function () {
+		var el = marker.getElement();
+		if (el) {
+			el.querySelectorAll('img').forEach(function (img) { img.alt = label; });
+		}
+	});
 }
 
 function loadCampusMap(address, title, lat, lon) {
