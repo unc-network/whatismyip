@@ -13,7 +13,7 @@
       See your connection details and IP address below — results update automatically, no page refresh needed.
       Additional campus network details are provided when your address is recognized as a UNC address.
     </p>
-    <div id="intro_text" data-nosnippet></div>
+    <div id="intro_text" data-nosnippet><div class="intro-status text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i>Testing connection&hellip;</div></div>
   </div>
 </div>
 
@@ -60,10 +60,10 @@
 
   </div>
 
-  <div id="map_card" class="col-xl-3 align-middle" style="display:none;">
+  <div id="map_card" class="col-xl-3 align-middle">
     <div class="card shadow">
       <div class="card-body p-0 m-0">
-        <div id="map" style="height: 250px;" role="img" aria-label="Campus location map"></div>
+        <div id="map" style="height: 250px;" role="img" aria-label="Campus location map" class="map-loading"></div>
       </div>
       <div id="map_label" class="card-footer text-muted small text-center py-1" style="display:none;">
         Approximate IP location

@@ -140,6 +140,10 @@ main[role="main"] {
   border-color: var(--site-border);
 }
 
+.map-loading {
+  background-color: var(--site-subtle-bg);
+}
+
 .accordion-item {
   background-color: var(--site-surface);
   color: var(--site-text);
