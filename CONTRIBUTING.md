@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing to this project. Contributions from other institutions adapting the tool for their own campus networks are especially welcome.
 
+> **Note:** The GitHub repository is a read-only mirror. The canonical repository is hosted on UNC's internal GitLab instance, which is not reachable from the public internet. Pull requests opened on GitHub cannot be merged directly — please open an issue on GitHub instead and we will incorporate the change on our end.
+
 ## Development setup
 
 **Requirements:** Python 3.10 or later, pip, and git.
