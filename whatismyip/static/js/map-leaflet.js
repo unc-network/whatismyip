@@ -6,6 +6,8 @@ var mapInitialized = false;
 
 function initLeafletMap(lat, lon, zoom) {
 	if (mapInitialized) return;
+	const mapEl = document.getElementById('map');
+	mapEl.classList.remove('map-loading');
 	map = L.map('map').setView([lat, lon], zoom);
 	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		maxZoom: 19,
@@ -14,7 +16,6 @@ function initLeafletMap(lat, lon, zoom) {
 
 	// Stamp alt="" on every img Leaflet injects (tiles, marker icons, shadows).
 	// Empty alt is correct for decorative/functional map imagery.
-	const mapEl = document.getElementById('map');
 	new MutationObserver(function () {
 		mapEl.querySelectorAll('img:not([alt])').forEach(function (img) { img.alt = ''; });
 	}).observe(mapEl, { childList: true, subtree: true });
@@ -23,19 +24,23 @@ function initLeafletMap(lat, lon, zoom) {
 }
 
 function placeLeafletMarker(lat, lon, title) {
-	L.marker([lat, lon]).addTo(map).bindPopup(title).openPopup();
+	var label = title || 'Location marker';
+	var marker = L.marker([lat, lon]).addTo(map).bindPopup(label).openPopup();
+	marker.on('add', function () {
+		var el = marker.getElement();
+		if (el) {
+			el.querySelectorAll('img').forEach(function (img) { img.alt = label; });
+		}
+	});
 }
 
 function loadCampusMap(address, title, lat, lon) {
 	if (!lat || !lon || isNaN(lat) || isNaN(lon)) return;
-	$('#map_card').show();
-	$('#map_label').hide();
 	initLeafletMap(lat, lon, 17);
 	placeLeafletMarker(lat, lon, title || address);
 }
 
 function loadLatLonMap(lat, lon, label) {
-	$('#map_card').show();
 	$('#map_label').show();
 	initLeafletMap(lat, lon, 11);
 	placeLeafletMarker(lat, lon, label);

@@ -165,6 +165,15 @@
 					   {% if request.path == '/metrics' %}aria-current="page"{% endif %}>Site Statistics</a>
 				</li>
 			</ul>
+			{% if request.path == '/' %}
+			<a id="report-btn" class="nav-report-btn ms-auto disabled" href="#"
+			   onclick="downloadReport(); return false;"
+			   aria-label="Download support report"
+			   aria-disabled="true"
+			   title="Download a PDF support report of your connection details">
+				<i class="fa-solid fa-file-arrow-down me-1"></i>Report
+			</a>
+			{% endif %}
 		</nav>
 
 		{% block content %}

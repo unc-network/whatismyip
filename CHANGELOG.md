@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.1.0] - 2026-06-29
+
+### Added
+
+- Support report download: a **Report** button in the navigation bar (home page only) generates a self-contained, print-ready HTML page containing the user's IP addresses, connection status, campus network details, NAC information, network configuration, and device details. The button is disabled until connection data has loaded, then activates automatically. Clicking it opens a new window from which the user can Save as PDF via the browser's Print dialog and attach the file to a help ticket.
+- FAQ entry explaining how to use the Report feature, including keyboard shortcuts and popup blocker guidance.
+
+---
+
+## [1.0.2] - 2026-06-29
+
+### Changed
+
+- Header logo replaced with a new flat-style AI-generated illustration with a clean transparent background; favicon and web app manifest icon set regenerated from the new source
+- Map card visible on initial page load with a subtle placeholder background instead of appearing after AJAX returns, eliminating horizontal layout shift of the address bar column (CLS improvement)
+- Connection status line pre-populated with "Testing connection…" spinner on initial render instead of being empty, reserving space before the real status is written (CLS improvement)
+- Leaflet map marker stamped with the location name as `alt` text; map container given `role="img"` and `aria-label` for screen readers
+
+---
+
 ## [1.0.1] - 2026-06-28
 
 ### Added
@@ -24,6 +44,7 @@ All notable changes to this project will be documented here. This project follow
 ## [1.0.0] - 2026-06-28
 
 ### Added
+
 - Site-wide navigation bar (Home, Speed Test, About, FAQ, Site Statistics) with active-page highlighting and dark mode support
 - Dedicated Speed Test page (`/speedtest`) with the Ookla Speedtest Custom iframe; home page links to it rather than embedding it inline
 - FAQ page with accordion format, color-coded question groups, Font Awesome icons, and JSON-LD structured data
@@ -37,6 +58,7 @@ All notable changes to this project will be documented here. This project follow
 - `CONTRIBUTING.md` with development setup and contribution guidelines
 
 ### Changed
+
 - Metrics page terminology: "lookups" → "visits", "Usage Metrics" → "Site Statistics" throughout UI, meta tags, and JSON-LD
 - About and FAQ pages restyled: content pulled out of cards to match the site's wider layout; accordion replaces flat list on FAQ
 - Page headings removed from About, FAQ, and Metrics pages (redundant with the navbar active state)
@@ -47,6 +69,7 @@ All notable changes to this project will be documented here. This project follow
 - Navbar uses `flex-wrap: wrap` so links reflow gracefully on very narrow screens
 
 ### Fixed
+
 - `data/` gitignore pattern changed from `data/` to `data/*` so the `!data/config.toml.example` negation rule takes effect correctly
 
 ---
