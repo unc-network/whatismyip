@@ -293,15 +293,26 @@
       <div class="card-body">
         <h3 class="h5 card-title">DNS provider</h3>
         {% if metrics.dns_geo_breakdown %}
-          <div style="position:relative;height:180px;" class="d-flex justify-content-center">
-            <canvas id="chartDnsGeo" aria-label="DNS provider pie chart" role="img"></canvas>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Provider</th>
+                  <th class="text-end">Tests</th>
+                  <th class="text-end">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in metrics.dns_geo_breakdown %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end">{{ row.count }}</td>
+                  <td class="text-end">{{ row.percentage }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
-          <script type="application/json" id="dataDnsGeo">
-            {
-              "labels": {{ metrics.dns_geo_breakdown | map(attribute='label') | list | tojson }},
-              "values": {{ metrics.dns_geo_breakdown | map(attribute='count') | list | tojson }}
-            }
-          </script>
         {% else %}
           <p class="mb-0 text-muted">No DNS provider data recorded yet.</p>
         {% endif %}
@@ -423,7 +434,6 @@
   makeDoughnut('chartCampusMix',      'dataCampusMix');
   makeDoughnut('chartNetworkPurpose', 'dataNetworkPurpose');
   makeDoughnut('chartDnsFiltering',   'dataDnsFiltering');
-  makeDoughnut('chartDnsGeo',         'dataDnsGeo');
 
   // Doughnut chart — IP version mix
   makeDoughnut('chartIpVersionMix', 'dataIpVersionMix');
