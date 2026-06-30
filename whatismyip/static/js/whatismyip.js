@@ -13,6 +13,65 @@ var reportDnsEdnsGeo = null;
 var reportDnsEdnsIp = null;
 var reportDnsFiltering = null;
 
+function buildNacDiagram(nac, userDevice) {
+	var es = nac.endSystem || {};
+	var bldg = nac.nit_building || {};
+	var isWireless = es.connection_type === 'wireless';
+
+	var bldgName = bldg.number
+		? 'Bldg ' + bldg.number
+		: (bldg.official_name || bldg.full_name || '');
+	var bldgSub = (bldg.official_name || bldg.full_name || '');
+
+	function esc(s) {
+		return $('<span>').text(String(s)).html();
+	}
+
+	function node(icon, label, sub) {
+		return '<div class="nac-node">'
+			+ '<div class="nac-icon"><i class="fa-solid ' + icon + '" aria-hidden="true"></i></div>'
+			+ '<div class="nac-label">' + esc(label) + '</div>'
+			+ (sub ? '<div class="nac-sub">' + esc(sub) + '</div>' : '')
+			+ '</div>';
+	}
+
+	function connector(wireless) {
+		return '<div class="nac-connector' + (wireless ? ' wireless' : '') + '" aria-hidden="true"></div>';
+	}
+
+	var deviceIcon = (userDevice && (userDevice.is_mobile || userDevice.is_tablet))
+		? 'fa-mobile-screen' : 'fa-laptop';
+
+	var html = '<div class="nac-diagram" role="img" aria-label="Network connection path">';
+
+	if (isWireless) {
+		html += node(deviceIcon, 'Your Device', es.macAddress || '');
+		html += connector(true);
+		html += node('fa-wifi', es.wireless_ap_name || 'Access Point', es.wireless_ssid || '');
+		if (bldgName) {
+			html += connector(false);
+			html += node('fa-building', bldgName, bldgSub !== bldgName ? bldgSub : '');
+		}
+	} else {
+		html += node(deviceIcon, 'Your Device', es.macAddress || '');
+		if (es.switchPortId) {
+			html += connector(false);
+			html += node('fa-ethernet', 'Port ' + es.switchPortId, 'Switch Port');
+		}
+		if (es.switchIP) {
+			html += connector(false);
+			html += node('fa-network-wired', es.switchIP, 'Switch');
+		}
+		if (bldgName) {
+			html += connector(false);
+			html += node('fa-building', bldgName, bldgSub !== bldgName ? bldgSub : '');
+		}
+	}
+
+	html += '</div>';
+	return html;
+}
+
 function showCopyNotification(message, isError = false) {
 	let notification = $('#copy-notification');
 
@@ -471,6 +530,13 @@ function test_primary_url(default_version) {
 				$('#additional-info').show();
 				$('#nac-col').show();
 				$('#nac-card').show();
+
+				// Build connection diagram
+				var diagHtml = buildNacDiagram(result['nac'], result['user_device']);
+				if (diagHtml) {
+					$('#nac-diagram').html(diagHtml).show();
+				}
+
 				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
 					if (value) {
 						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${nacCell(key, value)}</td></tr>`);

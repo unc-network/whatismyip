@@ -335,3 +335,70 @@ html[data-theme="dark"] #copy-notification {
   border-left: 3px solid currentColor;
   margin-bottom: 0.5rem;
 }
+
+/* NAC connection diagram */
+.nac-diagram {
+  display: flex;
+  align-items: flex-start;
+  padding: 1.25rem 0 1.5rem;
+  overflow-x: auto;
+}
+
+.nac-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 72px;
+  max-width: 110px;
+  padding: 0 6px;
+}
+
+.nac-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--unc-carolina-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.nac-connector {
+  flex: 1 1 20px;
+  min-width: 16px;
+  height: 2px;
+  background: var(--unc-carolina-blue);
+  margin-top: 25px; /* center on 52px icon: 26px center - 1px half-height */
+}
+
+.nac-connector.wireless {
+  background: repeating-linear-gradient(
+    to right,
+    var(--unc-carolina-blue) 0,
+    var(--unc-carolina-blue) 6px,
+    transparent 6px,
+    transparent 13px
+  );
+}
+
+.nac-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-top: 0.45rem;
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.nac-sub {
+  font-size: 0.65rem;
+  color: var(--site-muted-text);
+  text-align: center;
+  line-height: 1.2;
+  margin-top: 2px;
+  word-break: break-word;
+}
