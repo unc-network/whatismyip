@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.2.0] - 2026-06-30
+
+### Added
+
+- **NAC connection path diagram** displayed by default between the address bars and the More Details section. For wired connections the diagram shows: Your Device → Switch Port → Switch IP → Building. For wireless connections: Your Device → Access Point (with SSID) → Building. Nodes are rendered as circular icon badges connected by solid (wired) or dashed (wireless) lines.
+- Connection path diagram adapts to screen size: vertical stacked layout on mobile (icon left, label right, short vertical connector), horizontal layout on larger screens.
+- More Details button relocated from the connectivity card into the connection path row, right-justified and bottom-aligned, so it remains adjacent to the section it expands.
+
+### Changed
+
+- ISP and Org rows reordered in the address detail cards so Org appears immediately below ISP (both describe the same network entity).
+- City and Region rows consolidated into a single **Location** row displayed as "City, State" — saves one row of vertical space. Falls back gracefully if only one value is returned by the location API.
+- Detail cards (network config, building, device) now expand to the full page width rather than being capped at 560 px.
+
+### Fixed
+
+- More Details button was hidden for visitors without NAC data because the button moved inside the connection path row (`#nac-diagram-row`) which was only shown when NAC end system data was present. Fixed so any data that populates the expanded section also reveals the row and button.
+
+---
+
 ## [1.1.0] - 2026-06-29
 
 ### Added
