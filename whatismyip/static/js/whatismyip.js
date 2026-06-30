@@ -534,7 +534,8 @@ function test_primary_url(default_version) {
 				// Build connection diagram
 				var diagHtml = buildNacDiagram(result['nac'], result['user_device']);
 				if (diagHtml) {
-					$('#nac-diagram').html(diagHtml).show();
+					$('#nac-diagram').html(diagHtml);
+					$('#nac-diagram-row').show();
 				}
 
 				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
