@@ -458,21 +458,6 @@ function test_primary_url(default_version) {
 				$('#net1-vlan').text(result['network']["vlan_id"] + ' (' + result['network']['vlan_name'] + ')');
 			}
 
-			if ( result['iplocation']["city"] ) {
-				$('#net1-city-row').show();
-				$('#net1-city').text(result['iplocation']["city"]);
-			}
-			if ( result['iplocation']["region"] ) {
-				$('#net1-region-row').show();
-				$('#net1-region').text(result['iplocation']["region"]);
-			}
-			if ( result['iplocation']["country_name"] ) {
-				$('#net1-country-row').show();
-				$('#net1-country').text(result['iplocation']["country_name"]);
-			} else if ( result['iplocation']['country']) {
-				$('#net1-country-row').show();
-				$('#net1-country').text(result['iplocation']["country"]);
-			}
 			if ( result['iplocation']["isp"] ) {
 				$('#net1-isp-row').show();
 				$('#net1-isp').text(result['iplocation']["isp"]);
@@ -480,6 +465,18 @@ function test_primary_url(default_version) {
 			if ( result['iplocation']["org"] ) {
 				$('#net1-org-row').show();
 				$('#net1-org').text(result['iplocation']["org"]);
+			}
+			var net1city = result['iplocation']["city"], net1region = result['iplocation']["region"];
+			if (net1city || net1region) {
+				$('#net1-location-row').show();
+				$('#net1-location').text([net1city, net1region].filter(Boolean).join(', '));
+			}
+			if ( result['iplocation']["country_name"] ) {
+				$('#net1-country-row').show();
+				$('#net1-country').text(result['iplocation']["country_name"]);
+			} else if ( result['iplocation']['country']) {
+				$('#net1-country-row').show();
+				$('#net1-country').text(result['iplocation']["country"]);
 			}
 			if ( result['iplocation']["asn"] ) {
 				$('#net1-asn-row').show();
@@ -949,21 +946,6 @@ function test_secondary_url(default_version) {
 				$('#net2-vlan').text(result['network']["vlan_id"] + ' (' + result['network']['vlan_name'] + ')');
 			}
 
-			if ( result['iplocation']["city"] ) {
-				$('#net2-city-row').show();
-				$('#net2-city').text(result['iplocation']["city"]);
-			}
-			if ( result['iplocation']["region"] ) {
-				$('#net2-region-row').show();
-				$('#net2-region').text(result['iplocation']["region"]);
-			}
-			if ( result['iplocation']["country_name"] ) {
-				$('#net2-country-row').show();
-				$('#net2-country').text(result['iplocation']["country_name"]);
-			} else if ( result['iplocation']['country']) {
-				$('#net2-country-row').show();
-				$('#net2-country').text(result['iplocation']["country"]);
-			}
 			if ( result['iplocation']["isp"] ) {
 				$('#net2-isp-row').show();
 				$('#net2-isp').text(result['iplocation']["isp"]);
@@ -971,6 +953,18 @@ function test_secondary_url(default_version) {
 			if ( result['iplocation']["org"] ) {
 				$('#net2-org-row').show();
 				$('#net2-org').text(result['iplocation']["org"]);
+			}
+			var net2city = result['iplocation']["city"], net2region = result['iplocation']["region"];
+			if (net2city || net2region) {
+				$('#net2-location-row').show();
+				$('#net2-location').text([net2city, net2region].filter(Boolean).join(', '));
+			}
+			if ( result['iplocation']["country_name"] ) {
+				$('#net2-country-row').show();
+				$('#net2-country').text(result['iplocation']["country_name"]);
+			} else if ( result['iplocation']['country']) {
+				$('#net2-country-row').show();
+				$('#net2-country').text(result['iplocation']["country"]);
 			}
 			if ( result['iplocation']["asn"] ) {
 				$('#net2-asn-row').show();
