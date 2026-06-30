@@ -6,14 +6,18 @@
     Please enable JavaScript in your browser to use this service.
   </div>
 </noscript>
-<div class="row p-1 my-3">
+<div class="row mt-3 mb-2">
   <div class="col">
-    <p>Whether you are on campus, off campus, using a VPN, or behind a proxy, this site
-      determines your IP address by testing how your device communicates with the campus network.
-      See your connection details and IP address below — results update automatically, no page refresh needed.
-      Additional campus network details are provided when your address is recognized as a UNC address.
-    </p>
-    <div id="intro_text" data-nosnippet><div class="intro-status text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i>Testing connection&hellip;</div></div>
+    <div class="d-flex align-items-center justify-content-between gap-2">
+      <div id="intro_text" data-nosnippet><div class="intro-status text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i>Testing connection&hellip;</div></div>
+      <a id="report-btn" class="nav-report-btn flex-shrink-0 disabled" href="#"
+         onclick="downloadReport(); return false;"
+         aria-label="Download support report"
+         aria-disabled="true"
+         title="Download a PDF support report of your connection details">
+        <i class="fa-solid fa-file-arrow-down me-1"></i>Report
+      </a>
+    </div>
   </div>
 </div>
 
@@ -22,17 +26,17 @@
 
     <div id="first_address_section" class="row p-1 my-3" data-nosnippet>
       <div class="col">
-        <div class="card bg-primary shadow ip-copy-card"
+        <div class="card shadow ip-copy-card"
              onclick="copyAddress('#address1')"
              onkeydown="if(event.key==='Enter'||event.key===' ')copyAddress('#address1')"
              role="button" tabindex="0" aria-label="Copy IPv4 address to clipboard">
           <div class="card-body">
             <div id="address_box" class="d-flex align-items-center unc-ip">
-              <span class="text-white opacity-50 flex-shrink-0 small fw-semibold ip-bar-label"></span>
+              <span class="flex-shrink-0 ip-bar-label"></span>
               <div class="flex-grow-1 text-center">
-                <h2 id="address1" class="text-center mb-0">{{ context.client_address }}</h2>
+                <h2 id="address1" class="ip-hero-text mb-0">{{ context.client_address }}</h2>
               </div>
-              <i class="fa fa-copy text-white opacity-50 ms-2 flex-shrink-0" aria-hidden="true"></i>
+              <i class="fa fa-copy text-white opacity-50 ms-3 flex-shrink-0" aria-hidden="true"></i>
             </div>
           </div>
         </div>
@@ -40,19 +44,18 @@
     </div>
     <div id="second_address_section" class="row p-1 my-3" style="display:none;" data-nosnippet>
       <div class="col">
-        <div class="card bg-primary shadow ip-copy-card"
+        <div class="card shadow ip-copy-card ip-loading"
              onclick="copyAddress('#address2')"
              onkeydown="if(event.key==='Enter'||event.key===' ')copyAddress('#address2')"
              role="button" tabindex="0" aria-label="Copy IPv6 address to clipboard">
           <div class="card-body">
             <div id="additional_ip" class="d-flex align-items-center unc-ip">
-              <span class="text-white opacity-50 flex-shrink-0 small fw-semibold ip-bar-label"></span>
+              <span class="flex-shrink-0 ip-bar-label"></span>
               <div class="flex-grow-1 text-center">
-                <h2 id="address2" class="text-center mb-0">loading...</h2>
+                <h2 id="address2" class="ip-hero-text mb-0">Detecting&hellip;</h2>
               </div>
-              <i class="fa fa-copy text-white opacity-50 ms-2 flex-shrink-0" aria-hidden="true"></i>
+              <i class="fa fa-copy text-white opacity-50 ms-3 flex-shrink-0" aria-hidden="true"></i>
             </div>
-
           </div>
         </div>
       </div>
@@ -73,7 +76,9 @@
 
 </div> <!-- end of address row -->
 
-<div class="row g-4 p-1">
+<hr class="section-divider">
+
+<div class="row g-3 mt-1">
 
   <div class="col-xl-3 d-flex flex-column"> <!-- start of column 1 -->
 
@@ -112,10 +117,6 @@
         </div>
       </div>
     </div>
-
-    <button id="toggle-button" class="btn btn-primary btn-block mt-auto mb-3" type="button" data-mdb-toggle="collapse" data-mdb-target="#additionalDetails" aria-expanded="false" aria-controls="additionalDetails" style="display:none;">
-      <i class="fa-solid fa-chevron-down me-2 toggle-chevron" aria-hidden="true"></i>More Details
-    </button>
 
   </div> <!-- end of column 1 -->
 
@@ -174,25 +175,24 @@
                 <th>VLAN</th>
                 <td id="net1-vlan"></td>
               </tr>
+              <tr id="net1-ipam-unavailable-row" style="display:none;">
+                <td colspan="2" class="text-muted small fst-italic py-1">Campus network details not available for this address.</td>
+              </tr>
               <tr id="net1-isp-row" style="display:none;">
                 <th>ISP</th>
                 <td id="net1-isp"></td>
               </tr>
-              <tr id="net1-city-row" style="display:none;">
-                <th>City</th>
-                <td id="net1-city"></td>
+              <tr id="net1-org-row" style="display:none;">
+                <th>Org</th>
+                <td id="net1-org"></td>
               </tr>
-              <tr id="net1-region-row" style="display:none;">
-                <th>Region</th>
-                <td id="net1-region"></td>
+              <tr id="net1-location-row" style="display:none;">
+                <th>Location</th>
+                <td id="net1-location"></td>
               </tr>
               <tr id="net1-country-row" style="display:none;">
                 <th>Country</th>
                 <td id="net1-country"></td>
-              </tr>
-              <tr id="net1-org-row" style="display:none;">
-                <th>Org</th>
-                <td id="net1-org"></td>
               </tr>
               <tr id="net1-asn-row" style="display:none;">
                 <th>ASN</th>
@@ -265,25 +265,24 @@
                 <th>VLAN</th>
                 <td id="net2-vlan"></td>
               </tr>
+              <tr id="net2-ipam-unavailable-row" style="display:none;">
+                <td colspan="2" class="text-muted small fst-italic py-1">Campus network details not available for this address.</td>
+              </tr>
               <tr id="net2-isp-row" style="display:none;">
                 <th>ISP</th>
                 <td id="net2-isp"></td>
               </tr>
-              <tr id="net2-city-row" style="display:none;">
-                <th>City</th>
-                <td id="net2-city"></td>
+              <tr id="net2-org-row" style="display:none;">
+                <th>Org</th>
+                <td id="net2-org"></td>
               </tr>
-              <tr id="net2-region-row" style="display:none;">
-                <th>Region</th>
-                <td id="net2-region"></td>
+              <tr id="net2-location-row" style="display:none;">
+                <th>Location</th>
+                <td id="net2-location"></td>
               </tr>
               <tr id="net2-country-row" style="display:none;">
                 <th>Country</th>
                 <td id="net2-country"></td>
-              </tr>
-              <tr id="net2-org-row" style="display:none;">
-                <th>Org</th>
-                <td id="net2-org"></td>
               </tr>
               <tr id="net2-asn-row" style="display:none;">
                 <th>ASN</th>
@@ -302,6 +301,22 @@
   </div> <!-- end of column 3 -->
 
 </div> <!-- end of row -->
+
+<div id="nac-diagram-row" class="mt-3" style="display:none;" data-nosnippet>
+  <div class="d-flex flex-column flex-md-row align-items-stretch gap-3">
+    <div id="nac-diagram-card" class="card shadow flex-grow-1" style="display:none;">
+      <div class="card-body py-2">
+        <h3 class="card-title h5"><i class="fa-solid fa-network-wired text-primary me-2" aria-hidden="true"></i>Connection Path</h3>
+        <div id="nac-diagram"></div>
+      </div>
+    </div>
+    <div class="nac-btn-col d-flex flex-column justify-content-end">
+      <button id="toggle-button" class="btn btn-primary w-100 mb-3" type="button" data-mdb-toggle="collapse" data-mdb-target="#additionalDetails" aria-expanded="false" aria-controls="additionalDetails">
+        <i class="fa-solid fa-chevron-down me-2 toggle-chevron" aria-hidden="true"></i>More Details
+      </button>
+    </div>
+  </div>
+</div>
 
 <div class="collapse" id="additionalDetails">
 
@@ -323,7 +338,7 @@
   <div id="detail-col" class="col-xl" style="display:none;">
   <div class="d-flex flex-wrap align-items-start gap-3 mt-3">
 
-    <div id="net-config-card" class="card shadow" style="display:none; flex:1 1 400px; max-width:560px;">
+    <div id="net-config-card" class="card shadow" style="display:none; flex:1 1 400px;">
       <div class="card-body">
         <h3 class="card-title h5"><i class="fa-solid fa-sliders text-primary me-2" aria-hidden="true"></i>Network Configuration</h3>
 
@@ -390,7 +405,7 @@
       </div>
     </div>
 
-    <div id="bldg-card" class="card shadow" style="display:none; flex:1 1 400px; max-width:560px;">
+    <div id="bldg-card" class="card shadow" style="display:none; flex:1 1 400px;">
       <div class="card-body">
         <h3 class="card-title h5"><i class="fa-solid fa-building text-primary me-2" aria-hidden="true"></i>Campus Building</h3>
         <div class="table-responsive">
@@ -414,7 +429,7 @@
       </div>
     </div>
 
-    <div id="device-card" class="card shadow" style="display:none; flex:1 1 400px; max-width:560px;">
+    <div id="device-card" class="card shadow" style="display:none; flex:1 1 400px;">
       <div class="card-body">
         <h3 class="card-title h5"><i class="fa-solid fa-laptop text-primary me-2" aria-hidden="true"></i>Your Device</h3>
         <div class="table-responsive">
@@ -448,10 +463,10 @@
 
 </div><!-- end additionalDetails collapse -->
 
-<div class="row p-1 my-3">
+<div class="row mt-4 mb-3">
   <div class="col">
     <div class="card shadow card-body" style="background-color: var(--site-subtle-bg);">
-      <h2 class="card-title h5">What does this tool show?</h2>
+      <h2 class="card-title h5"><i class="fa-solid fa-circle-question text-primary me-2" aria-hidden="true"></i>What does this tool show?</h2>
       <div class="row mt-2">
         <div class="col-md-6">
           <p class="mb-1">All visitors see:</p>
@@ -535,20 +550,20 @@
   });
 </script>
 {% elif context['map_provider'] == 'leaflet' %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.min.css') }}?v={{ app_version }}">
 {% endif %}
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}?v={{ app_version }}"></script>
+<script src="{{ url_for('static', filename='js/mdb.min.js') }}?v={{ app_version }}"></script>
 {% if context['map_provider'] == 'leaflet' %}
-<script src="{{ url_for('static', filename='js/leaflet.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/map-leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='js/leaflet.min.js') }}?v={{ app_version }}"></script>
+<script src="{{ url_for('static', filename='js/map-leaflet.js') }}?v={{ app_version }}"></script>
 {% elif context['map_provider'] == 'google' %}
-<script src="{{ url_for('static', filename='js/map-google.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map-google.js') }}?v={{ app_version }}"></script>
 {% endif %}
 <script type="application/json" id="is_campus">{{ (true if context.simulate else context['is_campus']) | tojson }}</script>
 <script type="application/json" id="default_address">{{ ("2001:db8::50" if context.simulate else context['client_address']) | tojson }}</script>
-<script src="{{ url_for('static', filename='js/whatismyip.js') }}"></script>
+<script src="{{ url_for('static', filename='js/whatismyip.js') }}?v={{ app_version }}"></script>
 {% endblock %}

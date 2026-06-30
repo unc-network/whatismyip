@@ -31,32 +31,32 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="row p-1 my-3">
-    <div class="col">
-      <p>This site is hosted on the campus network and provided by <a href="https://its.unc.edu/">Information Technology Services</a>
-        as a network diagnostic tool. The IP addresses reported are those visible to campus applications — including addresses provided
-        by the campus VPN service. Refer to the <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=263">Determine Client IP Address</a>
-        help article for site questions or comments.
-      </p>
-      <p>A fundamental concept of modern network communication is the <a href="https://en.wikipedia.org/wiki/IP_address">Internet Protocol (IP)</a> address,
-        which uniquely identifies a device on a network. While many sites exist to show your IP address,
-        this tool runs locally on the campus network and offers several advantages:
-      </p>
-      <ul class="list-unstyled mb-3">
-        <li><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i>Devices on campus without general internet connectivity can still reach this site.</li>
-        <li><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i>VPN users see the campus address assigned by the VPN, not their home internet address.</li>
-        <li><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i>Campus addresses include additional detail — network, VLAN, building, and NAC information.</li>
+<div class="row mt-3 mb-1">
+  <div class="col">
+    <h1 class="site-page-heading">About This Tool</h1>
+    <p class="site-page-subheading">Hosted on the campus network and provided by <a href="https://its.unc.edu/">UNC Information Technology Services</a> as a network diagnostic tool. IP addresses shown are those visible to campus applications, including VPN addresses. For questions, see the <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=263">Determine Client IP Address</a> help article.</p>
+  </div>
+</div>
+
+<div class="row mt-3">
+  <div class="col">
+    <div class="card shadow card-body">
+      <h2 class="card-title h5"><i class="fa-solid fa-globe text-primary me-2" aria-hidden="true"></i>Why use this tool?</h2>
+      <p>While many sites exist to show your IP address, this tool runs locally on the campus network and offers several advantages:</p>
+      <ul class="list-unstyled mb-0">
+        <li class="mb-2"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i>Devices on campus without general internet connectivity can still reach this site.</li>
+        <li class="mb-2"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i>VPN users see the campus address assigned by the VPN, not their home internet address.</li>
+        <li class="mb-2"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i>Campus addresses include additional detail — network, VLAN, building, and NAC information.</li>
+        <li><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i>Further detail is available via the <a href="https://nit.net.unc.edu">Network Information Tool (NIT)</a> for authorized users.</li>
       </ul>
-      <p>Further detailed network information is available through the <a href="https://nit.net.unc.edu">Network Information Tool (NIT)</a>.
-        Access to NIT is restricted to authorized users.
-      </p>
     </div>
   </div>
-  <div class="row p-1 my-3">
-    <div class="col">
-      <div class="card shadow card-body">
-        <h2 class="h4 card-title"><i class="fa-solid fa-code-branch text-primary me-2" aria-hidden="true"></i>Open Source</h2>
+</div>
+
+<div class="row mt-3 mb-3">
+  <div class="col">
+    <div class="card shadow card-body" style="background-color: var(--site-subtle-bg);">
+      <h2 class="card-title h5"><i class="fa-solid fa-code-branch text-primary me-2" aria-hidden="true"></i>Open Source</h2>
         <p>The source code for this tool is available on
           <a href="https://github.com/unc-network/whatismyip">GitHub</a>.
           It is written in Python using the <a href="https://flask.palletsprojects.com/">Flask</a> framework

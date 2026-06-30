@@ -74,16 +74,16 @@
 	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Source+Serif+4:ital,opsz@0,8..60;1,8..60&display=swap" rel="stylesheet">
 
     <!-- MDB -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mdb.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mdb.min.css') }}?v={{ app_version }}" />
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}?v={{ app_version }}" />
 
 	<!-- Site Specific -->
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/whatismyip.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/whatismyip.css') }}?v={{ app_version }}">
 
 	<!-- CUSTOMIZE: Replace or remove this UNC-specific utility bar with your institution's equivalent -->
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/unc-utility-bar.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/unc-utility-bar.css') }}?v={{ app_version }}">
 
 	{% block head_ext %}
 	{% endblock %}
@@ -124,60 +124,57 @@
 			<div class="container">
 				<div class="row">
 					<div class="col">
-					  <div class="py-5 text-center fst-italic unc-page-title">
+					  <div class="py-3 text-center unc-page-title">
 						<button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="Toggle theme" title="Theme: System">
 							<i id="theme-toggle-icon" class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
 						</button>
 						<h1 class="mb-0">
 						<a href="{{ site_url }}" style="text-decoration: none; color: inherit;">
-							<b>What is my IP?</b>
+							What Is My IP?
 							<img class="site-header-logo" src="{{ url_for('static', filename='logo/logo.png') }}" alt="Laptop logo">
 						</a>
 						</h1>
+						<p class="site-header-tagline">Network diagnostics &middot; UNC Information Technology Services</p>
 					  </div>
 					</div>
-				  </div>
-			<nav class="navbar navbar-expand site-navbar py-1 mb-2" role="navigation" aria-label="Site navigation">
-			<ul class="navbar-nav gap-1 flex-wrap">
-				<li class="nav-item">
-					<a class="nav-link small py-1{% if request.path == '/' %} active fw-semibold{% endif %}"
-					   href="{{ site_url }}/"
-					   {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link small py-1{% if request.path == '/speedtest' %} active fw-semibold{% endif %}"
-					   href="{{ site_url }}/speedtest"
-					   {% if request.path == '/speedtest' %}aria-current="page"{% endif %}>Speed Test</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link small py-1{% if request.path == '/about' %} active fw-semibold{% endif %}"
-					   href="{{ site_url }}/about"
-					   {% if request.path == '/about' %}aria-current="page"{% endif %}>About</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link small py-1{% if request.path == '/faq' %} active fw-semibold{% endif %}"
-					   href="{{ site_url }}/faq"
-					   {% if request.path == '/faq' %}aria-current="page"{% endif %}>FAQ</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link small py-1{% if request.path == '/metrics' %} active fw-semibold{% endif %}"
-					   href="{{ site_url }}/metrics"
-					   {% if request.path == '/metrics' %}aria-current="page"{% endif %}>Site Statistics</a>
-				</li>
-			</ul>
-			{% if request.path == '/' %}
-			<a id="report-btn" class="nav-report-btn ms-auto disabled" href="#"
-			   onclick="downloadReport(); return false;"
-			   aria-label="Download support report"
-			   aria-disabled="true"
-			   title="Download a PDF support report of your connection details">
-				<i class="fa-solid fa-file-arrow-down me-1"></i>Report
-			</a>
-			{% endif %}
-		</nav>
+				</div>
+			</div>
 
-		{% block content %}
-			{% endblock %}
+			<nav class="navbar navbar-expand site-navbar py-1 mb-2" role="navigation" aria-label="Site navigation">
+				<div class="container">
+					<ul class="navbar-nav gap-1 flex-wrap">
+						<li class="nav-item">
+							<a class="nav-link small py-1{% if request.path == '/' %} active fw-semibold{% endif %}"
+							   href="{{ site_url }}/"
+							   {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link small py-1{% if request.path == '/speedtest' %} active fw-semibold{% endif %}"
+							   href="{{ site_url }}/speedtest"
+							   {% if request.path == '/speedtest' %}aria-current="page"{% endif %}>Speed Test</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link small py-1{% if request.path == '/about' %} active fw-semibold{% endif %}"
+							   href="{{ site_url }}/about"
+							   {% if request.path == '/about' %}aria-current="page"{% endif %}>About</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link small py-1{% if request.path == '/faq' %} active fw-semibold{% endif %}"
+							   href="{{ site_url }}/faq"
+							   {% if request.path == '/faq' %}aria-current="page"{% endif %}>FAQ</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link small py-1{% if request.path == '/metrics' %} active fw-semibold{% endif %}"
+							   href="{{ site_url }}/metrics"
+							   {% if request.path == '/metrics' %}aria-current="page"{% endif %}>Site Statistics</a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+
+			<div class="container">
+				{% block content %}
+				{% endblock %}
 			</div>
 		</main>
 
@@ -209,10 +206,10 @@
 					</div>
 					<div class="col-lg-4">
 						<p class="h5">Connect with tech at UNC</p>
-						<a href="https://instagram.com/unctarheeltech" aria-label="Instagram"> <i class="fab fa-instagram fa-xl" style="color:#4B9CD3;"></i></a> &nbsp;
-						<a href="https://threads.net/unctarheeltech" aria-label="Threads"> <i class="fa-brands fa-threads fa-xl" style="color:#4B9CD3;"></i></a> &nbsp;
-						<a href="https://x.com/unctarheeltech" aria-label="X, Twitter"> <i class="fa-brands fa-x-twitter fa-xl" style="color:#4B9CD3;"></i></a> &nbsp;
-						<a href="https://youtube.com/@unctarheeltech" aria-label="YouTube"> <i class="fa-brands fa-youtube fa-xl" style="color:#4B9CD3;"></i></a>
+						<a href="https://instagram.com/unctarheeltech" aria-label="Instagram"> <i class="fab fa-instagram fa-xl"></i></a> &nbsp;
+						<a href="https://threads.net/unctarheeltech" aria-label="Threads"> <i class="fa-brands fa-threads fa-xl"></i></a> &nbsp;
+						<a href="https://x.com/unctarheeltech" aria-label="X, Twitter"> <i class="fa-brands fa-x-twitter fa-xl"></i></a> &nbsp;
+						<a href="https://youtube.com/@unctarheeltech" aria-label="YouTube"> <i class="fa-brands fa-youtube fa-xl"></i></a>
 						<p>
 						</p>
 						<p style="font-size: 12pt"><a href="https://its.unc.edu/itsnewstechconnect"><i class="fa fa-envelope fa-lg" style="margin-right: 7px"></i>ITS News Tech Connect newsletter</a></p>
@@ -226,7 +223,7 @@
 			</div>
 		</footer>
 
-		<script type="text/javascript" defer src="{{ url_for('static', filename='js/theme.js') }}"></script>
+		<script type="text/javascript" defer src="{{ url_for('static', filename='js/theme.js') }}?v={{ app_version }}"></script>
 		{% block javascript %}
 		{% endblock %}
  </body>

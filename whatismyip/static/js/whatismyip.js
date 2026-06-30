@@ -13,6 +13,67 @@ var reportDnsEdnsGeo = null;
 var reportDnsEdnsIp = null;
 var reportDnsFiltering = null;
 
+function buildNacDiagram(nac, userDevice) {
+	var es = nac.endSystem || {};
+	var bldg = nac.nit_building || {};
+	var isWireless = es.connection_type === 'wireless';
+
+	var bldgName = bldg.number
+		? 'Bldg ' + bldg.number
+		: (bldg.official_name || bldg.full_name || '');
+	var bldgSub = (bldg.official_name || bldg.full_name || '');
+
+	function esc(s) {
+		return $('<span>').text(String(s)).html();
+	}
+
+	function node(icon, label, sub) {
+		return '<div class="nac-node">'
+			+ '<div class="nac-icon"><i class="fa-solid ' + icon + '" aria-hidden="true"></i></div>'
+			+ '<div class="nac-text">'
+			+ '<div class="nac-label">' + esc(label) + '</div>'
+			+ (sub ? '<div class="nac-sub">' + esc(sub) + '</div>' : '')
+			+ '</div>'
+			+ '</div>';
+	}
+
+	function connector(wireless) {
+		return '<div class="nac-connector' + (wireless ? ' wireless' : '') + '" aria-hidden="true"></div>';
+	}
+
+	var deviceIcon = (userDevice && (userDevice.is_mobile || userDevice.is_tablet))
+		? 'fa-mobile-screen' : 'fa-laptop';
+
+	var html = '<div class="nac-diagram" role="img" aria-label="Network connection path">';
+
+	if (isWireless) {
+		html += node(deviceIcon, 'Your Device', es.macAddress || '');
+		html += connector(true);
+		html += node('fa-wifi', es.wireless_ap_name || 'Access Point', es.wireless_ssid || '');
+		if (bldgName) {
+			html += connector(false);
+			html += node('fa-building', bldgName, bldgSub !== bldgName ? bldgSub : '');
+		}
+	} else {
+		html += node(deviceIcon, 'Your Device', es.macAddress || '');
+		if (es.switchPortId) {
+			html += connector(false);
+			html += node('fa-ethernet', 'Port ' + es.switchPortId, 'Switch Port');
+		}
+		if (es.switchIP) {
+			html += connector(false);
+			html += node('fa-network-wired', es.switchIP, 'Switch');
+		}
+		if (bldgName) {
+			html += connector(false);
+			html += node('fa-building', bldgName, bldgSub !== bldgName ? bldgSub : '');
+		}
+	}
+
+	html += '</div>';
+	return html;
+}
+
 function showCopyNotification(message, isError = false) {
 	let notification = $('#copy-notification');
 
@@ -68,6 +129,11 @@ function copyAddress(addressSelector) {
 			console.error('Failed to copy the address!', err);
 			showCopyNotification('Unable to copy address', true);
 		});
+}
+
+function showPrimaryLoadError() {
+	$('#intro_text').html('<div class="intro-status text-warning"><i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>Connection details could not be retrieved. <a href="javascript:void(0)" onclick="location.reload()">Refresh to try again.</a></div>');
+	$('#report-btn').addClass('disabled').attr('aria-disabled', 'true');
 }
 
 function set_intro_text(is_campus, network_purpose) {
@@ -332,6 +398,7 @@ function test_primary_url(default_version) {
 				$('#second_address_section').show();
 				$('#address2').text(result["client_address"]);
 				$('#additional_ip .ip-bar-label').text('IPv4');
+				$('#second_address_section .ip-copy-card').removeClass('ip-loading');
 			}
 
 			// Populate IPv4 address's details
@@ -397,21 +464,6 @@ function test_primary_url(default_version) {
 				$('#net1-vlan').text(result['network']["vlan_id"] + ' (' + result['network']['vlan_name'] + ')');
 			}
 
-			if ( result['iplocation']["city"] ) {
-				$('#net1-city-row').show();
-				$('#net1-city').text(result['iplocation']["city"]);
-			}
-			if ( result['iplocation']["region"] ) {
-				$('#net1-region-row').show();
-				$('#net1-region').text(result['iplocation']["region"]);
-			}
-			if ( result['iplocation']["country_name"] ) {
-				$('#net1-country-row').show();
-				$('#net1-country').text(result['iplocation']["country_name"]);
-			} else if ( result['iplocation']['country']) {
-				$('#net1-country-row').show();
-				$('#net1-country').text(result['iplocation']["country"]);
-			}
 			if ( result['iplocation']["isp"] ) {
 				$('#net1-isp-row').show();
 				$('#net1-isp').text(result['iplocation']["isp"]);
@@ -419,6 +471,18 @@ function test_primary_url(default_version) {
 			if ( result['iplocation']["org"] ) {
 				$('#net1-org-row').show();
 				$('#net1-org').text(result['iplocation']["org"]);
+			}
+			var net1city = result['iplocation']["city"], net1region = result['iplocation']["region"];
+			if (net1city || net1region) {
+				$('#net1-location-row').show();
+				$('#net1-location').text([net1city, net1region].filter(Boolean).join(', '));
+			}
+			if ( result['iplocation']["country_name"] ) {
+				$('#net1-country-row').show();
+				$('#net1-country').text(result['iplocation']["country_name"]);
+			} else if ( result['iplocation']['country']) {
+				$('#net1-country-row').show();
+				$('#net1-country').text(result['iplocation']["country"]);
 			}
 			if ( result['iplocation']["asn"] ) {
 				$('#net1-asn-row').show();
@@ -467,10 +531,18 @@ function test_primary_url(default_version) {
 			}
 
 			if (result['nac']['endSystem']) {
-				$('#toggle-button').show();
+				$('#nac-diagram-row').show();
 				$('#additional-info').show();
 				$('#nac-col').show();
 				$('#nac-card').show();
+
+				// Build connection diagram
+				var diagHtml = buildNacDiagram(result['nac'], result['user_device']);
+				if (diagHtml) {
+					$('#nac-diagram').html(diagHtml);
+					$('#nac-diagram-card').show();
+				}
+
 				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
 					if (value) {
 						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${nacCell(key, value)}</td></tr>`);
@@ -542,7 +614,11 @@ function test_primary_url(default_version) {
 				$('#net-config-card').show();
 				$('#detail-col').show();
 				$('#additional-info').show();
-				$('#toggle-button').show();
+				$('#nac-diagram-row').show();
+			}
+
+			if (result['is_campus'] && !result['network']['cidr']) {
+				$('#net1-ipam-unavailable-row').show();
 			}
 
 			reportDataPrimary = result;
@@ -551,11 +627,13 @@ function test_primary_url(default_version) {
 			$('#report-btn').removeClass('disabled').removeAttr('aria-disabled');
 		},
 		error: function (xhr, status, error) {
-			// $('#connect-ipv4').text("Not supported");
 			$('#connect-ipv4').html('<i class="fa-solid fa-triangle-exclamation text-warning"></i> Not supported');
-			//console.log(error);
-			if (default_version == 4) reportConnectV4 = 'Not detected';
-			else reportConnectV6 = 'Not detected';
+			if (default_version == 4) {
+				reportConnectV4 = 'Not detected';
+				showPrimaryLoadError();
+			} else {
+				reportConnectV6 = 'Not detected';
+			}
 		}
 	});
 
@@ -596,7 +674,7 @@ function populateDeviceCard(ud) {
 		$('#device-card').show();
 		$('#detail-col').show();
 		$('#additional-info').show();
-		$('#toggle-button').show();
+		$('#nac-diagram-row').show();
 	}
 }
 
@@ -816,6 +894,7 @@ function test_secondary_url(default_version) {
 				$('#second_address_section').show();
 				$('#address2').text(result["client_address"]);
 				$('#additional_ip .ip-bar-label').text('IPv6');
+				$('#second_address_section .ip-copy-card').removeClass('ip-loading');
 			}
 			// Populate IPv6 address's details
 			$('#address2-details').show();
@@ -880,21 +959,6 @@ function test_secondary_url(default_version) {
 				$('#net2-vlan').text(result['network']["vlan_id"] + ' (' + result['network']['vlan_name'] + ')');
 			}
 
-			if ( result['iplocation']["city"] ) {
-				$('#net2-city-row').show();
-				$('#net2-city').text(result['iplocation']["city"]);
-			}
-			if ( result['iplocation']["region"] ) {
-				$('#net2-region-row').show();
-				$('#net2-region').text(result['iplocation']["region"]);
-			}
-			if ( result['iplocation']["country_name"] ) {
-				$('#net2-country-row').show();
-				$('#net2-country').text(result['iplocation']["country_name"]);
-			} else if ( result['iplocation']['country']) {
-				$('#net2-country-row').show();
-				$('#net2-country').text(result['iplocation']["country"]);
-			}
 			if ( result['iplocation']["isp"] ) {
 				$('#net2-isp-row').show();
 				$('#net2-isp').text(result['iplocation']["isp"]);
@@ -902,6 +966,18 @@ function test_secondary_url(default_version) {
 			if ( result['iplocation']["org"] ) {
 				$('#net2-org-row').show();
 				$('#net2-org').text(result['iplocation']["org"]);
+			}
+			var net2city = result['iplocation']["city"], net2region = result['iplocation']["region"];
+			if (net2city || net2region) {
+				$('#net2-location-row').show();
+				$('#net2-location').text([net2city, net2region].filter(Boolean).join(', '));
+			}
+			if ( result['iplocation']["country_name"] ) {
+				$('#net2-country-row').show();
+				$('#net2-country').text(result['iplocation']["country_name"]);
+			} else if ( result['iplocation']['country']) {
+				$('#net2-country-row').show();
+				$('#net2-country').text(result['iplocation']["country"]);
 			}
 			if ( result['iplocation']["asn"] ) {
 				$('#net2-asn-row').show();
@@ -951,7 +1027,11 @@ function test_secondary_url(default_version) {
 				$('#net-config-card').show();
 				$('#detail-col').show();
 				$('#additional-info').show();
-				$('#toggle-button').show();
+				$('#nac-diagram-row').show();
+			}
+
+			if (result['is_campus'] && !result['network']['cidr']) {
+				$('#net2-ipam-unavailable-row').show();
 			}
 
 			reportDataSecondary = result;
@@ -959,11 +1039,13 @@ function test_secondary_url(default_version) {
 			else reportConnectV4 = 'Supported';
 		},
 		error: function (xhr, status, error) {
-			// $('#connect-ipv6').text("Not supported");
 			$('#connect-ipv6').html('<i class="fa-solid fa-triangle-exclamation text-warning"></i> Not supported');
-			//console.log(error);
-			if (default_version == 4) reportConnectV6 = 'Not detected';
-			else reportConnectV4 = 'Not detected';
+			if (default_version == 6) {
+				reportConnectV6 = 'Not detected';
+				showPrimaryLoadError();
+			} else {
+				reportConnectV4 = 'Not detected';
+			}
 		}
 	});
 

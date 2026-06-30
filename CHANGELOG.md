@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.3.0] - 2026-06-30
+
+### Added
+
+- **Error state for failed API calls** — if the primary connection lookup fails (network error or server error), the status row updates to a warning message with a "Refresh to try again" link instead of remaining stuck on "Testing connection…". The Report button stays disabled until a successful response is received.
+- **Campus address not in IPAM notice** — when a visitor is identified as on-campus but the IP address is not found in IPAM, an inline note appears in the address detail card where the network and VLAN rows would otherwise be, rather than leaving those rows silently absent.
+- **Consistent page heading pattern** — FAQ, About, Speed Test, and Site Statistics pages now open with a carolina blue `<h1>` heading and a muted subtitle, replacing the previous card-wrapped intro sections and eliminating title redundancy with the active navbar link.
+- **Site Statistics dashboard redesign** — stat cards now display carolina blue numbers with on-campus and off-campus percentage captions; the static "Reporting period" card is replaced by a computed daily average. Three section labels (Traffic, Visitors, Network) with dividers group the charts and tables. Font Awesome icons added to all card titles for consistency with the rest of the site.
+
+### Changed
+
+- **Dark navy navbar and footer** — the navbar and footer now use a dark navy background (`--unc-navy` in light mode, `--unc-bolin-creek` for dark mode contrast) via CSS custom properties (`--site-chrome`, `--site-chrome-text`, `--site-chrome-link`). Navbar links are uppercase with letter-spacing, matching the ITS website style; hover color is Carolina Blue. Footer links use a lighter tint for legibility on the dark background.
+- **Full-width navbar** — the navbar color now extends edge-to-edge, matching the ITS website layout. The link container remains constrained to the page width.
+- **Compressed page title area** — vertical padding reduced and logo scaled down to match ITS website spacing conventions. Italic style removed from the site title. Tagline "Network diagnostics · UNC Information Technology Services" added below the title.
+- **IP address bars redesigned as a hero element** — carolina blue tonal gradient background, larger IP text (2.6 rem, 700 weight), and elevated box shadow. IP version labels restored to the left side to keep the bars compact.
+- **Loading animation on second IP bar** — a skeleton pulse plays while the second address is being detected, replaced by the result when it arrives.
+- **Report button relocated** — moved from the navbar to the status row on the home page, right-justified alongside the connection status message. Keeps the navbar uncluttered and keeps the button adjacent to the data it exports.
+- **Home page intro paragraph removed** — the three-sentence lead-in paragraph is removed. SEO coverage is maintained through the existing meta description, keywords, and JSON-LD structured data.
+- **Section divider** added between the address bars and the card row on the home page.
+- **Site Statistics:** "DNS provider" card renamed to "Internet DNS provider" for consistency with home page terminology.
+
+### Fixed
+
+- Footer social icons were invisible on the dark navy footer in both themes because a hardcoded inline `color` value overrode the CSS custom property. Removed the inline style so icons correctly inherit `--site-chrome-link`.
+- FAQ and About pages had a double-nested `<div class="container">` wrapper; the base template already provides the container. Removed the redundant wrapper.
+- Site Statistics last card row had no bottom margin, causing content to touch the footer. Added `mb-4` to the final row.
+- Open Source card on the About page now uses the subtle tinted background (`--site-subtle-bg`) to match the visual treatment of the bottom card on the home page.
+- Static asset cache busting: all CSS and JS `url_for` references across every template now append `?v={{ app_version }}` so browser caches are invalidated automatically on each version bump, preventing stale styles or scripts after a deploy.
+
+---
+
+## [1.2.0] - 2026-06-30
+
+### Added
+
+- **NAC connection path diagram** displayed by default between the address bars and the More Details section. For wired connections the diagram shows: Your Device → Switch Port → Switch IP → Building. For wireless connections: Your Device → Access Point (with SSID) → Building. Nodes are rendered as circular icon badges connected by solid (wired) or dashed (wireless) lines.
+- Connection path diagram adapts to screen size: vertical stacked layout on mobile (icon left, label right, short vertical connector), horizontal layout on larger screens.
+- More Details button relocated from the connectivity card into the connection path row, right-justified and bottom-aligned, so it remains adjacent to the section it expands.
+
+### Changed
+
+- ISP and Org rows reordered in the address detail cards so Org appears immediately below ISP (both describe the same network entity).
+- City and Region rows consolidated into a single **Location** row displayed as "City, State" — saves one row of vertical space. Falls back gracefully if only one value is returned by the location API.
+- Detail cards (network config, building, device) now expand to the full page width rather than being capped at 560 px.
+
+### Fixed
+
+- More Details button was hidden for visitors without NAC data because the button moved inside the connection path row (`#nac-diagram-row`) which was only shown when NAC end system data was present. Fixed so any data that populates the expanded section also reveals the row and button.
+
+---
+
 ## [1.1.0] - 2026-06-29
 
 ### Added

@@ -35,52 +35,68 @@
 {% endblock %}
 
 {% block content %}
-<div class="row p-1 my-3">
+{% set total = metrics.total_hostinfo %}
+{% set campus_pct = (metrics.total_campus / total * 100) | round | int if total else 0 %}
+{% set remote_pct = (metrics.total_remote / total * 100) | round | int if total else 0 %}
+{% set daily_avg = (total / metrics.window_days) | round | int if metrics.window_days else 0 %}
+<div class="row mt-3 mb-1">
   <div class="col">
-    <p class="mb-0">Aggregated page visits for the last {{ metrics.window_days }} days. The database stores counts and classifications only, not raw client IP addresses.</p>
+    <h1 class="site-page-heading">Site Statistics</h1>
+    <p class="site-page-subheading">Aggregated page visits for the last {{ metrics.window_days }} days. The database stores counts and classifications only — no raw client IP addresses are retained.</p>
   </div>
 </div>
 
-<div class="row g-3 p-1 my-1">
+<div class="row g-3 mt-2">
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small"><i class="fa-solid fa-users me-1" aria-hidden="true"></i>Total visits</div>
-        <div class="display-6 mb-0">{{ metrics.total_hostinfo }}</div>
+        <div class="metrics-stat-label"><i class="fa-solid fa-users me-1" aria-hidden="true"></i>Total visits</div>
+        <div class="metrics-stat-number">{{ '{:,}'.format(total) }}</div>
+        <div class="metrics-stat-secondary">last {{ metrics.window_days }} days</div>
       </div>
     </div>
   </div>
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small"><i class="fa-solid fa-building me-1" aria-hidden="true"></i>On-campus visits</div>
-        <div class="display-6 mb-0">{{ metrics.total_campus }}</div>
+        <div class="metrics-stat-label"><i class="fa-solid fa-building me-1" aria-hidden="true"></i>On-campus</div>
+        <div class="metrics-stat-number">{{ '{:,}'.format(metrics.total_campus) }}</div>
+        <div class="metrics-stat-secondary">{{ campus_pct }}% of visits</div>
       </div>
     </div>
   </div>
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small"><i class="fa-solid fa-house me-1" aria-hidden="true"></i>Off-campus visits</div>
-        <div class="display-6 mb-0">{{ metrics.total_remote }}</div>
+        <div class="metrics-stat-label"><i class="fa-solid fa-house me-1" aria-hidden="true"></i>Off-campus</div>
+        <div class="metrics-stat-number">{{ '{:,}'.format(metrics.total_remote) }}</div>
+        <div class="metrics-stat-secondary">{{ remote_pct }}% of visits</div>
       </div>
     </div>
   </div>
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="text-muted small"><i class="fa-solid fa-calendar-days me-1" aria-hidden="true"></i>Reporting period</div>
-        <div class="display-6 mb-0">Last {{ metrics.window_days }} days</div>
+        <div class="metrics-stat-label"><i class="fa-solid fa-chart-simple me-1" aria-hidden="true"></i>Daily average</div>
+        <div class="metrics-stat-number">{{ '{:,}'.format(daily_avg) }}</div>
+        <div class="metrics-stat-secondary">visits per day</div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="row g-3 p-1 my-1">
+<div class="row mt-4 mb-1">
+  <div class="col">
+    <p class="metrics-section-label mb-1">Traffic</p>
+    <hr class="section-divider mb-0">
+  </div>
+</div>
+
+<div class="row g-3">
   <div class="col-md-9">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">Visits over time</h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-chart-line text-primary me-2" aria-hidden="true"></i>Visits over time</h3>
         {% if metrics.daily_series %}
           <div style="position:relative;height:200px;">
             <canvas id="chartLookupsOverTime"
@@ -103,7 +119,7 @@
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">Protocol version</h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-network-wired text-primary me-2" aria-hidden="true"></i>Protocol version</h3>
         {% if metrics.ip_versions %}
           <div style="position:relative;height:200px;">
             <canvas id="chartIpVersionMix"
@@ -124,11 +140,18 @@
   </div>
 </div>
 
-<div class="row g-3 p-1 my-1">
+<div class="row mt-4 mb-1">
+  <div class="col">
+    <p class="metrics-section-label mb-1">Visitors</p>
+    <hr class="section-divider mb-0">
+  </div>
+</div>
+
+<div class="row g-3">
   <div class="col-lg-4">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">Internet provider</h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-wifi text-primary me-2" aria-hidden="true"></i>Internet provider</h3>
         {% if metrics.isp_breakdown %}
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
@@ -160,7 +183,7 @@
   <div class="col-lg-4">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">Organization</h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-building text-primary me-2" aria-hidden="true"></i>Organization</h3>
         {% if metrics.org_breakdown %}
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
@@ -192,7 +215,7 @@
   <div class="col-lg-4">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">Country</h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-globe text-primary me-2" aria-hidden="true"></i>Country</h3>
         {% if metrics.country_breakdown %}
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
@@ -222,11 +245,18 @@
   </div>
 </div>
 
-<div class="row g-3 p-1 my-1">
+<div class="row mt-4 mb-1">
+  <div class="col">
+    <p class="metrics-section-label mb-1">Network</p>
+    <hr class="section-divider mb-0">
+  </div>
+</div>
+
+<div class="row g-3">
   <div class="col-lg-6">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">Connection origin</h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-location-dot text-primary me-2" aria-hidden="true"></i>Connection origin</h3>
         {% if metrics.campus_breakdown %}
           <div style="position:relative;height:180px;" class="d-flex justify-content-center">
             <canvas id="chartCampusMix" aria-label="Campus mix pie chart" role="img"></canvas>
@@ -267,7 +297,7 @@
   <div class="col-lg-6">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">Network type <small class="text-muted fw-normal" style="font-size:0.75em;">campus only</small></h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-sitemap text-primary me-2" aria-hidden="true"></i>Network type <small class="text-muted fw-normal" style="font-size:0.75em;">campus only</small></h3>
         {% if metrics.purpose_breakdown %}
           <div style="position:relative;height:180px;" class="d-flex justify-content-center">
             <canvas id="chartNetworkPurpose" aria-label="Network purpose pie chart" role="img"></canvas>
@@ -306,11 +336,11 @@
   </div>
 </div>
 
-<div class="row g-3 p-1 my-1">
+<div class="row g-3 mt-3 mb-4">
   <div class="col-lg-6">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">DNS security filtering <small class="text-muted fw-normal" style="font-size:0.75em;">when configured</small></h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-shield-halved text-primary me-2" aria-hidden="true"></i>DNS security filtering <small class="text-muted fw-normal" style="font-size:0.75em;">when configured</small></h3>
         {% if metrics.dns_filtering_breakdown %}
           <div style="position:relative;height:180px;" class="d-flex justify-content-center">
             <canvas id="chartDnsFiltering" aria-label="DNS security filtering pie chart" role="img"></canvas>
@@ -351,7 +381,7 @@
   <div class="col-lg-6">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title">DNS provider</h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-server text-primary me-2" aria-hidden="true"></i>Internet DNS provider</h3>
         {% if metrics.dns_geo_breakdown %}
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
@@ -383,7 +413,7 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}?v={{ app_version }}"></script>
 <script>
 (function () {
   var isDark = document.documentElement.getAttribute('data-theme') === 'dark';

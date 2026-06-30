@@ -40,7 +40,7 @@ APP_ROOT = os.path.join(os.path.dirname(__file__), "..")  # refers to applicatio
 dotenv_path = os.path.join(APP_ROOT, ".env")
 load_dotenv(dotenv_path)
 
-__version__ = "1.1.0"
+__version__ = "1.3.0"
 
 app = Flask(__name__)
 app.config.from_object("config.Config")
@@ -758,10 +758,12 @@ _SIMULATE_HOSTINFO = {
                 "connection_type": "wired",
             },
             "nit_building": {
-                "name": "Phillips Hall",
-                "number": "0162",
-                "lat": 35.9049,
-                "lon": -79.0469,
+                "full_name": "Phillips Hall",
+                "official_name": "Phillips Hall",
+                "building_id": "0162",
+                "address": "120 E Cameron Ave Chapel Hill, NC 27514",
+                "latitude": 35.9049,
+                "longitude": -79.0469,
             },
         },
     },

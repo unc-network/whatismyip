@@ -9,14 +9,14 @@
 {% block twitter_description %}Test your internet speed using Ookla Speedtest Custom with the UNC Chapel Hill server.{% endblock %}
 
 {% block content %}
-<div class="row p-1 my-3">
+<div class="row mt-3 mb-3">
   <div class="col">
-    <p>Test your internet connection speed using Ookla Speedtest Custom.
-      The nearest server is selected by default — choose <b>UNC Chapel Hill</b> from the server list
-      to measure your connection specifically to the campus network.
-      Results reflect your connection at that moment; Wi-Fi signal strength, VPN overhead, and
-      network congestion can all affect the numbers.
-    </p>
+    <h1 class="site-page-heading">Speed Test</h1>
+    <p class="site-page-subheading">Test your connection speed using Ookla Speedtest Custom. The nearest server is selected by default — choose <b>UNC Chapel Hill</b> to measure your connection specifically to the campus network. Wi-Fi signal strength, VPN overhead, and network congestion can all affect results.</p>
+  </div>
+</div>
+<div class="row mb-3">
+  <div class="col">
     <div class="card shadow card-body">
       <iframe width="100%" height="650px" frameborder="0" loading="lazy" title="Internet Speedtest" src="https://uncch.speedtestcustom.com"></iframe>
     </div>

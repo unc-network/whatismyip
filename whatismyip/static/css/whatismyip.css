@@ -20,6 +20,9 @@
   --site-link: var(--unc-carolina-blue);
   --site-link-hover: var(--unc-bolin-creek);
   --site-border: var(--unc-cornerstone);
+  --site-chrome: var(--unc-navy);
+  --site-chrome-text: var(--unc-white);
+  --site-chrome-link: var(--unc-fordham-fountain);
 }
 
 html,
@@ -36,6 +39,9 @@ html[data-theme="dark"] {
   --site-link: var(--unc-fordham-fountain);
   --site-link-hover: var(--unc-white);
   --site-border: var(--unc-flat-gray);
+  --site-chrome: var(--unc-bolin-creek);
+  --site-chrome-text: var(--unc-white);
+  --site-chrome-link: var(--unc-fordham-fountain);
 }
 
 body {
@@ -87,9 +93,53 @@ main[role="main"] {
   position: relative;
 }
 
+.site-page-heading {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--unc-carolina-blue);
+  margin-bottom: 0.2rem;
+}
+
+.site-page-subheading {
+  color: var(--site-muted-text);
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.metrics-stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--site-muted-text);
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+}
+
+.metrics-stat-number {
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--unc-carolina-blue);
+}
+
+.metrics-stat-secondary {
+  font-size: 0.78rem;
+  color: var(--site-muted-text);
+  margin-top: 0.1rem;
+}
+
+.metrics-section-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--site-muted-text);
+  margin-bottom: 0.4rem;
+}
+
 .site-header-logo {
   width: auto;
-  height: 130px;
+  height: 72px;
   margin-left: 0.6rem;
   vertical-align: middle;
 }
@@ -124,7 +174,10 @@ main[role="main"] {
 
 @media (max-width: 576px) {
   .site-header-logo {
-    height: 96px;
+    height: 56px;
+  }
+  .ip-hero-text {
+    font-size: 1.7rem;
   }
 
   .theme-toggle-btn {
@@ -149,6 +202,20 @@ main[role="main"] {
   color: var(--site-text);
   border-color: var(--site-border);
 }
+
+.faq-section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-top: 1.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.faq-accent-primary { border-left: 4px solid var(--unc-carolina-blue) !important; }
+.faq-accent-success  { border-left: 4px solid #5a9a5a !important; }
+.faq-accent-warning  { border-left: 4px solid #c9a227 !important; }
+.faq-accent-info     { border-left: 4px solid #3a8fa3 !important; }
 
 .accordion-button {
   background-color: var(--site-surface);
@@ -191,31 +258,52 @@ html[data-theme="dark"] .text-muted {
   color: var(--site-muted-text);
 }
 
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--site-border);
+  margin: 1.5rem 0 0;
+  opacity: 1;
+}
+
 .border-top {
   border-top-color: var(--site-border) !important;
 }
 
 .main-footer {
-  background-color: var(--site-subtle-bg);
-  color: var(--site-text);
+  background-color: var(--site-chrome);
+  color: var(--site-chrome-text);
   padding-top: 0;
   flex-shrink: 0;
 }
+.main-footer .border-top {
+  border-top-color: rgba(255,255,255,0.2) !important;
+}
+.main-footer a {
+  color: var(--site-chrome-link);
+}
+.main-footer a:hover {
+  color: var(--site-chrome-text);
+}
 
 .site-navbar {
-  background-color: var(--site-subtle-bg);
+  background-color: var(--site-chrome);
 }
 .site-navbar .nav-link {
-  color: var(--site-text);
-  opacity: 0.75;
+  color: var(--site-chrome-text);
+  opacity: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 .site-navbar .nav-link:hover {
-  color: var(--site-link);
+  color: var(--unc-carolina-blue);
   opacity: 1;
 }
 .site-navbar .nav-link.active {
-  color: var(--site-link) !important;
+  color: var(--site-chrome-text) !important;
   opacity: 1;
+  border-bottom: 2px solid var(--unc-carolina-blue);
 }
 
 .nav-report-btn {
@@ -300,11 +388,18 @@ html[data-theme="dark"] #copy-notification {
 }
 
 .ip-copy-card {
+  background: linear-gradient(180deg, #56a8d8 0%, #3f8fbf 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 20px rgba(19,41,75,0.35), inset 0 1px 0 rgba(255,255,255,0.2) !important;
   cursor: pointer;
-  transition: filter 0.15s ease;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+.ip-copy-card * {
+  color: #fff !important;
 }
 .ip-copy-card:hover {
-  filter: brightness(1.12);
+  filter: brightness(1.08);
+  box-shadow: 0 8px 28px rgba(19,41,75,0.45), inset 0 1px 0 rgba(255,255,255,0.2) !important;
 }
 .ip-copy-card:focus {
   outline: none;
@@ -314,11 +409,35 @@ html[data-theme="dark"] #copy-notification {
   outline-offset: -3px;
 }
 
+.ip-hero-text {
+  font-size: 2.6rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
 .ip-bar-label {
   font-size: 0.7rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  opacity: 0.75;
   min-width: 2.5rem;
+}
+
+@keyframes ip-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%       { opacity: 1; }
+}
+.ip-loading {
+  animation: ip-pulse 1.4s ease-in-out infinite;
+}
+
+.site-header-tagline {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--site-muted-text);
+  margin-top: 0.25rem;
+  margin-bottom: 0;
 }
 
 .toggle-chevron {
@@ -334,4 +453,135 @@ html[data-theme="dark"] #copy-notification {
   padding: 0.5rem 0.75rem;
   border-left: 3px solid currentColor;
   margin-bottom: 0.5rem;
+}
+
+/* NAC connection diagram — vertical/mobile-first */
+.nac-diagram {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0 0.25rem;
+}
+
+.nac-node {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.nac-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--unc-carolina-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.nac-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.nac-connector {
+  width: 2px;
+  height: 24px;
+  background: var(--unc-carolina-blue);
+  margin-left: 19px; /* center under 40px icon: 20px - 1px */
+  flex-shrink: 0;
+}
+
+.nac-connector.wireless {
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--unc-carolina-blue) 0,
+    var(--unc-carolina-blue) 5px,
+    transparent 5px,
+    transparent 10px
+  );
+}
+
+.nac-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.nac-sub {
+  font-size: 0.65rem;
+  color: var(--site-muted-text);
+  line-height: 1.2;
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+.nac-btn-col {
+  flex-shrink: 0;
+}
+
+/* Horizontal layout on md+ screens */
+@media (min-width: 768px) {
+  .nac-btn-col {
+    width: 160px;
+  }
+
+  .nac-diagram {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 1.25rem 0 1.5rem;
+    overflow-x: auto;
+  }
+
+  .nac-node {
+    flex-direction: column;
+    align-items: center;
+    min-width: 72px;
+    max-width: 110px;
+    padding: 0 6px;
+    gap: 0;
+  }
+
+  .nac-icon {
+    width: 52px;
+    height: 52px;
+    font-size: 1.2rem;
+  }
+
+  .nac-text {
+    align-items: center;
+  }
+
+  .nac-label {
+    margin-top: 0.45rem;
+    text-align: center;
+  }
+
+  .nac-sub {
+    text-align: center;
+  }
+
+  .nac-connector {
+    flex: 1 1 20px;
+    min-width: 16px;
+    height: 2px;
+    width: auto;
+    margin-top: 25px; /* center on 52px icon */
+    margin-left: 0;
+  }
+
+  .nac-connector.wireless {
+    background: repeating-linear-gradient(
+      to right,
+      var(--unc-carolina-blue) 0,
+      var(--unc-carolina-blue) 6px,
+      transparent 6px,
+      transparent 13px
+    );
+  }
 }

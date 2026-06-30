@@ -140,15 +140,18 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="row p-1">
-    <div class="col">
+<div class="row mt-3 mb-1">
+  <div class="col">
+    <h1 class="site-page-heading">Frequently Asked Questions</h1>
+    <p class="site-page-subheading">Browse common questions below. For additional help or to share feedback, contact the <a href="https://help.unc.edu">ITS Service Desk</a>.</p>
+  </div>
+</div>
 
-      <p>Browse common questions about this tool below. For additional help or to share feedback, contact the <a href="https://help.unc.edu">ITS Service Desk</a>.</p>
-
+<div class="row">
+  <div class="col">
       <div class="accordion my-3" id="faqAccordion">
 
-        <p class="faq-section-label text-primary mb-1">What you see</p>
+        <p class="faq-section-label text-primary">What you see</p>
 
         <div class="accordion-item faq-accent-primary">
           <h2 class="accordion-header" id="faq-on-campus-heading">
@@ -222,7 +225,7 @@
           </div>
         </div>
 
-        <p class="faq-section-label text-success mt-3 mb-1">Campus network</p>
+        <p class="faq-section-label text-success">Campus network</p>
 
         <div class="accordion-item faq-accent-success">
           <h2 class="accordion-header" id="faq-campus-heading">
@@ -280,7 +283,7 @@
           </div>
         </div>
 
-        <p class="faq-section-label text-warning mt-3 mb-1">Privacy &amp; location</p>
+        <p class="faq-section-label text-warning">Privacy &amp; location</p>
 
         <div class="accordion-item faq-accent-warning">
           <h2 class="accordion-header" id="faq-privacy-heading">
@@ -327,7 +330,7 @@
           </div>
         </div>
 
-        <p class="faq-section-label text-info mt-3 mb-1">Technical</p>
+        <p class="faq-section-label text-info">Technical</p>
 
         <div class="accordion-item faq-accent-info">
           <h2 class="accordion-header" id="faq-report-heading">
@@ -423,22 +426,14 @@
 
       </div>
 
-    </div>
   </div>
 </div>
 {% endblock %}
 
 {% block head_ext %}
     <link rel="canonical" href="{{ site_url }}/faq">
-    <style>
-      .faq-accent-primary { border-left: 4px solid var(--bs-primary) !important; }
-      .faq-accent-success { border-left: 4px solid var(--bs-success) !important; }
-      .faq-accent-warning { border-left: 4px solid var(--bs-warning) !important; }
-      .faq-accent-info    { border-left: 4px solid var(--bs-info)    !important; }
-      .faq-section-label  { font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-    </style>
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mdb.min.js') }}?v={{ app_version }}"></script>
 {% endblock %}
