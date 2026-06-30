@@ -435,5 +435,5 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mdb.min.js') }}?v={{ app_version }}"></script>
 {% endblock %}

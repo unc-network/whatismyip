@@ -550,20 +550,20 @@
   });
 </script>
 {% elif context['map_provider'] == 'leaflet' %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.min.css') }}?v={{ app_version }}">
 {% endif %}
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}?v={{ app_version }}"></script>
+<script src="{{ url_for('static', filename='js/mdb.min.js') }}?v={{ app_version }}"></script>
 {% if context['map_provider'] == 'leaflet' %}
-<script src="{{ url_for('static', filename='js/leaflet.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/map-leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='js/leaflet.min.js') }}?v={{ app_version }}"></script>
+<script src="{{ url_for('static', filename='js/map-leaflet.js') }}?v={{ app_version }}"></script>
 {% elif context['map_provider'] == 'google' %}
-<script src="{{ url_for('static', filename='js/map-google.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map-google.js') }}?v={{ app_version }}"></script>
 {% endif %}
 <script type="application/json" id="is_campus">{{ (true if context.simulate else context['is_campus']) | tojson }}</script>
 <script type="application/json" id="default_address">{{ ("2001:db8::50" if context.simulate else context['client_address']) | tojson }}</script>
-<script src="{{ url_for('static', filename='js/whatismyip.js') }}"></script>
+<script src="{{ url_for('static', filename='js/whatismyip.js') }}?v={{ app_version }}"></script>
 {% endblock %}

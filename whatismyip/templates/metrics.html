@@ -413,7 +413,7 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}?v={{ app_version }}"></script>
 <script>
 (function () {
   var isDark = document.documentElement.getAttribute('data-theme') === 'dark';

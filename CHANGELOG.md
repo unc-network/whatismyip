@@ -28,6 +28,8 @@ All notable changes to this project will be documented here. This project follow
 - Footer social icons were invisible on the dark navy footer in both themes because a hardcoded inline `color` value overrode the CSS custom property. Removed the inline style so icons correctly inherit `--site-chrome-link`.
 - FAQ and About pages had a double-nested `<div class="container">` wrapper; the base template already provides the container. Removed the redundant wrapper.
 - Site Statistics last card row had no bottom margin, causing content to touch the footer. Added `mb-4` to the final row.
+- Open Source card on the About page now uses the subtle tinted background (`--site-subtle-bg`) to match the visual treatment of the bottom card on the home page.
+- Static asset cache busting: all CSS and JS `url_for` references across every template now append `?v={{ app_version }}` so browser caches are invalidated automatically on each version bump, preventing stale styles or scripts after a deploy.
 
 ---
 

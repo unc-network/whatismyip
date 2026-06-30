@@ -74,16 +74,16 @@
 	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Source+Serif+4:ital,opsz@0,8..60;1,8..60&display=swap" rel="stylesheet">
 
     <!-- MDB -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mdb.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mdb.min.css') }}?v={{ app_version }}" />
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}?v={{ app_version }}" />
 
 	<!-- Site Specific -->
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/whatismyip.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/whatismyip.css') }}?v={{ app_version }}">
 
 	<!-- CUSTOMIZE: Replace or remove this UNC-specific utility bar with your institution's equivalent -->
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/unc-utility-bar.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/unc-utility-bar.css') }}?v={{ app_version }}">
 
 	{% block head_ext %}
 	{% endblock %}
@@ -223,7 +223,7 @@
 			</div>
 		</footer>
 
-		<script type="text/javascript" defer src="{{ url_for('static', filename='js/theme.js') }}"></script>
+		<script type="text/javascript" defer src="{{ url_for('static', filename='js/theme.js') }}?v={{ app_version }}"></script>
 		{% block javascript %}
 		{% endblock %}
  </body>
