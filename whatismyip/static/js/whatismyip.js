@@ -30,8 +30,10 @@ function buildNacDiagram(nac, userDevice) {
 	function node(icon, label, sub) {
 		return '<div class="nac-node">'
 			+ '<div class="nac-icon"><i class="fa-solid ' + icon + '" aria-hidden="true"></i></div>'
+			+ '<div class="nac-text">'
 			+ '<div class="nac-label">' + esc(label) + '</div>'
 			+ (sub ? '<div class="nac-sub">' + esc(sub) + '</div>' : '')
+			+ '</div>'
 			+ '</div>';
 	}
 
@@ -526,7 +528,7 @@ function test_primary_url(default_version) {
 			}
 
 			if (result['nac']['endSystem']) {
-				$('#toggle-button').show();
+				$('#nac-diagram-row').show();
 				$('#additional-info').show();
 				$('#nac-col').show();
 				$('#nac-card').show();
@@ -535,7 +537,7 @@ function test_primary_url(default_version) {
 				var diagHtml = buildNacDiagram(result['nac'], result['user_device']);
 				if (diagHtml) {
 					$('#nac-diagram').html(diagHtml);
-					$('#nac-diagram-row').show();
+					$('#nac-diagram-card').show();
 				}
 
 				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {

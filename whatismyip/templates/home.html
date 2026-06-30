@@ -58,17 +58,6 @@
       </div>
     </div>
 
-    <div id="nac-diagram-row" class="row p-1 mt-1 mb-0" style="display:none;" data-nosnippet>
-      <div class="col">
-        <div class="card shadow">
-          <div class="card-body py-2">
-            <p class="text-muted small fw-semibold mb-0"><i class="fa-solid fa-network-wired me-2" aria-hidden="true"></i>Connection Path</p>
-            <div id="nac-diagram"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 
   <div id="map_card" class="col-xl-3 align-middle">
@@ -123,10 +112,6 @@
         </div>
       </div>
     </div>
-
-    <button id="toggle-button" class="btn btn-primary btn-block mt-auto mb-3" type="button" data-mdb-toggle="collapse" data-mdb-target="#additionalDetails" aria-expanded="false" aria-controls="additionalDetails" style="display:none;">
-      <i class="fa-solid fa-chevron-down me-2 toggle-chevron" aria-hidden="true"></i>More Details
-    </button>
 
   </div> <!-- end of column 1 -->
 
@@ -314,6 +299,22 @@
 
 </div> <!-- end of row -->
 
+<div id="nac-diagram-row" class="p-1 mt-2" style="display:none;" data-nosnippet>
+  <div class="d-flex flex-column flex-md-row align-items-stretch gap-3">
+    <div id="nac-diagram-card" class="card shadow flex-grow-1" style="display:none;">
+      <div class="card-body py-2">
+        <h3 class="card-title h5"><i class="fa-solid fa-network-wired text-primary me-2" aria-hidden="true"></i>Connection Path</h3>
+        <div id="nac-diagram"></div>
+      </div>
+    </div>
+    <div class="nac-btn-col d-flex flex-column justify-content-end">
+      <button id="toggle-button" class="btn btn-primary w-100 mb-3" type="button" data-mdb-toggle="collapse" data-mdb-target="#additionalDetails" aria-expanded="false" aria-controls="additionalDetails">
+        <i class="fa-solid fa-chevron-down me-2 toggle-chevron" aria-hidden="true"></i>More Details
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="collapse" id="additionalDetails">
 
 <div id="additional-info" class="row p-1 mt-2" style="display:none;">
@@ -334,7 +335,7 @@
   <div id="detail-col" class="col-xl" style="display:none;">
   <div class="d-flex flex-wrap align-items-start gap-3 mt-3">
 
-    <div id="net-config-card" class="card shadow" style="display:none; flex:1 1 400px; max-width:560px;">
+    <div id="net-config-card" class="card shadow" style="display:none; flex:1 1 400px;">
       <div class="card-body">
         <h3 class="card-title h5"><i class="fa-solid fa-sliders text-primary me-2" aria-hidden="true"></i>Network Configuration</h3>
 
@@ -401,7 +402,7 @@
       </div>
     </div>
 
-    <div id="bldg-card" class="card shadow" style="display:none; flex:1 1 400px; max-width:560px;">
+    <div id="bldg-card" class="card shadow" style="display:none; flex:1 1 400px;">
       <div class="card-body">
         <h3 class="card-title h5"><i class="fa-solid fa-building text-primary me-2" aria-hidden="true"></i>Campus Building</h3>
         <div class="table-responsive">
@@ -425,7 +426,7 @@
       </div>
     </div>
 
-    <div id="device-card" class="card shadow" style="display:none; flex:1 1 400px; max-width:560px;">
+    <div id="device-card" class="card shadow" style="display:none; flex:1 1 400px;">
       <div class="card-body">
         <h3 class="card-title h5"><i class="fa-solid fa-laptop text-primary me-2" aria-hidden="true"></i>Your Device</h3>
         <div class="table-responsive">

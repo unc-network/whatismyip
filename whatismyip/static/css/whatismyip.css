@@ -336,60 +336,60 @@ html[data-theme="dark"] #copy-notification {
   margin-bottom: 0.5rem;
 }
 
-/* NAC connection diagram */
+/* NAC connection diagram — vertical/mobile-first */
 .nac-diagram {
   display: flex;
-  align-items: flex-start;
-  padding: 1.25rem 0 1.5rem;
-  overflow-x: auto;
+  flex-direction: column;
+  padding: 0.5rem 0 0.25rem;
 }
 
 .nac-node {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  gap: 0.75rem;
   flex: 0 0 auto;
-  min-width: 72px;
-  max-width: 110px;
-  padding: 0 6px;
 }
 
 .nac-icon {
-  width: 52px;
-  height: 52px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--unc-carolina-blue);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1rem;
   flex-shrink: 0;
 }
 
+.nac-text {
+  display: flex;
+  flex-direction: column;
+}
+
 .nac-connector {
-  flex: 1 1 20px;
-  min-width: 16px;
-  height: 2px;
+  width: 2px;
+  height: 24px;
   background: var(--unc-carolina-blue);
-  margin-top: 25px; /* center on 52px icon: 26px center - 1px half-height */
+  margin-left: 19px; /* center under 40px icon: 20px - 1px */
+  flex-shrink: 0;
 }
 
 .nac-connector.wireless {
   background: repeating-linear-gradient(
-    to right,
+    to bottom,
     var(--unc-carolina-blue) 0,
-    var(--unc-carolina-blue) 6px,
-    transparent 6px,
-    transparent 13px
+    var(--unc-carolina-blue) 5px,
+    transparent 5px,
+    transparent 10px
   );
 }
 
 .nac-label {
   font-size: 0.72rem;
   font-weight: 600;
-  margin-top: 0.45rem;
-  text-align: center;
   line-height: 1.2;
   word-break: break-word;
 }
@@ -397,8 +397,72 @@ html[data-theme="dark"] #copy-notification {
 .nac-sub {
   font-size: 0.65rem;
   color: var(--site-muted-text);
-  text-align: center;
   line-height: 1.2;
   margin-top: 2px;
   word-break: break-word;
+}
+
+.nac-btn-col {
+  flex-shrink: 0;
+}
+
+/* Horizontal layout on md+ screens */
+@media (min-width: 768px) {
+  .nac-btn-col {
+    width: 160px;
+  }
+
+  .nac-diagram {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 1.25rem 0 1.5rem;
+    overflow-x: auto;
+  }
+
+  .nac-node {
+    flex-direction: column;
+    align-items: center;
+    min-width: 72px;
+    max-width: 110px;
+    padding: 0 6px;
+    gap: 0;
+  }
+
+  .nac-icon {
+    width: 52px;
+    height: 52px;
+    font-size: 1.2rem;
+  }
+
+  .nac-text {
+    align-items: center;
+  }
+
+  .nac-label {
+    margin-top: 0.45rem;
+    text-align: center;
+  }
+
+  .nac-sub {
+    text-align: center;
+  }
+
+  .nac-connector {
+    flex: 1 1 20px;
+    min-width: 16px;
+    height: 2px;
+    width: auto;
+    margin-top: 25px; /* center on 52px icon */
+    margin-left: 0;
+  }
+
+  .nac-connector.wireless {
+    background: repeating-linear-gradient(
+      to right,
+      var(--unc-carolina-blue) 0,
+      var(--unc-carolina-blue) 6px,
+      transparent 6px,
+      transparent 13px
+    );
+  }
 }
