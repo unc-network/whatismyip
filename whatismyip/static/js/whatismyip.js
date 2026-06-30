@@ -611,7 +611,7 @@ function test_primary_url(default_version) {
 				$('#net-config-card').show();
 				$('#detail-col').show();
 				$('#additional-info').show();
-				$('#toggle-button').show();
+				$('#nac-diagram-row').show();
 			}
 
 			reportDataPrimary = result;
@@ -665,7 +665,7 @@ function populateDeviceCard(ud) {
 		$('#device-card').show();
 		$('#detail-col').show();
 		$('#additional-info').show();
-		$('#toggle-button').show();
+		$('#nac-diagram-row').show();
 	}
 }
 
@@ -1020,7 +1020,7 @@ function test_secondary_url(default_version) {
 				$('#net-config-card').show();
 				$('#detail-col').show();
 				$('#additional-info').show();
-				$('#toggle-button').show();
+				$('#nac-diagram-row').show();
 			}
 
 			reportDataSecondary = result;
