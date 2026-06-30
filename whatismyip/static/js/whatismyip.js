@@ -131,6 +131,11 @@ function copyAddress(addressSelector) {
 		});
 }
 
+function showPrimaryLoadError() {
+	$('#intro_text').html('<div class="intro-status text-warning"><i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>Connection details could not be retrieved. <a href="javascript:void(0)" onclick="location.reload()">Refresh to try again.</a></div>');
+	$('#report-btn').addClass('disabled').attr('aria-disabled', 'true');
+}
+
 function set_intro_text(is_campus, network_purpose) {
 	var icon, msg, cls;
 	if (is_campus) {
@@ -612,17 +617,23 @@ function test_primary_url(default_version) {
 				$('#nac-diagram-row').show();
 			}
 
+			if (result['is_campus'] && !result['network']['cidr']) {
+				$('#net1-ipam-unavailable-row').show();
+			}
+
 			reportDataPrimary = result;
 			if (default_version == 4) reportConnectV4 = 'Supported';
 			else reportConnectV6 = 'Supported';
 			$('#report-btn').removeClass('disabled').removeAttr('aria-disabled');
 		},
 		error: function (xhr, status, error) {
-			// $('#connect-ipv4').text("Not supported");
 			$('#connect-ipv4').html('<i class="fa-solid fa-triangle-exclamation text-warning"></i> Not supported');
-			//console.log(error);
-			if (default_version == 4) reportConnectV4 = 'Not detected';
-			else reportConnectV6 = 'Not detected';
+			if (default_version == 4) {
+				reportConnectV4 = 'Not detected';
+				showPrimaryLoadError();
+			} else {
+				reportConnectV6 = 'Not detected';
+			}
 		}
 	});
 
@@ -1019,16 +1030,22 @@ function test_secondary_url(default_version) {
 				$('#nac-diagram-row').show();
 			}
 
+			if (result['is_campus'] && !result['network']['cidr']) {
+				$('#net2-ipam-unavailable-row').show();
+			}
+
 			reportDataSecondary = result;
 			if (default_version == 4) reportConnectV6 = 'Supported';
 			else reportConnectV4 = 'Supported';
 		},
 		error: function (xhr, status, error) {
-			// $('#connect-ipv6').text("Not supported");
 			$('#connect-ipv6').html('<i class="fa-solid fa-triangle-exclamation text-warning"></i> Not supported');
-			//console.log(error);
-			if (default_version == 4) reportConnectV6 = 'Not detected';
-			else reportConnectV4 = 'Not detected';
+			if (default_version == 6) {
+				reportConnectV6 = 'Not detected';
+				showPrimaryLoadError();
+			} else {
+				reportConnectV4 = 'Not detected';
+			}
 		}
 	});
 

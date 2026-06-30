@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.3.0] - 2026-06-30
+
+### Added
+
+- **Error state for failed API calls** — if the primary connection lookup fails (network error or server error), the status row updates to a warning message with a "Refresh to try again" link instead of remaining stuck on "Testing connection…". The Report button stays disabled until a successful response is received.
+- **Campus address not in IPAM notice** — when a visitor is identified as on-campus but the IP address is not found in IPAM, an inline note appears in the address detail card where the network and VLAN rows would otherwise be, rather than leaving those rows silently absent.
+- **Consistent page heading pattern** — FAQ, About, Speed Test, and Site Statistics pages now open with a carolina blue `<h1>` heading and a muted subtitle, replacing the previous card-wrapped intro sections and eliminating title redundancy with the active navbar link.
+- **Site Statistics dashboard redesign** — stat cards now display carolina blue numbers with on-campus and off-campus percentage captions; the static "Reporting period" card is replaced by a computed daily average. Three section labels (Traffic, Visitors, Network) with dividers group the charts and tables. Font Awesome icons added to all card titles for consistency with the rest of the site.
+
+### Changed
+
+- **Dark navy navbar and footer** — the navbar and footer now use a dark navy background (`--unc-navy` in light mode, `--unc-bolin-creek` for dark mode contrast) via CSS custom properties (`--site-chrome`, `--site-chrome-text`, `--site-chrome-link`). Navbar links are uppercase with letter-spacing, matching the ITS website style; hover color is Carolina Blue. Footer links use a lighter tint for legibility on the dark background.
+- **Full-width navbar** — the navbar color now extends edge-to-edge, matching the ITS website layout. The link container remains constrained to the page width.
+- **Compressed page title area** — vertical padding reduced and logo scaled down to match ITS website spacing conventions. Italic style removed from the site title. Tagline "Network diagnostics · UNC Information Technology Services" added below the title.
+- **IP address bars redesigned as a hero element** — carolina blue tonal gradient background, larger IP text (2.6 rem, 700 weight), and elevated box shadow. IP version labels restored to the left side to keep the bars compact.
+- **Loading animation on second IP bar** — a skeleton pulse plays while the second address is being detected, replaced by the result when it arrives.
+- **Report button relocated** — moved from the navbar to the status row on the home page, right-justified alongside the connection status message. Keeps the navbar uncluttered and keeps the button adjacent to the data it exports.
+- **Home page intro paragraph removed** — the three-sentence lead-in paragraph is removed. SEO coverage is maintained through the existing meta description, keywords, and JSON-LD structured data.
+- **Section divider** added between the address bars and the card row on the home page.
+- **Site Statistics:** "DNS provider" card renamed to "Internet DNS provider" for consistency with home page terminology.
+
+### Fixed
+
+- Footer social icons were invisible on the dark navy footer in both themes because a hardcoded inline `color` value overrode the CSS custom property. Removed the inline style so icons correctly inherit `--site-chrome-link`.
+- FAQ and About pages had a double-nested `<div class="container">` wrapper; the base template already provides the container. Removed the redundant wrapper.
+- Site Statistics last card row had no bottom margin, causing content to touch the footer. Added `mb-4` to the final row.
+
+---
+
 ## [1.2.0] - 2026-06-30
 
 ### Added
