@@ -1,3 +1,4 @@
+import dns.exception
 import pytest
 
 from whatismyip import app, redirect_split_stack_hosts_to_primary
@@ -35,7 +36,7 @@ def test_metrics_route_is_public_when_no_auth_configured(client, monkeypatch):
     response = client.get("/metrics")
 
     assert response.status_code == 200
-    assert b"Usage Metrics" in response.data
+    assert b"Site Statistics" in response.data
 
 
 def test_metrics_route_requires_auth_when_configured(client, monkeypatch):
@@ -57,6 +58,7 @@ def test_sitemap_includes_core_pages(client):
     assert b"whatismyip.unc.edu/faq" in response.data
     assert b"whatismyip.unc.edu/about" in response.data
     assert b"whatismyip.unc.edu/metrics" in response.data
+    assert b"whatismyip.unc.edu/connectivity" in response.data
 
 
 @pytest.mark.parametrize(
@@ -134,3 +136,90 @@ def test_split_stack_hostnames_keep_hostinfo_route(client, monkeypatch):
         response = redirect_split_stack_hosts_to_primary()
 
     assert response is None
+
+
+# --- /hostinfo tests ---
+
+
+def test_hostinfo_simulate_ipv4_returns_fixture(client):
+    response = client.get("/hostinfo?simulate=4")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["client_address"] == "192.0.2.50"
+    assert data["is_campus"] is True
+    assert "network" in data
+    assert "address_details" in data
+    assert "user_device" in data
+
+
+def test_hostinfo_simulate_ipv6_returns_fixture(client):
+    response = client.get("/hostinfo?simulate=6")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["client_address"] == "2001:db8::50"
+    assert "network" in data
+    assert "address_details" in data
+
+
+def _no_ptr(*a, **kw):
+    raise dns.exception.DNSException()
+
+
+def test_hostinfo_off_campus_ip_returns_valid_json(client, monkeypatch):
+    monkeypatch.delenv("CLIENT_ADDRESS", raising=False)
+    monkeypatch.delenv("FORWARDED_FOR", raising=False)
+    monkeypatch.setattr("whatismyip.is_campus_ip", lambda ip: False)
+    monkeypatch.setattr("whatismyip.get_network", lambda ip: None)
+    monkeypatch.setattr("whatismyip.get_address_objects", lambda ip: None)
+    monkeypatch.setattr("whatismyip.log_metrics_event", lambda *a, **kw: None)
+    monkeypatch.setattr("whatismyip.resolver.query", _no_ptr)
+
+    response = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["client_address"] == "10.0.0.1"
+    assert data["is_campus"] is False
+    assert data["network"]["cidr"] is None
+
+
+def test_hostinfo_campus_ip_populates_network_and_purpose(client, monkeypatch):
+    monkeypatch.delenv("CLIENT_ADDRESS", raising=False)
+    monkeypatch.delenv("FORWARDED_FOR", raising=False)
+    mock_network = {
+        "network": "152.2.0.0/16",
+        "comment": "UNC Chapel Hill",
+        "extattrs": {"Purpose": {"value": "Wired"}},
+        "members": [],
+        "options": [],
+        "vlans": [],
+    }
+    monkeypatch.setattr("whatismyip.is_campus_ip", lambda ip: True)
+    monkeypatch.setattr("whatismyip.get_network", lambda ip: mock_network)
+    monkeypatch.setattr("whatismyip.get_address_objects", lambda ip: None)
+    monkeypatch.setattr("whatismyip.get_nac_info", lambda ip, mac=None: None)
+    monkeypatch.setattr("whatismyip.log_metrics_event", lambda *a, **kw: None)
+    monkeypatch.setattr("whatismyip.resolver.query", _no_ptr)
+
+    response = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["is_campus"] is True
+    assert data["network"]["cidr"] == "152.2.0.0/16"
+    assert data["network"]["purpose"] == "Wired"
+
+
+def test_hostinfo_external_failures_degrade_gracefully(client, monkeypatch):
+    def _ipam_down(*a, **kw):
+        raise Exception("IPAM down")
+
+    monkeypatch.delenv("CLIENT_ADDRESS", raising=False)
+    monkeypatch.delenv("FORWARDED_FOR", raising=False)
+    monkeypatch.setattr("whatismyip.is_campus_ip", lambda ip: False)
+    monkeypatch.setattr("whatismyip.get_network", _ipam_down)
+    monkeypatch.setattr("whatismyip.get_address_objects", _ipam_down)
+    monkeypatch.setattr("whatismyip.log_metrics_event", lambda *a, **kw: None)
+    monkeypatch.setattr("whatismyip.resolver.query", _no_ptr)
+
+    response = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
+    assert response.status_code == 200
+    assert response.get_json()["client_address"] == "10.0.0.1"

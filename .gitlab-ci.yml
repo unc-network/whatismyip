@@ -4,13 +4,14 @@ stages:
   - lint
   - security_scan
   - test
+  - tag
 
 black_formatting_check:
   stage: lint
   variables:
     WORKDIR: "." # Directory to check, defaults to root
   before_script:
-    - pip install black
+    - pip install black==26.3.1
   script:
     # Run black in check mode: fails if changes are needed
     - black "$WORKDIR" --check --verbose --diff --color
@@ -30,19 +31,33 @@ security_scan_pip_audit:
   allow_failure: true # Optional: allows the pipeline to continue even if vulnerabilities are found initially
 
 run_tests:
-  stage: test # Assign this job to the 'test' stage
+  stage: test
   before_script:
-    - pip install pytest
+    - pip install pytest==9.0.3
+    - pip install -r requirements.txt
   script:
-    - pip install -r requirements.txt # Install project dependencies
-    # Run your tests using pytest, unittest, or another test runner
-    # - pytest # or `python -m unittest discover tests`
-  # Optional: Store test results as artifacts for review in GitLab UI
-  # artifacts:
-  #   paths:
-  #     - coverage.xml
-  #   reports:
-  #     cobertura: coverage.xml
+    - pytest tests/ -v
+
+tag_release:
+  stage: tag
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  before_script:
+    - git config user.email "gitlab-ci@${CI_SERVER_HOST}"
+    - git config user.name "GitLab CI"
+    - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+  script:
+    - VERSION=$(grep '^__version__' whatismyip/__init__.py | cut -d'"' -f2)
+    - TAG="v${VERSION}"
+    - echo "Detected version ${TAG}"
+    - |
+      if git ls-remote --tags origin | grep -q "refs/tags/${TAG}$"; then
+        echo "Tag ${TAG} already exists — skipping."
+      else
+        git tag -a "${TAG}" -m "Release ${TAG}"
+        git push origin "${TAG}"
+        echo "Created and pushed ${TAG}"
+      fi
 
 include:
   - template: Jobs/Secret-Detection.gitlab-ci.yml
