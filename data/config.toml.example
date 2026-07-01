@@ -52,6 +52,39 @@ security_filter_test_url = ""
 # "google"  — uses Google Maps JavaScript API, requires FLASK_GOOGLE_MAPS_API_KEY
 provider = "leaflet"
 
+[connectivity]
+
+# Targets tested on the /connectivity page. Each entry requires name, url, and type.
+# type must be one of: "self" (this tool), "campus" (campus resource), "internet" (public site).
+# description is optional but recommended.
+#
+# Tests run client-side from the visitor's browser — results reflect the visitor's
+# network path, not the server's.
+
+[[connectivity.targets]]
+name = "What Is My IP"
+url = "https://yoursite.edu/"
+description = "This diagnostic tool — always should be reachable"
+type = "self"
+
+[[connectivity.targets]]
+name = "Institution Homepage"
+url = "https://www.yourinstitution.edu/"
+description = "Institution main website"
+type = "internet"
+
+[[connectivity.targets]]
+name = "Google"
+url = "https://www.google.com/"
+description = "General internet connectivity check"
+type = "internet"
+
+[[connectivity.targets]]
+name = "IT Help Desk"
+url = "https://help.yourinstitution.edu/"
+description = "IT support and service portal"
+type = "campus"
+
 [campus]
 
 # CIDR blocks that are considered campus/local network addresses.

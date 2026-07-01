@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Connectivity Tests — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block meta_description %}Test whether your device can reach key campus and internet resources from your current network connection.{% endblock %}
+{% block og_title %}Connectivity Tests — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block og_description %}Test whether your device can reach key campus and internet resources from your current network connection.{% endblock %}
+{% block og_url %}{{ site_url }}/connectivity{% endblock %}
+{% block twitter_title %}Connectivity Tests — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block twitter_description %}Test whether your device can reach key campus and internet resources from your current network connection.{% endblock %}
+
+{% block head_ext %}
+<link rel="canonical" href="{{ site_url }}/connectivity">
+{% endblock %}
+
+{% block content %}
+<div class="row mt-3 mb-1">
+  <div class="col">
+    <h1 class="site-page-heading">Connectivity Tests</h1>
+    <p class="site-page-subheading">Tests whether your device can reach key campus and internet resources from your current connection. Tests run automatically and reflect your network at this moment.</p>
+  </div>
+</div>
+
+<div class="row mb-3 mt-2">
+  <div class="col d-flex justify-content-end">
+    <button class="btn btn-sm btn-outline-primary" id="conn-rerun-btn" onclick="runAllTests()">
+      <i class="fa-solid fa-rotate-right me-1" aria-hidden="true"></i>Run Again
+    </button>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% if connectivity_targets %}
+    {% for target in connectivity_targets %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <h3 class="h6 card-title mb-1 flex-shrink-0">
+              {% if target.type == 'self' %}
+                <i class="fa-solid fa-bullseye text-info me-2" aria-hidden="true"></i>
+              {% elif target.type == 'campus' %}
+                <i class="fa-solid fa-building text-primary me-2" aria-hidden="true"></i>
+              {% else %}
+                <i class="fa-solid fa-globe text-secondary me-2" aria-hidden="true"></i>
+              {% endif %}
+              {{ target.name }}
+            </h3>
+            <div id="conn-status-{{ loop.index0 }}" class="conn-status small text-muted text-nowrap">
+              <i class="fa-regular fa-clock me-1" aria-hidden="true"></i>Ready
+            </div>
+          </div>
+          {% if target.description %}
+          <p class="text-muted small mb-1">{{ target.description }}</p>
+          {% endif %}
+          <div class="text-muted" style="font-size:0.72rem; overflow-wrap:anywhere;">{{ target.url }}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="col">
+      <div class="card shadow card-body text-muted">
+        <p class="mb-0">No connectivity targets configured. Add <code>[[connectivity.targets]]</code> entries to <code>data/config.toml</code> to enable this page.</p>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<div class="row mb-4">
+  <div class="col">
+    <p class="text-muted small mb-0">
+      <i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>
+      Tests use browser fetch requests. A <strong>reachable</strong> result confirms the host responded; an <strong>unreachable</strong> result indicates a network or DNS failure. Results do not verify the content of the response.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script type="application/json" id="conn-targets">{{ connectivity_targets | tojson }}</script>
+<script>
+(function () {
+  var targets = JSON.parse(document.getElementById('conn-targets').textContent);
+
+  function setStatus(idx, html) {
+    var el = document.getElementById('conn-status-' + idx);
+    if (el) el.innerHTML = html;
+  }
+
+  async function runTest(target, idx) {
+    setStatus(idx, '<i class="fa-solid fa-spinner fa-spin me-1" aria-hidden="true"></i>Testing…');
+
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, 8000);
+    var t0 = performance.now();
+
+    try {
+      await fetch(target.url, { mode: 'no-cors', cache: 'no-store', signal: controller.signal });
+      clearTimeout(timer);
+      var ms = Math.round(performance.now() - t0);
+      setStatus(idx,
+        '<i class="fa-solid fa-circle-check text-success me-1" aria-hidden="true"></i>' +
+        '<span class="text-success">Reachable</span>' +
+        '<span class="text-muted"> — ' + ms + ' ms</span>'
+      );
+    } catch (e) {
+      clearTimeout(timer);
+      if (e.name === 'AbortError') {
+        setStatus(idx,
+          '<i class="fa-solid fa-triangle-exclamation text-warning me-1" aria-hidden="true"></i>' +
+          '<span class="text-warning">Timed out</span>'
+        );
+      } else {
+        setStatus(idx,
+          '<i class="fa-solid fa-circle-xmark text-danger me-1" aria-hidden="true"></i>' +
+          '<span class="text-danger">Unreachable</span>'
+        );
+      }
+    }
+  }
+
+  window.runAllTests = function () {
+    targets.forEach(function (t, i) { runTest(t, i); });
+  };
+
+  document.addEventListener('DOMContentLoaded', window.runAllTests);
+}());
+</script>
+{% endblock %}

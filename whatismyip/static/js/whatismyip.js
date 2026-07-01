@@ -602,6 +602,7 @@ function test_primary_url(default_version) {
 
 			// User device card — populate once; both callbacks return identical data
 			populateDeviceCard(result['user_device']);
+			checkClockSync(result['server_time']);
 
 			// Network configuration card — IPv4 section (populated by primary/IPv4 callback)
 			var hasV4Config = false;
@@ -659,6 +660,40 @@ function test_primary_url(default_version) {
 		}
 	});
 
+}
+
+function checkClockSync(serverTime) {
+	if (!serverTime) return;
+	var offsetSec = Math.round(Math.abs(Date.now() - serverTime) / 1000);
+	var label, icon, cls;
+
+	function fmt(s) {
+		if (s < 60) return s + ' second' + (s !== 1 ? 's' : '');
+		var m = Math.floor(s / 60), r = s % 60;
+		if (m < 60) return m + 'm ' + (r > 0 ? r + 's' : '');
+		return Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
+	}
+
+	if (offsetSec < 30) {
+		icon = 'fa-circle-check text-success';
+		cls  = '';
+		label = 'Synchronized';
+	} else if (offsetSec < 300) {
+		icon = 'fa-triangle-exclamation text-warning';
+		cls  = 'text-warning';
+		label = fmt(offsetSec) + ' offset detected — check system clock';
+	} else {
+		icon = 'fa-circle-xmark text-danger';
+		cls  = 'text-danger';
+		label = fmt(offsetSec) + ' offset — may cause authentication and VPN failures';
+	}
+
+	$('#device-clock').html(`<i class="fa-solid ${icon} me-1" aria-hidden="true"></i><span class="${cls}">${label}</span>`);
+	$('#device-clock-row').show();
+	$('#device-card').show();
+	$('#detail-col').show();
+	$('#additional-info').show();
+	$('#nac-diagram-row').show();
 }
 
 function populateDeviceCard(ud) {
