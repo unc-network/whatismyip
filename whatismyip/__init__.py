@@ -1167,7 +1167,7 @@ def hostinfo():
         hosting=iplocation.get("hosting"),
     )
 
-    data['server_time'] = int(time.time() * 1000)
+    data["server_time"] = int(time.time() * 1000)
 
     # build the json response
     message = jsonify(data)
@@ -1248,7 +1248,9 @@ def speedtest_redirect():
 def connectivity():
     """Display the connectivity test page."""
     targets = app.config.get("CONNECTIVITY_TARGETS", [])
-    resp = make_response(render_template("connectivity.html", connectivity_targets=targets))
+    resp = make_response(
+        render_template("connectivity.html", connectivity_targets=targets)
+    )
     resp.cache_control.public = True
     resp.cache_control.max_age = 300
     return resp
