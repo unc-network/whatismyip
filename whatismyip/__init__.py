@@ -2,10 +2,10 @@
 Basic App
 """
 
+import ipaddress as _ipaddress
 import os
-import time
-import logging
 import sqlite3
+import time
 
 try:
     import tomllib
@@ -81,8 +81,6 @@ def inject_site_name():
 
 METRICS_DB_PATH = os.path.join(APP_ROOT, "data", "metrics.sqlite3")
 SITE_CONFIG_PATH = os.path.join(APP_ROOT, "data", "config.toml")
-
-import ipaddress as _ipaddress
 
 # No built-in campus networks — each deployment must configure data/config.toml.
 # An empty list means all visitors are treated as off-campus, which is the safe default.
@@ -1354,4 +1352,4 @@ if app.config.get("TESTING"):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=True)  # nosec - dev-only block, production uses gunicorn

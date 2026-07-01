@@ -16,7 +16,11 @@
 #
 ###########################################################################
 
-import sys, json, time, base64, logging
+import base64
+import json
+import logging
+import sys
+import time
 from datetime import datetime
 import requests
 import urllib3
@@ -119,15 +123,15 @@ class XMC_NBI:
                 verify=False,
                 timeout=5,
             )
-        except requests.Timeout as error:
+        except requests.Timeout:
             self.message = "timeout reached, host '%s' not responding" % self.host
             self.error = True
             return False
-        except requests.TooManyRedirects as error:
+        except requests.TooManyRedirects:
             self.message = "too many redirects"
             self.error = True
             return False
-        except requests.RequestException as error:
+        except requests.RequestException:
             self.message = "No connection could be made because the target machine actively refused it"
             self.error = True
             return False
@@ -217,7 +221,7 @@ class XMC_NBI:
         else:
             try:
                 data_out = json.loads(response.text)
-            except:
+            except Exception:
                 self.message = "call '%s' no JSON data given" % caller
                 self.error = True
 
@@ -1038,7 +1042,7 @@ if __name__ == "__main__":
             for mac, group in sorted(mac_list.items()):
                 mac_data = session.getMacAddress(mac)
                 if session.error:
-                    print("ERROR: get MAC '' failed '%s'" % (mac, session.message))
+                    print("ERROR: get MAC '%s' failed '%s'" % (mac, session.message))
                     sys.exit(1)
                 else:
                     if not mac_data == None:
@@ -1055,7 +1059,7 @@ if __name__ == "__main__":
         print("INFO: add MAC address %s" % mac)
         mac_data = session.getMacAddress(mac)
         if session.error:
-            print("ERROR: get MAC '' failed '%s'" % (mac, session.message))
+            print("ERROR: get MAC '%s' failed '%s'" % (mac, session.message))
             sys.exit(1)
         else:
             if not mac_data == None:

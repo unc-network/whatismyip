@@ -73,16 +73,12 @@ def get_forwarded_address(forwarded_for):
 
     Example value: "2610:28:3091:1000:2::a,172.22.158.131"
     """
-    proxy_detected = None
-    proxy_address = None
     client_address = None
 
     # Remove spaces and split on commas
     fwd_list = forwarded_for.replace(" ", "").split(",")
     if len(fwd_list) > 2:
-        proxy_address = fwd_list[-1]
         client_address = fwd_list[-2]
-        proxy_detected = ",".join(fwd_list[:-2])
     else:
         # normal: the last for cloudapps and second to last for client
         client_address = fwd_list[-2]
@@ -304,7 +300,7 @@ def get_nac_info(ip_address, mac=None):
         app.logger.debug(f"get_nac_info complete in {execution_time} seconds")
         return data
 
-    app.logger.debug(f"Connecting to XiQ to get end system info")
+    app.logger.debug("Connecting to XiQ to get end system info")
     session = XMC_NBI(
         app.config["XMC_SERVER"],
         app.config["XMC_CLIENT_ID"],

@@ -6,37 +6,65 @@ stages:
   - test
   - tag
 
+# Shared pip cache — all jobs that install from requirements.txt benefit.
+# Keyed on the requirements file so a lock-file change busts the cache.
+.pip_cache: &pip_cache
+  cache:
+    key:
+      files:
+        - requirements.txt
+    paths:
+      - .cache/pip
+    policy: pull-push
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+ruff_lint:
+  stage: lint
+  before_script:
+    - pip install ruff
+  script:
+    - ruff check .
+  cache: []
+
 black_formatting_check:
   stage: lint
   variables:
-    WORKDIR: "." # Directory to check, defaults to root
+    WORKDIR: "."
   before_script:
     - pip install black==26.3.1
   script:
-    # Run black in check mode: fails if changes are needed
     - black "$WORKDIR" --check --verbose --diff --color
-  cache: [] # Prevents caching for this job, ensuring a fresh run
+  cache: []
 
 security_scan_pip_audit:
   stage: security_scan
+  <<: *pip_cache
+  before_script:
+    - pip install pip-audit
+    - pip install -r requirements.txt
   script:
-    - python3 -m ensurepip
-    - python3 -m pip install --upgrade pip
-    # Install project dependencies again to audit the environment
-    - python3 -m pip install -r requirements.txt
-    # Install pip-audit
-    - python3 -m pip install pip-audit
-    # Run pip-audit, specifying requirements.txt for clear input
     - pip-audit -r requirements.txt
-  allow_failure: true # Optional: allows the pipeline to continue even if vulnerabilities are found initially
+
+security_scan_bandit:
+  stage: security_scan
+  before_script:
+    - pip install bandit
+  script:
+    # -ll = medium severity and above; -ii = medium confidence and above
+    - bandit -r whatismyip/ -ll -ii --exclude whatismyip/extreme.py
+  cache: []
 
 run_tests:
   stage: test
+  <<: *pip_cache
   before_script:
-    - pip install pytest==9.0.3
+    - pip install pytest==9.0.3 pytest-cov
     - pip install -r requirements.txt
   script:
-    - pytest tests/ -v
+    # extreme.py and utils.py are external-API clients; omit from threshold.
+    - pytest tests/ -v --cov=whatismyip --cov-fail-under=50 --cov-report=term-missing --cov-config=setup.cfg
 
 tag_release:
   stage: tag
