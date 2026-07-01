@@ -333,6 +333,13 @@ def get_nac_info(ip_address, mac=None):
         app.logger.debug(f"NAC end system by ip: {end_system_data}")
         data["endSystem"] = end_system_data
 
+    if not end_system_data:
+        app.logger.warning(
+            f"NAC lookup exhausted for campus address {ip_address}"
+            + (f" (MAC {mac})" if mac else " (no MAC from IPAM)")
+            + " — no end system record found by MAC or IP"
+        )
+
     # Lookup additional end system info using the MAC address from either the IP or MAC lookup results
     if end_system_data and end_system_data["macAddress"]:
         app.logger.debug(
