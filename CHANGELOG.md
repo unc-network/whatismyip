@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.4.0] - 2026-07-01
+
+### Added
+
+- **Clock sync check** — the Your Device card includes a Clock row showing whether the device's system clock is synchronized with the server. Offsets under 30 seconds show a green "Synchronized" status; 30 seconds to 5 minutes show a warning with the measured offset; over 5 minutes show an error noting potential authentication and VPN failures.
+- **Connectivity Tests page** (`/connectivity`) — a new page runs client-side reachability tests against a configurable list of campus and internet targets. Tests run automatically on page load and can be re-run on demand. Each target shows live status (reachable with latency, timed out, or unreachable). Targets are configured via `[[connectivity.targets]]` entries in `data/config.toml`. A footnote explains that results use browser fetch in `no-cors` mode and reflect the visitor's network path, not the server's.
+
+### Changed
+
+- **Connectivity nav link added** between Speed Test and About in the main navigation.
+- **Collapsible navbar on small screens** — the main navigation now collapses below 768 px into a hamburger toggle. A vanilla JS handler wires up the toggle on all pages (MDB JS is only loaded on the home page). The active-page indicator switches from a bottom border to a left border when the menu is open vertically.
+- **IP address font scales with viewport** — the hero IP bars use `font-size: clamp(1.1rem, 4.5vw, 2.6rem)` so the size shrinks smoothly on narrow screens rather than snapping at a fixed breakpoint. `<wbr>` break hints are inserted after each `.` and `:` separator so the browser wraps at segment boundaries rather than mid-digit.
+
+### Fixed
+
+- **Connectivity page horizontal scroll on mobile** — the card header used `flex-shrink-0` on the target name, preventing it from shrinking. Long names such as "Undergraduate Library" combined with a `text-nowrap` status badge forced cards wider than the viewport, causing a page-level horizontal scroll that clipped the footnote and footer. Removing `flex-shrink-0` allows long names to wrap within the card instead.
+
+---
+
 ## [1.3.0] - 2026-06-30
 
 ### Added
@@ -30,6 +49,7 @@ All notable changes to this project will be documented here. This project follow
 - Site Statistics last card row had no bottom margin, causing content to touch the footer. Added `mb-4` to the final row.
 - Open Source card on the About page now uses the subtle tinted background (`--site-subtle-bg`) to match the visual treatment of the bottom card on the home page.
 - Static asset cache busting: all CSS and JS `url_for` references across every template now append `?v={{ app_version }}` so browser caches are invalidated automatically on each version bump, preventing stale styles or scripts after a deploy.
+- Mixed-network address detection: when a device's IPv4 and IPv6 addresses resolve to different networks (e.g., campus IPv4 with iCloud Private Relay routing IPv6 off-campus), a supplementary note is appended to the connection status message. Detects iCloud Private Relay by ISP name, VPN/proxy by the ip-api proxy flag, and falls back to a generic split-network message for other cases.
 
 ---
 

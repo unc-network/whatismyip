@@ -3,8 +3,14 @@
   * Helper library for https://whatismyip.unc.edu
   */
 
+function formatIPAddress(ip) {
+	return $('<span>').text(ip).html().replace(/([.:])/g, '$1<wbr>');
+}
+
 var reportDataPrimary = null;
 var reportDataSecondary = null;
+var reportNetworkPurpose = null;
+var reportClockStatus = null;
 var reportConnectV4 = '—';
 var reportConnectV6 = '—';
 var reportDnsProviderGeo = null;
@@ -129,6 +135,27 @@ function copyAddress(addressSelector) {
 			console.error('Failed to copy the address!', err);
 			showCopyNotification('Unable to copy address', true);
 		});
+}
+
+function checkAddressMismatch() {
+	if (!reportDataPrimary || !reportDataSecondary) return;
+	if (reportDataPrimary['is_campus'] === reportDataSecondary['is_campus']) return;
+
+	var offCampus = reportDataPrimary['is_campus'] ? reportDataSecondary : reportDataPrimary;
+	var isp = (offCampus['iplocation'] && offCampus['iplocation']['isp']) || '';
+	var note;
+
+	if (/icloud|private relay/i.test(isp)) {
+		note = 'iCloud Private Relay is routing one of your addresses off-campus.';
+	} else if (offCampus['iplocation'] && offCampus['iplocation']['proxy']) {
+		note = 'A VPN or proxy service is routing one of your addresses off-campus.';
+	} else {
+		note = 'Your two addresses are on different networks — one campus, one off-campus.';
+	}
+
+	$('#intro_text .intro-status').append(
+		`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${note}</div>`
+	);
 }
 
 function showPrimaryLoadError() {
@@ -314,6 +341,7 @@ function downloadReport() {
 		rpt('Operating System', os),
 		rpt('Device Type', deviceType),
 		rpt('Device Model', model),
+		rpt('Clock Sync', reportClockStatus),
 	]);
 
 	var origin = window.location.origin;
@@ -391,12 +419,12 @@ function test_primary_url(default_version) {
 
 			if ( default_version == 4 ) {
 				$('#first_address_section').show();
-				$('#address1').text(result["client_address"]);
+				$('#address1').html(formatIPAddress(result["client_address"]));
 				$('#address_box .ip-bar-label').text('IPv4');
 				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
 				$('#second_address_section').show();
-				$('#address2').text(result["client_address"]);
+				$('#address2').html(formatIPAddress(result["client_address"]));
 				$('#additional_ip .ip-bar-label').text('IPv4');
 				$('#second_address_section .ip-copy-card').removeClass('ip-loading');
 			}
@@ -581,6 +609,7 @@ function test_primary_url(default_version) {
 
 			// User device card — populate once; both callbacks return identical data
 			populateDeviceCard(result['user_device']);
+			checkClockSync(result['server_time']);
 
 			// Network configuration card — IPv4 section (populated by primary/IPv4 callback)
 			var hasV4Config = false;
@@ -621,7 +650,9 @@ function test_primary_url(default_version) {
 				$('#net1-ipam-unavailable-row').show();
 			}
 
+			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
 			reportDataPrimary = result;
+			checkAddressMismatch();
 			if (default_version == 4) reportConnectV4 = 'Supported';
 			else reportConnectV6 = 'Supported';
 			$('#report-btn').removeClass('disabled').removeAttr('aria-disabled');
@@ -637,6 +668,151 @@ function test_primary_url(default_version) {
 		}
 	});
 
+}
+
+function checkNATType(serverIp) {
+	if (!serverIp || !window.RTCPeerConnection) return;
+
+	$('#device-nat').html('<i class="fa-solid fa-spinner fa-spin me-1" aria-hidden="true"></i><span class="text-muted">Testing…</span>');
+	$('#device-nat-row').show();
+	$('#device-card').show();
+	$('#detail-col').show();
+	$('#additional-info').show();
+	$('#nac-diagram-row').show();
+
+	Promise.all([gatherSTUNCandidates(), fetchExternalIPv4()])
+		.then(function (results) {
+			renderNATResult(serverIp, results[0].hostIPs, results[0].srflxIPs, results[1], reportNetworkPurpose);
+		});
+}
+
+function gatherSTUNCandidates() {
+	return new Promise(function (resolve) {
+		var hostIPs = [], srflxIPs = [], finished = false, timer;
+
+		function done() {
+			if (finished) return;
+			finished = true;
+			clearTimeout(timer);
+			try { pc.close(); } catch (ignore) {}
+			resolve({ hostIPs: hostIPs, srflxIPs: srflxIPs });
+		}
+
+		var pc = new RTCPeerConnection({
+			iceServers: [
+				{ urls: 'stun:stun.l.google.com:19302' },
+				{ urls: 'stun:stun.cloudflare.com:3478' }
+			]
+		});
+
+		pc.onicecandidate = function (e) {
+			if (!e.candidate) { done(); return; }
+			var parts = e.candidate.candidate.split(' ');
+			if (parts.length < 8) return;
+			var ip = parts[4], type = parts[7];
+			if (/^fe80:/i.test(ip) || ip === '::1' || ip === '127.0.0.1') return;
+			if (type === 'host' && !hostIPs.includes(ip)) hostIPs.push(ip);
+			if (type === 'srflx' && !srflxIPs.includes(ip)) srflxIPs.push(ip);
+		};
+
+		pc.createDataChannel('nat-probe');
+		pc.createOffer()
+			.then(function (offer) { return pc.setLocalDescription(offer); })
+			.catch(done);
+
+		timer = setTimeout(done, 6000);
+	});
+}
+
+function fetchExternalIPv4() {
+	var controller = new AbortController();
+	var timer = setTimeout(function () { controller.abort(); }, 5000);
+	return fetch('https://api4.ipify.org?format=json', {
+		cache: 'no-store',
+		signal: controller.signal
+	})
+		.then(function (r) { clearTimeout(timer); return r.json(); })
+		.then(function (d) { return d.ip || null; })
+		.catch(function () { clearTimeout(timer); return null; });
+}
+
+function renderNATResult(serverIp, hostIPs, srflxIPs, externalIp, networkPurpose) {
+	var icon, cls, label;
+	// Only compare srflx candidates that match serverIp's protocol family (avoids
+	// false "split path" when STUN gathers an IPv6 srflx against an IPv4 serverIp)
+	var isV6 = serverIp.includes(':');
+	var sameFamilySrflx = srflxIPs.filter(function (ip) { return ip.includes(':') === isV6; });
+	var stunExternal = sameFamilySrflx.length > 0 ? sameFamilySrflx[0] : null;
+	var pathsDiffer = externalIp && externalIp !== serverIp;
+
+	if (pathsDiffer && networkPurpose === 'VPN') {
+		// Network purpose confirms VPN; internet traffic bypasses the tunnel
+		icon = 'fa-code-branch text-info'; cls = '';
+		label = 'Split tunnel — campus VPN, internet via ' + externalIp;
+	} else if (pathsDiffer && networkPurpose) {
+		// Known campus network type (Wireless, Wired, etc.); internet exits via border NAT
+		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
+		label = 'Campus NAT — internet traffic exits as ' + externalIp;
+	} else if (pathsDiffer) {
+		// Paths differ but no network purpose data (e.g. VPN pool not in IPAM)
+		icon = 'fa-code-branch text-info'; cls = '';
+		label = 'Split path — campus ' + serverIp + ', internet ' + externalIp;
+	} else if (!stunExternal) {
+		// No srflx gathered — STUN unreachable or no NAT with direct address
+		if (hostIPs.some(function (ip) { return ip === serverIp; })) {
+			icon = 'fa-circle-check text-success'; cls = '';
+			label = 'No NAT — direct internet connection';
+		} else {
+			icon = 'fa-circle-question text-muted'; cls = 'text-muted';
+			label = 'STUN unreachable — UDP may be blocked by firewall';
+		}
+	} else if (stunExternal === serverIp || hostIPs.includes(stunExternal)) {
+		// STUN external matches server-seen IP, or is a known local address — no NAT
+		// (stunExternal === serverIp handles browsers that suppress host candidates for privacy)
+		icon = 'fa-circle-check text-success'; cls = '';
+		label = 'No NAT — direct internet connection';
+	} else {
+		// STUN external differs from server-seen IP — NAT is present
+		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
+		label = 'Behind NAT — ' + (externalIp || stunExternal);
+	}
+
+	$('#device-nat').html('<i class="fa-solid ' + icon + ' me-1" aria-hidden="true"></i><span class="' + cls + '">' + label + '</span>');
+}
+
+function checkClockSync(serverTime) {
+	if (!serverTime) return;
+	var offsetSec = Math.round(Math.abs(Date.now() - serverTime) / 1000);
+	var label, icon, cls;
+
+	function fmt(s) {
+		if (s < 60) return s + ' second' + (s !== 1 ? 's' : '');
+		var m = Math.floor(s / 60), r = s % 60;
+		if (m < 60) return m + 'm ' + (r > 0 ? r + 's' : '');
+		return Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
+	}
+
+	if (offsetSec < 30) {
+		icon = 'fa-circle-check text-success';
+		cls  = '';
+		label = 'Synchronized';
+	} else if (offsetSec < 300) {
+		icon = 'fa-triangle-exclamation text-warning';
+		cls  = 'text-warning';
+		label = fmt(offsetSec) + ' offset detected — check system clock';
+	} else {
+		icon = 'fa-circle-xmark text-danger';
+		cls  = 'text-danger';
+		label = fmt(offsetSec) + ' offset — may cause authentication and VPN failures';
+	}
+
+	reportClockStatus = label;
+	$('#device-clock').html(`<i class="fa-solid ${icon} me-1" aria-hidden="true"></i><span class="${cls}">${label}</span>`);
+	$('#device-clock-row').show();
+	$('#device-card').show();
+	$('#detail-col').show();
+	$('#additional-info').show();
+	$('#nac-diagram-row').show();
 }
 
 function populateDeviceCard(ud) {
@@ -887,12 +1063,12 @@ function test_secondary_url(default_version) {
 
 			if ( default_version == 6 ) {
 				$('#first_address_section').show();
-				$('#address1').text(result["client_address"]);
+				$('#address1').html(formatIPAddress(result["client_address"]));
 				$('#address_box .ip-bar-label').text('IPv6');
 				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
 				$('#second_address_section').show();
-				$('#address2').text(result["client_address"]);
+				$('#address2').html(formatIPAddress(result["client_address"]));
 				$('#additional_ip .ip-bar-label').text('IPv6');
 				$('#second_address_section .ip-copy-card').removeClass('ip-loading');
 			}
@@ -1034,7 +1210,9 @@ function test_secondary_url(default_version) {
 				$('#net2-ipam-unavailable-row').show();
 			}
 
+			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
 			reportDataSecondary = result;
+			checkAddressMismatch();
 			if (default_version == 4) reportConnectV6 = 'Supported';
 			else reportConnectV4 = 'Supported';
 		},

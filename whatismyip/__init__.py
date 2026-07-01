@@ -40,7 +40,7 @@ APP_ROOT = os.path.join(os.path.dirname(__file__), "..")  # refers to applicatio
 dotenv_path = os.path.join(APP_ROOT, ".env")
 load_dotenv(dotenv_path)
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 app = Flask(__name__)
 app.config.from_object("config.Config")
@@ -128,6 +128,7 @@ def _load_site_config():
         app.config["SITE_LON"] = 0.0
         app.config["BING_VERIFICATION_TOKEN"] = ""
         app.config["INDEXNOW_KEY"] = ""
+        app.config["CONNECTIVITY_TARGETS"] = []
         return
 
     try:
@@ -173,6 +174,9 @@ def _load_site_config():
             "bing_verification_token", ""
         )
         app.config["INDEXNOW_KEY"] = site_section.get("indexnow_key", "")
+
+        connectivity_targets = site_cfg.get("connectivity", {}).get("targets", [])
+        app.config["CONNECTIVITY_TARGETS"] = connectivity_targets
     except Exception as exc:
         app.logger.error(
             f"Failed to load {SITE_CONFIG_PATH}: {exc} — using built-in defaults."
@@ -1163,6 +1167,8 @@ def hostinfo():
         hosting=iplocation.get("hosting"),
     )
 
+    data["server_time"] = int(time.time() * 1000)
+
     # build the json response
     message = jsonify(data)
     response = make_response(message)
@@ -1236,6 +1242,24 @@ def speedtest():
 def speedtest_redirect():
     """Redirect slash variant to canonical speedtest page."""
     return redirect(url_for("speedtest"), code=308)
+
+
+@app.route("/connectivity")
+def connectivity():
+    """Display the connectivity test page."""
+    targets = app.config.get("CONNECTIVITY_TARGETS", [])
+    resp = make_response(
+        render_template("connectivity.html", connectivity_targets=targets)
+    )
+    resp.cache_control.public = True
+    resp.cache_control.max_age = 300
+    return resp
+
+
+@app.route("/connectivity/")
+def connectivity_redirect():
+    """Redirect slash variant to canonical connectivity page."""
+    return redirect(url_for("connectivity"), code=308)
 
 
 @app.route("/metrics")
