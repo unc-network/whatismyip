@@ -665,76 +665,106 @@ function test_primary_url(default_version) {
 
 function checkNATType(serverIp) {
 	if (!serverIp || !window.RTCPeerConnection) return;
-	var hostIPs = [];
-	var srflxIPs = [];
-	var finished = false;
-	var timer;
 
-	function finish() {
-		if (finished) return;
-		finished = true;
-		clearTimeout(timer);
-		try { pc.close(); } catch (ignore) {}
-		renderNATResult(serverIp, hostIPs, srflxIPs);
-	}
-
-	var pc = new RTCPeerConnection({
-		iceServers: [
-			{ urls: 'stun:stun.l.google.com:19302' },
-			{ urls: 'stun:stun.cloudflare.com:3478' }
-		]
-	});
-
-	pc.onicecandidate = function (e) {
-		if (!e.candidate) { finish(); return; }
-		var parts = e.candidate.candidate.split(' ');
-		if (parts.length < 8) return;
-		var ip = parts[4], type = parts[7];
-		// Skip link-local and loopback
-		if (/^fe80:/i.test(ip) || ip === '::1' || ip === '127.0.0.1') return;
-		if (type === 'host' && !hostIPs.includes(ip)) hostIPs.push(ip);
-		if (type === 'srflx' && !srflxIPs.includes(ip)) srflxIPs.push(ip);
-	};
-
-	pc.createDataChannel('nat-probe');
-	pc.createOffer()
-		.then(function (offer) { return pc.setLocalDescription(offer); })
-		.catch(finish);
-
-	timer = setTimeout(finish, 6000);
-}
-
-function renderNATResult(serverIp, hostIPs, srflxIPs) {
-	var icon, cls, label;
-
-	if (srflxIPs.length === 0) {
-		if (hostIPs.some(function (ip) { return ip === serverIp; })) {
-			icon = 'fa-circle-check text-success'; cls = '';
-			label = 'No NAT — direct internet connection';
-		} else {
-			icon = 'fa-circle-question text-muted'; cls = 'text-muted';
-			label = 'STUN unreachable — UDP may be blocked';
-		}
-	} else {
-		var external = srflxIPs[0];
-		if (hostIPs.includes(external)) {
-			icon = 'fa-circle-check text-success'; cls = '';
-			label = 'No NAT — direct internet connection';
-		} else if (external === serverIp) {
-			icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
-			label = 'Behind NAT — ' + external;
-		} else {
-			icon = 'fa-triangle-exclamation text-warning'; cls = 'text-warning';
-			label = 'Split path — UDP exits via ' + external + ', HTTP via ' + serverIp;
-		}
-	}
-
-	$('#device-nat').html('<i class="fa-solid ' + icon + ' me-1" aria-hidden="true"></i><span class="' + cls + '">' + label + '</span>');
+	$('#device-nat').html('<i class="fa-solid fa-spinner fa-spin me-1" aria-hidden="true"></i><span class="text-muted">Testing…</span>');
 	$('#device-nat-row').show();
 	$('#device-card').show();
 	$('#detail-col').show();
 	$('#additional-info').show();
 	$('#nac-diagram-row').show();
+
+	Promise.all([gatherSTUNCandidates(), fetchExternalIPv4()])
+		.then(function (results) {
+			renderNATResult(serverIp, results[0].hostIPs, results[0].srflxIPs, results[1]);
+		});
+}
+
+function gatherSTUNCandidates() {
+	return new Promise(function (resolve) {
+		var hostIPs = [], srflxIPs = [], finished = false, timer;
+
+		function done() {
+			if (finished) return;
+			finished = true;
+			clearTimeout(timer);
+			try { pc.close(); } catch (ignore) {}
+			resolve({ hostIPs: hostIPs, srflxIPs: srflxIPs });
+		}
+
+		var pc = new RTCPeerConnection({
+			iceServers: [
+				{ urls: 'stun:stun.l.google.com:19302' },
+				{ urls: 'stun:stun.cloudflare.com:3478' }
+			]
+		});
+
+		pc.onicecandidate = function (e) {
+			if (!e.candidate) { done(); return; }
+			var parts = e.candidate.candidate.split(' ');
+			if (parts.length < 8) return;
+			var ip = parts[4], type = parts[7];
+			if (/^fe80:/i.test(ip) || ip === '::1' || ip === '127.0.0.1') return;
+			if (type === 'host' && !hostIPs.includes(ip)) hostIPs.push(ip);
+			if (type === 'srflx' && !srflxIPs.includes(ip)) srflxIPs.push(ip);
+		};
+
+		pc.createDataChannel('nat-probe');
+		pc.createOffer()
+			.then(function (offer) { return pc.setLocalDescription(offer); })
+			.catch(done);
+
+		timer = setTimeout(done, 6000);
+	});
+}
+
+function fetchExternalIPv4() {
+	var controller = new AbortController();
+	var timer = setTimeout(function () { controller.abort(); }, 5000);
+	return fetch('https://api4.ipify.org?format=json', {
+		cache: 'no-store',
+		signal: controller.signal
+	})
+		.then(function (r) { clearTimeout(timer); return r.json(); })
+		.then(function (d) { return d.ip || null; })
+		.catch(function () { clearTimeout(timer); return null; });
+}
+
+function renderNATResult(serverIp, hostIPs, srflxIPs, externalIp) {
+	var icon, cls, label;
+	var stunExternal = srflxIPs.length > 0 ? srflxIPs[0] : null;
+	var hasNAT = stunExternal && !hostIPs.includes(stunExternal);
+	var isPrivate = /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(serverIp);
+	var pathsDiffer = externalIp && externalIp !== serverIp;
+
+	if (isPrivate && pathsDiffer) {
+		// RFC 1918 address on campus; internet exits via a different public IP
+		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
+		label = 'Campus NAT — internet traffic exits as ' + externalIp;
+	} else if (!isPrivate && pathsDiffer) {
+		// Public IP via campus (VPN); internet exits via a different path (split tunnel)
+		icon = 'fa-code-branch text-warning'; cls = '';
+		label = 'Split tunnel — campus via ' + serverIp + ', internet via ' + externalIp;
+	} else if (hasNAT) {
+		// STUN detected NAT; HTTP and UDP paths are consistent
+		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
+		label = 'Behind NAT — ' + (externalIp || stunExternal);
+	} else if (stunExternal && hostIPs.includes(stunExternal)) {
+		icon = 'fa-circle-check text-success'; cls = '';
+		label = 'No NAT — direct internet connection';
+	} else if (!stunExternal) {
+		if (hostIPs.some(function (ip) { return ip === serverIp; })) {
+			icon = 'fa-circle-check text-success'; cls = '';
+			label = 'No NAT — direct internet connection';
+		} else {
+			icon = 'fa-circle-question text-muted'; cls = 'text-muted';
+			label = 'STUN unreachable — UDP may be blocked by firewall';
+		}
+	} else {
+		icon = 'fa-circle-question text-muted'; cls = 'text-muted';
+		label = 'NAT status unclear';
+	}
+
+	$('#device-nat').html('<i class="fa-solid ' + icon + ' me-1" aria-hidden="true"></i><span class="' + cls + '">' + label + '</span>');
 }
 
 function checkClockSync(serverTime) {
