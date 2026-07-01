@@ -314,7 +314,10 @@ def get_nac_info(ip_address, mac=None):
 
     # Try MAC first if IPAM provided one — NAC is MAC-centric and IP mappings may lag.
     # Fall back to IP lookup if no MAC was available or the MAC lookup returned nothing.
+    # Normalize MAC to uppercase — IPAM returns lowercase but XMC expects uppercase hex.
+    end_system_data = None
     if mac:
+        mac = mac.upper()
         app.logger.debug(f"Looking up end system info for mac {mac}")
         end_system_data = session.getEndSystemByMac(mac)
         if session.error:
@@ -322,7 +325,7 @@ def get_nac_info(ip_address, mac=None):
         app.logger.debug(f"NAC end system by mac: {end_system_data}")
         data["endSystem"] = end_system_data
 
-    if end_system_data is None:
+    if not end_system_data:
         app.logger.debug(f"Looking up end system info for ip {ip_address}")
         end_system_data = session.getEndSystemByIp(ip_address)
         if session.error:
