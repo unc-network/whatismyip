@@ -738,7 +738,6 @@ function renderNATResult(serverIp, hostIPs, srflxIPs, externalIp, networkPurpose
 	var isV6 = serverIp.includes(':');
 	var sameFamilySrflx = srflxIPs.filter(function (ip) { return ip.includes(':') === isV6; });
 	var stunExternal = sameFamilySrflx.length > 0 ? sameFamilySrflx[0] : null;
-	var hasNAT = stunExternal && !hostIPs.includes(stunExternal);
 	var pathsDiffer = externalIp && externalIp !== serverIp;
 
 	if (pathsDiffer && networkPurpose === 'VPN') {
@@ -753,14 +752,8 @@ function renderNATResult(serverIp, hostIPs, srflxIPs, externalIp, networkPurpose
 		// Paths differ but no network purpose data (e.g. VPN pool not in IPAM)
 		icon = 'fa-code-branch text-info'; cls = '';
 		label = 'Split path — campus ' + serverIp + ', internet ' + externalIp;
-	} else if (hasNAT) {
-		// STUN detected NAT; HTTP and UDP paths are consistent
-		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
-		label = 'Behind NAT — ' + (externalIp || stunExternal);
-	} else if (stunExternal && hostIPs.includes(stunExternal)) {
-		icon = 'fa-circle-check text-success'; cls = '';
-		label = 'No NAT — direct internet connection';
 	} else if (!stunExternal) {
+		// No srflx gathered — STUN unreachable or no NAT with direct address
 		if (hostIPs.some(function (ip) { return ip === serverIp; })) {
 			icon = 'fa-circle-check text-success'; cls = '';
 			label = 'No NAT — direct internet connection';
@@ -768,9 +761,15 @@ function renderNATResult(serverIp, hostIPs, srflxIPs, externalIp, networkPurpose
 			icon = 'fa-circle-question text-muted'; cls = 'text-muted';
 			label = 'STUN unreachable — UDP may be blocked by firewall';
 		}
+	} else if (stunExternal === serverIp || hostIPs.includes(stunExternal)) {
+		// STUN external matches server-seen IP, or is a known local address — no NAT
+		// (stunExternal === serverIp handles browsers that suppress host candidates for privacy)
+		icon = 'fa-circle-check text-success'; cls = '';
+		label = 'No NAT — direct internet connection';
 	} else {
-		icon = 'fa-circle-question text-muted'; cls = 'text-muted';
-		label = 'NAT status unclear';
+		// STUN external differs from server-seen IP — NAT is present
+		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
+		label = 'Behind NAT — ' + (externalIp || stunExternal);
 	}
 
 	$('#device-nat').html('<i class="fa-solid ' + icon + ' me-1" aria-hidden="true"></i><span class="' + cls + '">' + label + '</span>');
