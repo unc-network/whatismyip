@@ -312,25 +312,22 @@ def get_nac_info(ip_address, mac=None):
         raise RuntimeError(f"NAC session failed: {session.message}")
     app.logger.debug("XMC session created")
 
-    # Try looking up the end system by IP address first, then fall back to MAC if that fails
-    app.logger.debug(f"Looking up end system info for ip {ip_address}")
-    end_system_data = session.getEndSystemByIp(ip_address)
-    if session.error:
-        app.logger.error("ERROR: getEndSystemByIP failed '%s'" % session.message)
-    app.logger.debug(f"NAC end system by ip: {end_system_data}")
-    # if 'policy' in ip_data and ip_data['policy']:
-    #     ip_data['policy_parsed'] = parse_extreme_vsa(ip_data['policy'])
-    data["endSystem"] = end_system_data
-
-    # Fall back to MAC address if we didn't get any end system data from the IP lookup and we have a MAC address to try
-    if end_system_data is None and mac:
+    # Try MAC first if IPAM provided one — NAC is MAC-centric and IP mappings may lag.
+    # Fall back to IP lookup if no MAC was available or the MAC lookup returned nothing.
+    if mac:
         app.logger.debug(f"Looking up end system info for mac {mac}")
         end_system_data = session.getEndSystemByMac(mac)
         if session.error:
             app.logger.error("ERROR: getEndSystemByMac failed '%s'" % session.message)
         app.logger.debug(f"NAC end system by mac: {end_system_data}")
-        # if 'policy' in ip_data and ip_data['policy']:
-        #     ip_data['policy_parsed'] = parse_extreme_vsa(ip_data['policy'])
+        data["endSystem"] = end_system_data
+
+    if end_system_data is None:
+        app.logger.debug(f"Looking up end system info for ip {ip_address}")
+        end_system_data = session.getEndSystemByIp(ip_address)
+        if session.error:
+            app.logger.error("ERROR: getEndSystemByIP failed '%s'" % session.message)
+        app.logger.debug(f"NAC end system by ip: {end_system_data}")
         data["endSystem"] = end_system_data
 
     # Lookup additional end system info using the MAC address from either the IP or MAC lookup results

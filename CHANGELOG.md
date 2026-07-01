@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.4.2] - 2026-07-01
+
+### Fixed
+
+- **NAC lookup order corrected to MAC-first** — `get_nac_info` now attempts `getEndSystemByMac` before `getEndSystemByIp` when IPAM returned a MAC address in the address object lookup. XMC operates primarily on MAC addresses; IP-to-session mappings are populated by supplemental data feeds and can lag behind the current session. The previous IP-first order caused unnecessary misses for devices whose NAC session record had not yet been updated with the current IP. IP lookup is now the fallback for addresses where IPAM has no active DHCP lease (static IPs, expired leases, most IPv6 addresses).
+- **OpenShift S2I build failure** — adding `setup.cfg` for pytest-cov configuration caused OpenShift's Source-to-Image builder to treat the project as an installable Python package and fail with "Neither setup.py nor pyproject.toml found." Moved coverage configuration to `.coveragerc`, which S2I ignores.
+- **Pipeline `tag_release` job never ran on production merges** — the branch condition was hardcoded to `"main"` but the production branch is `master`. Corrected to `"master"` so the job now appears and runs on merges to the production branch.
+
+---
+
 ## [1.4.1] - 2026-07-01
 
 ### Added
