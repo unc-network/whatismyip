@@ -167,6 +167,8 @@ def _no_ptr(*a, **kw):
 
 def test_hostinfo_off_campus_ip_returns_valid_json(client, monkeypatch):
     monkeypatch.delenv("CLIENT_ADDRESS", raising=False)
+    monkeypatch.delenv("CLIENT_ADDRESS_V4", raising=False)
+    monkeypatch.delenv("CLIENT_ADDRESS_V6", raising=False)
     monkeypatch.delenv("FORWARDED_FOR", raising=False)
     monkeypatch.setattr("whatismyip.is_campus_ip", lambda ip: False)
     monkeypatch.setattr("whatismyip.get_network", lambda ip: None)
@@ -184,6 +186,8 @@ def test_hostinfo_off_campus_ip_returns_valid_json(client, monkeypatch):
 
 def test_hostinfo_campus_ip_populates_network_and_purpose(client, monkeypatch):
     monkeypatch.delenv("CLIENT_ADDRESS", raising=False)
+    monkeypatch.delenv("CLIENT_ADDRESS_V4", raising=False)
+    monkeypatch.delenv("CLIENT_ADDRESS_V6", raising=False)
     monkeypatch.delenv("FORWARDED_FOR", raising=False)
     mock_network = {
         "network": "152.2.0.0/16",
@@ -213,6 +217,8 @@ def test_hostinfo_external_failures_degrade_gracefully(client, monkeypatch):
         raise Exception("IPAM down")
 
     monkeypatch.delenv("CLIENT_ADDRESS", raising=False)
+    monkeypatch.delenv("CLIENT_ADDRESS_V4", raising=False)
+    monkeypatch.delenv("CLIENT_ADDRESS_V6", raising=False)
     monkeypatch.delenv("FORWARDED_FOR", raising=False)
     monkeypatch.setattr("whatismyip.is_campus_ip", lambda ip: False)
     monkeypatch.setattr("whatismyip.get_network", _ipam_down)
