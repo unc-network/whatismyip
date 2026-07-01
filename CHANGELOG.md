@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.4.0] - 2026-07-01
+
+### Added
+
+- **NAT and network path detection** — the Your Device card now includes a NAT row that identifies the device's internet routing path. Uses a combination of WebRTC STUN (via Google and Cloudflare public servers) and an IPv4 external address lookup (api4.ipify.org) to detect and label common cases: no NAT, campus border NAT (RFC 1918 campus device with public UNC exit), VPN split tunnel (campus traffic via VPN while internet exits directly), split path (paths differ without confirmed VPN purpose), and STUN unreachable (firewall blocking outbound UDP). IPv6 srflx candidates are filtered to the same protocol family as the server-seen address to avoid false positives on dual-stack connections. Network purpose is pooled across both IPv4 and IPv6 AJAX callbacks so VPN pool addresses not individually catalogued in IPAM still receive the correct label when the paired address carries the purpose.
+- **Clock sync check** — the Your Device card includes a Clock row showing whether the device's system clock is synchronized with the server. Offsets under 30 seconds show a green "Synchronized" status; 30 seconds to 5 minutes show a warning with the measured offset; over 5 minutes show an error noting potential authentication and VPN failures.
+- **Connectivity Tests page** (`/connectivity`) — a new page runs client-side reachability tests against a configurable list of campus and internet targets. Tests run automatically on page load and can be re-run on demand. Each target shows live status (reachable with latency, timed out, or unreachable). Targets are configured via `[[connectivity.targets]]` entries in `data/config.toml`. A footnote explains that results use browser fetch in `no-cors` mode and reflect the visitor's network path, not the server's.
+
+### Changed
+
+- **Connectivity nav link added** between Speed Test and About in the main navigation.
+
+---
+
 ## [1.3.0] - 2026-06-30
 
 ### Added
