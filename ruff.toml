@@ -1,0 +1,9 @@
+[lint]
+select = ["E", "F"]
+ignore = [
+    "E501",  # line too long — black owns line length
+    "F403",  # star imports in extreme.py / utils.py (legacy code)
+    "F405",  # names from star imports (same reason)
+    "E711",  # comparison to None — legacy code uses `== None` style
+    "E712",  # comparison to True/False — same
+]

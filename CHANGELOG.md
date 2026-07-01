@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.4.1] - 2026-07-01
+
+### Added
+
+- **Ruff linter** — `ruff.toml` configured with appropriate ignores; `ruff_lint` job added to the CI lint stage alongside black.
+- **Bandit security scan** — `security_scan_bandit` CI job checks for code-level security issues at medium severity/confidence. `extreme.py` is excluded (legacy CLI tool with its own patterns).
+- **Test coverage reporting** — `pytest-cov` added to the test job with a 50% floor measured against `__init__.py`. `extreme.py` and `utils.py` are excluded from measurement as they require live external infrastructure. Coverage config lives in `setup.cfg`.
+- **Pip dependency caching** — shared pip cache across CI jobs keyed on `requirements.txt`, reducing install time on repeated pipeline runs.
+- **Automated release tagging** — `tag_release` CI job runs on `main`, extracts the version from `__init__.py`, and pushes an annotated git tag if one does not already exist.
+
+### Changed
+
+- **`pip-audit` now blocks the pipeline** — removed `allow_failure: true`; CVE findings in dependencies will fail the build.
+
+### Fixed
+
+- Two format string bugs in `extreme.py` — `"ERROR: get MAC '' failed '%s'"` was missing the MAC address argument; corrected to `"ERROR: get MAC '%s' failed '%s'"`.
+- Removed unused `proxy_address` and `proxy_detected` variable assignments from `utils.py`.
+- Bare `except:` clause in `extreme.py` tightened to `except Exception:`.
+- Duplicate `import ipaddress` removed from `__init__.py`; import consolidated at the top of the file.
+
+---
+
 ## [1.4.0] - 2026-07-01
 
 ### Added

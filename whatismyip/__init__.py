@@ -2,10 +2,10 @@
 Basic App
 """
 
+import ipaddress as _ipaddress
 import os
-import time
-import logging
 import sqlite3
+import time
 
 try:
     import tomllib
@@ -40,7 +40,7 @@ APP_ROOT = os.path.join(os.path.dirname(__file__), "..")  # refers to applicatio
 dotenv_path = os.path.join(APP_ROOT, ".env")
 load_dotenv(dotenv_path)
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 
 app = Flask(__name__)
 app.config.from_object("config.Config")
@@ -81,8 +81,6 @@ def inject_site_name():
 
 METRICS_DB_PATH = os.path.join(APP_ROOT, "data", "metrics.sqlite3")
 SITE_CONFIG_PATH = os.path.join(APP_ROOT, "data", "config.toml")
-
-import ipaddress as _ipaddress
 
 # No built-in campus networks — each deployment must configure data/config.toml.
 # An empty list means all visitors are treated as off-campus, which is the safe default.
@@ -646,13 +644,15 @@ def home():
     # Check for PROXY usage
     tmp_forwarded_for = os.getenv("FORWARDED_FOR", forwarded_for)
     client_address = get_client_address(remote_address, tmp_forwarded_for)
-    data["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
+    data["client_address"] = (
+        os.getenv("CLIENT_ADDRESS") or os.getenv("CLIENT_ADDRESS_V4") or client_address
+    )
     app.logger.info(
         f"Home view from {client_address} with forwarded_for {tmp_forwarded_for}"
     )
 
     # Quickly flag if this is campus or not
-    data["is_campus"] = is_campus_ip(client_address)
+    data["is_campus"] = is_campus_ip(data["client_address"])
     app.logger.debug(
         f"Client address {client_address} is campus IP {data['is_campus']}"
     )
@@ -883,7 +883,39 @@ def hostinfo():
     # Check for PROXY usage
     tmp_forwarded_for = os.getenv("FORWARDED_FOR", forwarded_for)
     client_address = get_client_address(remote_address, tmp_forwarded_for)
-    data["client_address"] = os.getenv("CLIENT_ADDRESS", client_address)
+
+    # Local dev simulation overrides.
+    # CLIENT_ADDRESS overrides both slots (backward compatible).
+    # CLIENT_ADDRESS_V4 / CLIENT_ADDRESS_V6 select by the IP family of the
+    # incoming connection — set FLASK_IPV4_SERVER_URL=http://127.0.0.1:5000
+    # and FLASK_IPV6_SERVER_URL=http://[::1]:5000 so each slot arrives on
+    # the correct loopback family and the right variable is applied.
+    _general = os.getenv("CLIENT_ADDRESS")
+    _v4 = os.getenv("CLIENT_ADDRESS_V4")
+    _v6 = os.getenv("CLIENT_ADDRESS_V6")
+    if _general:
+        data["client_address"] = _general
+    elif _v4 or _v6:
+        try:
+            conn_ip = ipaddress.ip_address(client_address)
+            # On dual-stack sockets (FLASK_RUN_HOST=::) IPv4 connections arrive
+            # as IPv4-mapped IPv6 addresses (::ffff:x.x.x.x) — unwrap them so
+            # the version check correctly selects CLIENT_ADDRESS_V4.
+            if conn_ip.version == 6 and conn_ip.ipv4_mapped:
+                conn_ver = 4
+            else:
+                conn_ver = conn_ip.version
+            if conn_ver == 6 and _v6:
+                data["client_address"] = _v6
+            elif conn_ver == 4 and _v4:
+                data["client_address"] = _v4
+            else:
+                data["client_address"] = client_address
+        except ValueError:
+            data["client_address"] = client_address
+    else:
+        data["client_address"] = client_address
+
     app.logger.info(
         f"Hostinfo view from {data['client_address']} with forwarded_for {tmp_forwarded_for}"
     )
@@ -1320,4 +1352,4 @@ if app.config.get("TESTING"):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=True)  # nosec  # fmt: skip
