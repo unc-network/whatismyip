@@ -64,7 +64,7 @@ run_tests:
     - pip install -r requirements.txt
   script:
     # extreme.py and utils.py are external-API clients; omit from threshold.
-    - pytest tests/ -v --cov=whatismyip --cov-fail-under=50 --cov-report=term-missing --cov-config=setup.cfg
+    - pytest tests/ -v --cov=whatismyip --cov-fail-under=50 --cov-report=term-missing --cov-config=.coveragerc
 
 tag_release:
   stage: tag

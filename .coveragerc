@@ -1,9 +1,9 @@
-[coverage:run]
+[run]
 omit =
     whatismyip/extreme.py
     whatismyip/utils.py
 
-[coverage:report]
+[report]
 omit =
     whatismyip/extreme.py
     whatismyip/utils.py
