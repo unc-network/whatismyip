@@ -5,6 +5,7 @@
 
 var reportDataPrimary = null;
 var reportDataSecondary = null;
+var reportNetworkPurpose = null;
 var reportConnectV4 = '—';
 var reportConnectV6 = '—';
 var reportDnsProviderGeo = null;
@@ -603,7 +604,7 @@ function test_primary_url(default_version) {
 			// User device card — populate once; both callbacks return identical data
 			populateDeviceCard(result['user_device']);
 			checkClockSync(result['server_time']);
-			checkNATType(result['client_address'], result['network']['purpose']);
+			checkNATType(result['client_address']);
 
 			// Network configuration card — IPv4 section (populated by primary/IPv4 callback)
 			var hasV4Config = false;
@@ -644,6 +645,7 @@ function test_primary_url(default_version) {
 				$('#net1-ipam-unavailable-row').show();
 			}
 
+			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
 			reportDataPrimary = result;
 			checkAddressMismatch();
 			if (default_version == 4) reportConnectV4 = 'Supported';
@@ -663,7 +665,7 @@ function test_primary_url(default_version) {
 
 }
 
-function checkNATType(serverIp, networkPurpose) {
+function checkNATType(serverIp) {
 	if (!serverIp || !window.RTCPeerConnection) return;
 
 	$('#device-nat').html('<i class="fa-solid fa-spinner fa-spin me-1" aria-hidden="true"></i><span class="text-muted">Testing…</span>');
@@ -675,7 +677,7 @@ function checkNATType(serverIp, networkPurpose) {
 
 	Promise.all([gatherSTUNCandidates(), fetchExternalIPv4()])
 		.then(function (results) {
-			renderNATResult(serverIp, results[0].hostIPs, results[0].srflxIPs, results[1], networkPurpose);
+			renderNATResult(serverIp, results[0].hostIPs, results[0].srflxIPs, results[1], reportNetworkPurpose);
 		});
 }
 
@@ -737,21 +739,20 @@ function renderNATResult(serverIp, hostIPs, srflxIPs, externalIp, networkPurpose
 	var sameFamilySrflx = srflxIPs.filter(function (ip) { return ip.includes(':') === isV6; });
 	var stunExternal = sameFamilySrflx.length > 0 ? sameFamilySrflx[0] : null;
 	var hasNAT = stunExternal && !hostIPs.includes(stunExternal);
-	var isPrivate = /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(serverIp);
 	var pathsDiffer = externalIp && externalIp !== serverIp;
 
-	if (isPrivate && pathsDiffer && networkPurpose === 'VPN') {
-		// RFC 1918 VPN pool address; internet traffic bypasses the tunnel (split tunnel)
+	if (pathsDiffer && networkPurpose === 'VPN') {
+		// Network purpose confirms VPN; internet traffic bypasses the tunnel
 		icon = 'fa-code-branch text-info'; cls = '';
-		label = 'Split tunnel — campus VPN (' + serverIp + '), internet via ' + externalIp;
-	} else if (isPrivate && pathsDiffer) {
-		// RFC 1918 campus address; internet exits via campus border NAT
+		label = 'Split tunnel — campus VPN, internet via ' + externalIp;
+	} else if (pathsDiffer && networkPurpose) {
+		// Known campus network type (Wireless, Wired, etc.); internet exits via border NAT
 		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
 		label = 'Campus NAT — internet traffic exits as ' + externalIp;
-	} else if (!isPrivate && pathsDiffer) {
-		// Public campus/VPN address; internet exits via a different path (split tunnel)
+	} else if (pathsDiffer) {
+		// Paths differ but no network purpose data (e.g. VPN pool not in IPAM)
 		icon = 'fa-code-branch text-info'; cls = '';
-		label = 'Split tunnel — campus via ' + serverIp + ', internet via ' + externalIp;
+		label = 'Split path — campus ' + serverIp + ', internet ' + externalIp;
 	} else if (hasNAT) {
 		// STUN detected NAT; HTTP and UDP paths are consistent
 		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
@@ -1204,6 +1205,7 @@ function test_secondary_url(default_version) {
 				$('#net2-ipam-unavailable-row').show();
 			}
 
+			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
 			reportDataSecondary = result;
 			checkAddressMismatch();
 			if (default_version == 4) reportConnectV6 = 'Supported';
