@@ -34,7 +34,7 @@
             <div id="address_box" class="d-flex align-items-center unc-ip">
               <span class="flex-shrink-0 ip-bar-label"></span>
               <div class="flex-grow-1 text-center">
-                <h2 id="address1" class="ip-hero-text mb-0">{{ context.client_address }}</h2>
+                <h2 id="address1" class="ip-hero-text mb-0">{{ context.client_address | replace(':', ':<wbr>') | replace('.', '.<wbr>') | safe }}</h2>
               </div>
               <i class="fa fa-copy text-white opacity-50 ms-3 flex-shrink-0" aria-hidden="true"></i>
             </div>
@@ -454,10 +454,6 @@
               <tr id="device-clock-row" style="display:none;">
                 <th>Clock</th>
                 <td id="device-clock"></td>
-              </tr>
-              <tr id="device-nat-row" style="display:none;">
-                <th>NAT</th>
-                <td id="device-nat"></td>
               </tr>
             </tbody>
           </table>

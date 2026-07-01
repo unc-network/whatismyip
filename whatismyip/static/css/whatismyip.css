@@ -176,9 +176,6 @@ main[role="main"] {
   .site-header-logo {
     height: 56px;
   }
-  .ip-hero-text {
-    font-size: 1.7rem;
-  }
 
   .theme-toggle-btn {
     top: 0.8rem;
@@ -306,6 +303,29 @@ html[data-theme="dark"] .text-muted {
   border-bottom: 2px solid var(--unc-carolina-blue);
 }
 
+.site-navbar-toggler {
+  color: var(--site-chrome-link);
+  background: none;
+  cursor: pointer;
+  line-height: 1;
+}
+.site-navbar-toggler:focus-visible {
+  outline: 2px solid var(--unc-carolina-blue);
+  outline-offset: 2px;
+}
+@media (max-width: 767.98px) {
+  .site-navbar .navbar-nav {
+    flex-direction: column;
+    gap: 0 !important;
+    padding-bottom: 0.5rem;
+  }
+  .site-navbar .nav-link.active {
+    border-bottom: none;
+    border-left: 2px solid var(--unc-carolina-blue);
+    padding-left: 0.5rem;
+  }
+}
+
 .nav-report-btn {
   font-size: 0.8rem;
   padding: 0.25rem 0.7rem;
@@ -410,10 +430,11 @@ html[data-theme="dark"] #copy-notification {
 }
 
 .ip-hero-text {
-  font-size: 2.6rem;
+  font-size: clamp(1.1rem, 4.5vw, 2.6rem);
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 .ip-bar-label {

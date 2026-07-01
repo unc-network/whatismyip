@@ -140,40 +140,50 @@
 				</div>
 			</div>
 
-			<nav class="navbar navbar-expand site-navbar py-1 mb-2" role="navigation" aria-label="Site navigation">
+			<nav class="navbar navbar-expand-md site-navbar py-1 mb-2" role="navigation" aria-label="Site navigation">
 				<div class="container">
-					<ul class="navbar-nav gap-1 flex-wrap">
-						<li class="nav-item">
-							<a class="nav-link small py-1{% if request.path == '/' %} active fw-semibold{% endif %}"
-							   href="{{ site_url }}/"
-							   {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link small py-1{% if request.path == '/speedtest' %} active fw-semibold{% endif %}"
-							   href="{{ site_url }}/speedtest"
-							   {% if request.path == '/speedtest' %}aria-current="page"{% endif %}>Speed Test</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link small py-1{% if request.path == '/connectivity' %} active fw-semibold{% endif %}"
-							   href="{{ site_url }}/connectivity"
-							   {% if request.path == '/connectivity' %}aria-current="page"{% endif %}>Connectivity</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link small py-1{% if request.path == '/about' %} active fw-semibold{% endif %}"
-							   href="{{ site_url }}/about"
-							   {% if request.path == '/about' %}aria-current="page"{% endif %}>About</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link small py-1{% if request.path == '/faq' %} active fw-semibold{% endif %}"
-							   href="{{ site_url }}/faq"
-							   {% if request.path == '/faq' %}aria-current="page"{% endif %}>FAQ</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link small py-1{% if request.path == '/metrics' %} active fw-semibold{% endif %}"
-							   href="{{ site_url }}/metrics"
-							   {% if request.path == '/metrics' %}aria-current="page"{% endif %}>Site Statistics</a>
-						</li>
-					</ul>
+					<button class="navbar-toggler site-navbar-toggler border-0 ms-auto py-1"
+							type="button"
+							id="site-navbar-toggler"
+							aria-controls="siteNavbar"
+							aria-expanded="false"
+							aria-label="Toggle navigation">
+						<i class="fa-solid fa-bars" aria-hidden="true"></i>
+					</button>
+					<div class="collapse navbar-collapse" id="siteNavbar">
+						<ul class="navbar-nav gap-1 flex-wrap">
+							<li class="nav-item">
+								<a class="nav-link small py-1{% if request.path == '/' %} active fw-semibold{% endif %}"
+								   href="{{ site_url }}/"
+								   {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link small py-1{% if request.path == '/speedtest' %} active fw-semibold{% endif %}"
+								   href="{{ site_url }}/speedtest"
+								   {% if request.path == '/speedtest' %}aria-current="page"{% endif %}>Speed Test</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link small py-1{% if request.path == '/connectivity' %} active fw-semibold{% endif %}"
+								   href="{{ site_url }}/connectivity"
+								   {% if request.path == '/connectivity' %}aria-current="page"{% endif %}>Connectivity</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link small py-1{% if request.path == '/about' %} active fw-semibold{% endif %}"
+								   href="{{ site_url }}/about"
+								   {% if request.path == '/about' %}aria-current="page"{% endif %}>About</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link small py-1{% if request.path == '/faq' %} active fw-semibold{% endif %}"
+								   href="{{ site_url }}/faq"
+								   {% if request.path == '/faq' %}aria-current="page"{% endif %}>FAQ</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link small py-1{% if request.path == '/metrics' %} active fw-semibold{% endif %}"
+								   href="{{ site_url }}/metrics"
+								   {% if request.path == '/metrics' %}aria-current="page"{% endif %}>Site Statistics</a>
+							</li>
+						</ul>
+					</div>
 				</div>
 			</nav>
 
@@ -229,6 +239,17 @@
 		</footer>
 
 		<script type="text/javascript" defer src="{{ url_for('static', filename='js/theme.js') }}?v={{ app_version }}"></script>
+		<script>
+		(function () {
+			var toggler = document.getElementById('site-navbar-toggler');
+			if (!toggler) return;
+			toggler.addEventListener('click', function () {
+				var menu = document.getElementById('siteNavbar');
+				var open = menu.classList.toggle('show');
+				toggler.setAttribute('aria-expanded', open ? 'true' : 'false');
+			});
+		}());
+		</script>
 		{% block javascript %}
 		{% endblock %}
  </body>

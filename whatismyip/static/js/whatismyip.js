@@ -3,9 +3,14 @@
   * Helper library for https://whatismyip.unc.edu
   */
 
+function formatIPAddress(ip) {
+	return $('<span>').text(ip).html().replace(/([.:])/g, '$1<wbr>');
+}
+
 var reportDataPrimary = null;
 var reportDataSecondary = null;
 var reportNetworkPurpose = null;
+var reportClockStatus = null;
 var reportConnectV4 = '—';
 var reportConnectV6 = '—';
 var reportDnsProviderGeo = null;
@@ -336,6 +341,7 @@ function downloadReport() {
 		rpt('Operating System', os),
 		rpt('Device Type', deviceType),
 		rpt('Device Model', model),
+		rpt('Clock Sync', reportClockStatus),
 	]);
 
 	var origin = window.location.origin;
@@ -413,12 +419,12 @@ function test_primary_url(default_version) {
 
 			if ( default_version == 4 ) {
 				$('#first_address_section').show();
-				$('#address1').text(result["client_address"]);
+				$('#address1').html(formatIPAddress(result["client_address"]));
 				$('#address_box .ip-bar-label').text('IPv4');
 				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
 				$('#second_address_section').show();
-				$('#address2').text(result["client_address"]);
+				$('#address2').html(formatIPAddress(result["client_address"]));
 				$('#additional_ip .ip-bar-label').text('IPv4');
 				$('#second_address_section .ip-copy-card').removeClass('ip-loading');
 			}
@@ -604,7 +610,6 @@ function test_primary_url(default_version) {
 			// User device card — populate once; both callbacks return identical data
 			populateDeviceCard(result['user_device']);
 			checkClockSync(result['server_time']);
-			checkNATType(result['client_address']);
 
 			// Network configuration card — IPv4 section (populated by primary/IPv4 callback)
 			var hasV4Config = false;
@@ -801,6 +806,7 @@ function checkClockSync(serverTime) {
 		label = fmt(offsetSec) + ' offset — may cause authentication and VPN failures';
 	}
 
+	reportClockStatus = label;
 	$('#device-clock').html(`<i class="fa-solid ${icon} me-1" aria-hidden="true"></i><span class="${cls}">${label}</span>`);
 	$('#device-clock-row').show();
 	$('#device-card').show();
@@ -1057,12 +1063,12 @@ function test_secondary_url(default_version) {
 
 			if ( default_version == 6 ) {
 				$('#first_address_section').show();
-				$('#address1').text(result["client_address"]);
+				$('#address1').html(formatIPAddress(result["client_address"]));
 				$('#address_box .ip-bar-label').text('IPv6');
 				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
 				$('#second_address_section').show();
-				$('#address2').text(result["client_address"]);
+				$('#address2').html(formatIPAddress(result["client_address"]));
 				$('#additional_ip .ip-bar-label').text('IPv6');
 				$('#second_address_section .ip-copy-card').removeClass('ip-loading');
 			}
