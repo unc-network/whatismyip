@@ -603,7 +603,7 @@ function test_primary_url(default_version) {
 			// User device card — populate once; both callbacks return identical data
 			populateDeviceCard(result['user_device']);
 			checkClockSync(result['server_time']);
-			checkNATType(result['client_address']);
+			checkNATType(result['client_address'], result['network']['purpose']);
 
 			// Network configuration card — IPv4 section (populated by primary/IPv4 callback)
 			var hasV4Config = false;
@@ -663,7 +663,7 @@ function test_primary_url(default_version) {
 
 }
 
-function checkNATType(serverIp) {
+function checkNATType(serverIp, networkPurpose) {
 	if (!serverIp || !window.RTCPeerConnection) return;
 
 	$('#device-nat').html('<i class="fa-solid fa-spinner fa-spin me-1" aria-hidden="true"></i><span class="text-muted">Testing…</span>');
@@ -675,7 +675,7 @@ function checkNATType(serverIp) {
 
 	Promise.all([gatherSTUNCandidates(), fetchExternalIPv4()])
 		.then(function (results) {
-			renderNATResult(serverIp, results[0].hostIPs, results[0].srflxIPs, results[1]);
+			renderNATResult(serverIp, results[0].hostIPs, results[0].srflxIPs, results[1], networkPurpose);
 		});
 }
 
@@ -729,20 +729,28 @@ function fetchExternalIPv4() {
 		.catch(function () { clearTimeout(timer); return null; });
 }
 
-function renderNATResult(serverIp, hostIPs, srflxIPs, externalIp) {
+function renderNATResult(serverIp, hostIPs, srflxIPs, externalIp, networkPurpose) {
 	var icon, cls, label;
-	var stunExternal = srflxIPs.length > 0 ? srflxIPs[0] : null;
+	// Only compare srflx candidates that match serverIp's protocol family (avoids
+	// false "split path" when STUN gathers an IPv6 srflx against an IPv4 serverIp)
+	var isV6 = serverIp.includes(':');
+	var sameFamilySrflx = srflxIPs.filter(function (ip) { return ip.includes(':') === isV6; });
+	var stunExternal = sameFamilySrflx.length > 0 ? sameFamilySrflx[0] : null;
 	var hasNAT = stunExternal && !hostIPs.includes(stunExternal);
 	var isPrivate = /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(serverIp);
 	var pathsDiffer = externalIp && externalIp !== serverIp;
 
-	if (isPrivate && pathsDiffer) {
-		// RFC 1918 address on campus; internet exits via a different public IP
+	if (isPrivate && pathsDiffer && networkPurpose === 'VPN') {
+		// RFC 1918 VPN pool address; internet traffic bypasses the tunnel (split tunnel)
+		icon = 'fa-code-branch text-info'; cls = '';
+		label = 'Split tunnel — campus VPN (' + serverIp + '), internet via ' + externalIp;
+	} else if (isPrivate && pathsDiffer) {
+		// RFC 1918 campus address; internet exits via campus border NAT
 		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
 		label = 'Campus NAT — internet traffic exits as ' + externalIp;
 	} else if (!isPrivate && pathsDiffer) {
-		// Public IP via campus (VPN); internet exits via a different path (split tunnel)
-		icon = 'fa-code-branch text-warning'; cls = '';
+		// Public campus/VPN address; internet exits via a different path (split tunnel)
+		icon = 'fa-code-branch text-info'; cls = '';
 		label = 'Split tunnel — campus via ' + serverIp + ', internet via ' + externalIp;
 	} else if (hasNAT) {
 		// STUN detected NAT; HTTP and UDP paths are consistent
