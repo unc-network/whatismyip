@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.6.0] - 2026-07-02
+
+### Added
+
+- **Internet path detection** — the page now makes a client-side request to ipify.org to check what IPv4 address internet servers see for the visitor's connection. This is compared against the address the campus server detected. When they differ, a note is appended to the connection status message explaining the situation with context-aware wording: split-tunnel VPN (campus VPN address + internet exits directly), campus NAT (wireless and other networks that use a different public IP for internet-bound traffic), or a generic split-path message when network purpose data is not available. The detected internet address is also included in the downloadable support report under the Connectivity section. A FAQ entry explains why the tool contacts an external service.
+
+---
+
 ## [1.5.0] - 2026-07-02
 
 ### Changed

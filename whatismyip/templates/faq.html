@@ -72,6 +72,14 @@
     },
     {
       "@type": "Question",
+      "name": "Does this site contact any external services?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Your browser contacts up to three external services as part of the diagnostic checks. First, ip-api.com is contacted to identify your internet DNS provider and EDNS client subnet. Second, ipify.org is contacted to check what IPv4 address internet servers see for your connection, which is compared against the campus-detected address to identify split-tunnel VPN or campus NAT scenarios. Third, if DNS security filtering is configured, your browser attempts to reach a known test domain to determine whether filtering is active. In all cases your IP address is visible to any internet service you contact, so these checks do not expose anything beyond what is inherent to browsing the web. No data from these checks is sent back to UNC servers beyond the aggregate filtering result."
+      }
+    },
+    {
+      "@type": "Question",
       "name": "Is my IP address being stored or tracked?",
       "acceptedAnswer": {
         "@type": "Answer",
@@ -295,6 +303,26 @@
           <div id="faq-privacy" class="accordion-collapse collapse" aria-labelledby="faq-privacy-heading">
             <div class="accordion-body">
               <p class="mb-0">This tool does not log or store your IP address. Site statistics track only aggregate counts — such as how many visits came from IPv4 vs. IPv6, or what general region visitors came from — but individual IP addresses are never written to disk. No cookies are used for tracking.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item faq-accent-warning">
+          <h2 class="accordion-header" id="faq-external-service-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-external-service" aria-expanded="false" aria-controls="faq-external-service">
+              <i class="fa-solid fa-arrow-up-right-from-square text-warning me-2" aria-hidden="true"></i>
+              Does this site contact any external services?
+            </button>
+          </h2>
+          <div id="faq-external-service" class="accordion-collapse collapse" aria-labelledby="faq-external-service-heading">
+            <div class="accordion-body">
+              <p>Yes. Your browser contacts up to three external services as part of the diagnostic checks:</p>
+              <ul class="mb-3">
+                <li><a href="https://ip-api.com/">ip-api.com</a> — identifies your internet DNS provider and EDNS client subnet as part of the DNS information test.</li>
+                <li><a href="https://www.ipify.org/">ipify.org</a> — checks what IPv4 address internet servers see for your connection. This is compared against the campus-detected address to identify split-tunnel VPN or campus NAT scenarios.</li>
+                <li>A configured test domain — if DNS security filtering is enabled, your browser attempts to reach a known test domain to determine whether filtering is active.</li>
+              </ul>
+              <p class="mb-0">In all cases your IP address is visible to any internet service you contact, so these checks do not expose anything beyond what is inherent to browsing the web. No data from these checks is sent back to UNC servers beyond the aggregate filtering result.</p>
             </div>
           </div>
         </div>
