@@ -677,56 +677,9 @@ function test_primary_url(default_version) {
 }
 
 function checkNATType(serverIp) {
-	if (!serverIp || !window.RTCPeerConnection) return;
-
-	$('#device-nat').html('<i class="fa-solid fa-spinner fa-spin me-1" aria-hidden="true"></i><span class="text-muted">Testing…</span>');
-	$('#device-nat-row').show();
-	$('#device-card').show();
-	$('#detail-col').show();
-	$('#additional-info').show();
-	$('#nac-diagram-row').show();
-
-	Promise.all([gatherSTUNCandidates(), fetchExternalIPv4()])
-		.then(function (results) {
-			renderNATResult(serverIp, results[0].hostIPs, results[0].srflxIPs, results[1], reportNetworkPurpose);
-		});
-}
-
-function gatherSTUNCandidates() {
-	return new Promise(function (resolve) {
-		var hostIPs = [], srflxIPs = [], finished = false, timer;
-
-		function done() {
-			if (finished) return;
-			finished = true;
-			clearTimeout(timer);
-			try { pc.close(); } catch (ignore) {}
-			resolve({ hostIPs: hostIPs, srflxIPs: srflxIPs });
-		}
-
-		var pc = new RTCPeerConnection({
-			iceServers: [
-				{ urls: 'stun:stun.l.google.com:19302' },
-				{ urls: 'stun:stun.cloudflare.com:3478' }
-			]
-		});
-
-		pc.onicecandidate = function (e) {
-			if (!e.candidate) { done(); return; }
-			var parts = e.candidate.candidate.split(' ');
-			if (parts.length < 8) return;
-			var ip = parts[4], type = parts[7];
-			if (/^fe80:/i.test(ip) || ip === '::1' || ip === '127.0.0.1') return;
-			if (type === 'host' && !hostIPs.includes(ip)) hostIPs.push(ip);
-			if (type === 'srflx' && !srflxIPs.includes(ip)) srflxIPs.push(ip);
-		};
-
-		pc.createDataChannel('nat-probe');
-		pc.createOffer()
-			.then(function (offer) { return pc.setLocalDescription(offer); })
-			.catch(done);
-
-		timer = setTimeout(done, 6000);
+	if (!serverIp) return;
+	fetchExternalIPv4().then(function (externalIp) {
+		renderNATResult(serverIp, externalIp, reportNetworkPurpose);
 	});
 }
 
@@ -742,58 +695,38 @@ function fetchExternalIPv4() {
 		.catch(function () { clearTimeout(timer); return null; });
 }
 
-function renderNATResult(serverIp, hostIPs, srflxIPs, externalIp, networkPurpose) {
-	var icon, cls, label;
-	// Only compare srflx candidates that match serverIp's protocol family (avoids
-	// false "split path" when STUN gathers an IPv6 srflx against an IPv4 serverIp)
+function renderNATResult(serverIp, externalIp, networkPurpose) {
 	var isV6 = serverIp.includes(':');
-	var sameFamilySrflx = srflxIPs.filter(function (ip) { return ip.includes(':') === isV6; });
-	var stunExternal = sameFamilySrflx.length > 0 ? sameFamilySrflx[0] : null;
-	// Only compare same-family addresses — ipify returns IPv4 only, so skip when primary is IPv6
 	var pathsDiffer = !isV6 && externalIp && externalIp !== serverIp;
+	if (!pathsDiffer) return;
 
-	if (pathsDiffer && networkPurpose === 'VPN') {
-		// Network purpose confirms VPN; internet traffic bypasses the tunnel
-		icon = 'fa-code-branch text-info'; cls = '';
+	var icon, label;
+	if (networkPurpose === 'VPN') {
+		icon = 'fa-code-branch text-info';
 		label = 'Split tunnel — campus VPN, internet via ' + externalIp;
 		$('#intro_text .intro-status').append(
 			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Internet traffic bypasses the VPN tunnel and exits via ${externalIp}.</div>`
 		);
-	} else if (pathsDiffer && networkPurpose) {
-		// Known campus network type (Wireless, Wired, etc.); internet exits via border NAT
-		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
+	} else if (networkPurpose) {
+		icon = 'fa-arrow-right-arrow-left text-info';
 		label = 'Campus NAT — internet traffic exits as ' + externalIp;
 		$('#intro_text .intro-status').append(
 			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Your internet traffic exits the campus network as ${externalIp}.</div>`
 		);
-	} else if (pathsDiffer) {
-		// Paths differ but no network purpose data (e.g. VPN pool not in IPAM)
-		icon = 'fa-code-branch text-info'; cls = '';
+	} else {
+		icon = 'fa-code-branch text-info';
 		label = 'Split path — campus ' + serverIp + ', internet ' + externalIp;
 		$('#intro_text .intro-status').append(
 			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Your internet traffic appears to use a different address (${externalIp}) than your campus connection.</div>`
 		);
-	} else if (!stunExternal) {
-		// No srflx gathered — STUN unreachable or no NAT with direct address
-		if (hostIPs.some(function (ip) { return ip === serverIp; })) {
-			icon = 'fa-circle-check text-success'; cls = '';
-			label = 'No NAT — direct internet connection';
-		} else {
-			icon = 'fa-circle-question text-muted'; cls = 'text-muted';
-			label = 'STUN unreachable — UDP may be blocked by firewall';
-		}
-	} else if (stunExternal === serverIp || hostIPs.includes(stunExternal)) {
-		// STUN external matches server-seen IP, or is a known local address — no NAT
-		// (stunExternal === serverIp handles browsers that suppress host candidates for privacy)
-		icon = 'fa-circle-check text-success'; cls = '';
-		label = 'No NAT — direct internet connection';
-	} else {
-		// STUN external differs from server-seen IP — NAT is present
-		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
-		label = 'Behind NAT — ' + (externalIp || stunExternal);
 	}
 
-	$('#device-nat').html('<i class="fa-solid ' + icon + ' me-1" aria-hidden="true"></i><span class="' + cls + '">' + label + '</span>');
+	$('#device-nat').html('<i class="fa-solid ' + icon + ' me-1" aria-hidden="true"></i><span>' + label + '</span>');
+	$('#device-nat-row').show();
+	$('#device-card').show();
+	$('#detail-col').show();
+	$('#additional-info').show();
+	$('#nac-diagram-row').show();
 }
 
 function checkClockSync(serverTime) {
