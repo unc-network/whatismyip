@@ -312,26 +312,33 @@ def get_nac_info(ip_address, mac=None):
         raise RuntimeError(f"NAC session failed: {session.message}")
     app.logger.debug("XMC session created")
 
-    # Try looking up the end system by IP address first, then fall back to MAC if that fails
-    app.logger.debug(f"Looking up end system info for ip {ip_address}")
-    end_system_data = session.getEndSystemByIp(ip_address)
-    if session.error:
-        app.logger.error("ERROR: getEndSystemByIP failed '%s'" % session.message)
-    app.logger.debug(f"NAC end system by ip: {end_system_data}")
-    # if 'policy' in ip_data and ip_data['policy']:
-    #     ip_data['policy_parsed'] = parse_extreme_vsa(ip_data['policy'])
-    data["endSystem"] = end_system_data
-
-    # Fall back to MAC address if we didn't get any end system data from the IP lookup and we have a MAC address to try
-    if end_system_data is None and mac:
+    # Try MAC first if IPAM provided one — NAC is MAC-centric and IP mappings may lag.
+    # Fall back to IP lookup if no MAC was available or the MAC lookup returned nothing.
+    # Normalize MAC to uppercase — IPAM returns lowercase but XMC expects uppercase hex.
+    end_system_data = None
+    if mac:
+        mac = mac.upper()
         app.logger.debug(f"Looking up end system info for mac {mac}")
         end_system_data = session.getEndSystemByMac(mac)
         if session.error:
             app.logger.error("ERROR: getEndSystemByMac failed '%s'" % session.message)
         app.logger.debug(f"NAC end system by mac: {end_system_data}")
-        # if 'policy' in ip_data and ip_data['policy']:
-        #     ip_data['policy_parsed'] = parse_extreme_vsa(ip_data['policy'])
         data["endSystem"] = end_system_data
+
+    if not end_system_data:
+        app.logger.debug(f"Looking up end system info for ip {ip_address}")
+        end_system_data = session.getEndSystemByIp(ip_address)
+        if session.error:
+            app.logger.error("ERROR: getEndSystemByIP failed '%s'" % session.message)
+        app.logger.debug(f"NAC end system by ip: {end_system_data}")
+        data["endSystem"] = end_system_data
+
+    if not end_system_data:
+        app.logger.warning(
+            f"NAC lookup exhausted for campus address {ip_address}"
+            + (f" (MAC {mac})" if mac else " (no MAC from IPAM)")
+            + " — no end system record found by MAC or IP"
+        )
 
     # Lookup additional end system info using the MAC address from either the IP or MAC lookup results
     if end_system_data and end_system_data["macAddress"]:
@@ -353,11 +360,19 @@ def get_nac_info(ip_address, mac=None):
 
     # Do some cleanup on the data to add NIT inventory information
     if data["endSystem"] and "switchPortId" in data["endSystem"]:
+        # Named AP format (Extreme): "AP-NAME (MAC):SSID"
         wireless_regex = r"^(?P<ap_name>\S+)\s\((?P<ap_mac>\S+)\):(?P<ssid>\S+)$"
+        # MAC-only format (Meraki): "CC-6E-2A-D6-2E-40:SSID" — no AP name, no building ID
+        meraki_wireless_regex = (
+            r"^(?P<ap_mac>[0-9A-Fa-f]{2}(?:[:-][0-9A-Fa-f]{2}){5}):(?P<ssid>.+)$"
+        )
         ap_name_regex = r"^(?P<tier>[^-]+)-(?P<bldg_id>\d+)-"
         match = re.match(wireless_regex, data["endSystem"]["switchPortId"])
+        meraki_match = re.match(
+            meraki_wireless_regex, data["endSystem"]["switchPortId"]
+        )
         if match:
-            # we have a wireless connection
+            # Named AP wireless — can resolve building from AP name
             data["endSystem"]["connection_type"] = "wireless"
             data["endSystem"]["wireless_controller"] = (
                 data["endSystem"]["switchIP"]
@@ -373,8 +388,22 @@ def get_nac_info(ip_address, mac=None):
                 data["endSystem"]["wireless_ap_bldg_id"] = ap_match.group("bldg_id")
                 data["nit_building"] = get_nit_building_by_id(ap_match.group("bldg_id"))
                 app.logger.debug(f"NIT building info: {data['nit_building']}")
+        elif meraki_match:
+            # MAC-only wireless — building lookup not available without Meraki API
+            data["endSystem"]["connection_type"] = "wireless"
+            data["endSystem"]["wireless_controller"] = (
+                data["endSystem"]["switchIP"]
+                if "switchIP" in data["endSystem"]
+                else None
+            )
+            data["endSystem"]["wireless_ap_name"] = None
+            data["endSystem"]["wireless_ap_mac"] = meraki_match.group("ap_mac")
+            data["endSystem"]["wireless_ssid"] = meraki_match.group("ssid")
+            app.logger.debug(
+                f"Meraki wireless: mac={meraki_match.group('ap_mac')} ssid={meraki_match.group('ssid')}"
+            )
         elif data["endSystem"] and "switchIP" in data["endSystem"]:
-            # we have a wired connection
+            # wired connection
             data["endSystem"]["connection_type"] = "wired"
             data["nit_building"] = get_nit_building(end_system_data["switchIP"])
             app.logger.debug(f"NIT building info: {data['nit_building']}")

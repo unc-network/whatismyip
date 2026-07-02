@@ -65,14 +65,14 @@ The visitor's IP is read from the HTTP connection at request time (`X-Forwarded-
 - Extended attributes: Admin Onyen, Administrator name, Admin Email, Department
 - **MAC address** — only present when IPAM has an active DHCP lease for this IP; absent for static IPs, expired leases, and most IPv6 addresses
 
-The MAC from IPAM is passed into Step 3 as a fallback input.
+The MAC from IPAM is passed into Step 3 as the preferred lookup key.
 
-### Step 3 — NAC / Extreme XMC (IP-first, MAC fallback)
+### Step 3 — NAC / Extreme XMC (MAC-first, IP fallback)
 
 `get_nac_info(ip, mac)` runs up to three XMC NBI calls, stopping early when data is found:
 
-1. **By IP** — `getEndSystemByIp(ip)`: preferred path; NAC tracks active sessions by IP and returns the current endSystem record (MAC, switch IP, switch port ID or AP string, policy, etc.)
-2. **By MAC fallback** — `getEndSystemByMac(mac)`: only attempted if the IP lookup returns nothing *and* IPAM provided a MAC. Covers cases where the NAC session record has aged out or the IP changed since the device last authenticated.
+1. **By MAC** — `getEndSystemByMac(mac)`: attempted first if IPAM provided a MAC address in Step 2. NAC operates primarily on MAC addresses; IP-to-session mappings are populated by supplemental data feeds and may lag behind the current session.
+2. **By IP fallback** — `getEndSystemByIp(ip)`: attempted if no MAC was available from IPAM, or if the MAC lookup returned nothing. Covers cases where IPAM has no active DHCP lease for the address.
 3. **Device profile** — `getMacAddress(mac)`: once any MAC is known (from either NAC result above, or directly from the IPAM fallback), fetches the device's persistent profile — vendor, device type, registration info, etc.
 
 **Important constraints:**

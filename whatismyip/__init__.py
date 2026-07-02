@@ -40,7 +40,7 @@ APP_ROOT = os.path.join(os.path.dirname(__file__), "..")  # refers to applicatio
 dotenv_path = os.path.join(APP_ROOT, ".env")
 load_dotenv(dotenv_path)
 
-__version__ = "1.4.1"
+__version__ = "1.4.2"
 
 app = Flask(__name__)
 app.config.from_object("config.Config")

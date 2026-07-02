@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.4.2] - 2026-07-01
+
+### Fixed
+
+- **NAC lookup order corrected to MAC-first** — `get_nac_info` now attempts `getEndSystemByMac` before `getEndSystemByIp` when IPAM returned a MAC address in the address object lookup. XMC operates primarily on MAC addresses; IP-to-session mappings are populated by supplemental data feeds and can lag behind the current session. The previous IP-first order caused unnecessary misses for devices whose NAC session record had not yet been updated with the current IP. IP lookup is now the fallback for addresses where IPAM has no active DHCP lease (static IPs, expired leases, most IPv6 addresses).
+- **MAC address case normalization for XMC queries** — IPAM returns MAC addresses in lowercase (e.g. `22:b3:c6:57:7e:60`) but XMC's GraphQL API expects uppercase hex. The MAC is now converted to uppercase before being passed to `getEndSystemByMac`, preventing silent lookup failures for DHCP-leased addresses.
+- **NAC IP fallback not triggering on XMC errors** — `getEndSystemByMac` returns `False` on an API/network error and `None` when the record is simply not found. The fallback condition was checking `is None`, so an XMC error would suppress the IP fallback entirely. Changed to `if not end_system_data` to catch both cases.
+- **`NameError` in `get_nac_info` when IPAM provides no MAC** — `end_system_data` was only assigned inside the `if mac:` block, causing a `NameError` on the subsequent fallback check for addresses with no IPAM MAC. Initialized to `None` before the block.
+- **Meraki wireless connections misidentified as wired** — `switchPortId` values in `MAC:SSID` format (e.g. `CC-6E-2A-D6-2E-40:eduroam`) were not matched by the existing wireless regex, which expects a named AP prefix (`AP-NAME (MAC):SSID`). A second pattern now detects the MAC-only format and correctly sets `connection_type` to `wireless`. Building lookup is not available for this format without a Meraki API call (noted for a future enhancement).
+- **OpenShift S2I build failure** — adding `setup.cfg` for pytest-cov configuration caused OpenShift's Source-to-Image builder to treat the project as an installable Python package and fail with "Neither setup.py nor pyproject.toml found." Moved coverage configuration to `.coveragerc`, which S2I ignores.
+- **Pipeline `tag_release` job never ran on production merges** — the branch condition was hardcoded to `"main"` but the production branch is `master`. Corrected to `"master"` so the job now appears and runs on merges to the production branch.
+
+### Added
+
+- **NAC miss warning log** — when a campus IP address exhausts both the MAC and IP lookups in XMC without finding an end system record, a `WARNING` is now emitted to the application log including the IP and MAC (if available). Aids diagnosis of devices that appear on campus but have no NAC session.
+
+---
+
 ## [1.4.1] - 2026-07-01
 
 ### Added
