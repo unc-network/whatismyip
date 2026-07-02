@@ -4,6 +4,8 @@ import ipaddress
 import os
 import shutil
 
+from flask import Flask
+
 try:
     import tomllib
 except ImportError:
@@ -13,7 +15,7 @@ _APP_ROOT = os.path.join(os.path.dirname(__file__), "..")
 SITE_CONFIG_PATH = os.path.join(_APP_ROOT, "data", "config.toml")
 
 
-def load_site_config(app):
+def load_site_config(app: Flask) -> None:
     """Load data/config.toml and apply settings to app.config.
 
     If the file does not exist it is written with built-in defaults so that
@@ -89,7 +91,9 @@ def load_site_config(app):
         _apply_defaults(app)
 
 
-def _parse_campus_networks(app, cidr_list):
+def _parse_campus_networks(
+    app: Flask, cidr_list: list[str]
+) -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
     networks = []
     for cidr in cidr_list:
         try:
@@ -99,7 +103,7 @@ def _parse_campus_networks(app, cidr_list):
     return networks
 
 
-def _write_default_config():
+def _write_default_config() -> None:
     """Seed SITE_CONFIG_PATH from data/config.toml.example on first deploy."""
     example = os.path.join(
         os.path.dirname(__file__), "..", "data", "config.toml.example"
@@ -114,7 +118,7 @@ def _write_default_config():
             )
 
 
-def _apply_defaults(app):
+def _apply_defaults(app: Flask) -> None:
     app.config["CAMPUS_NETWORKS"] = []
     app.config["DNS_SECURITY_TEST_URL"] = ""
     app.config["MAP_PROVIDER"] = "leaflet"

@@ -16,7 +16,7 @@ _APP_ROOT = os.path.join(os.path.dirname(__file__), "..")
 load_dotenv(os.path.join(_APP_ROOT, ".env"))
 
 
-def create_app(test_config=None):
+def create_app(test_config: dict | None = None) -> Flask:
     """Create and configure the Flask application."""
     app = Flask(__name__)
     app.config.from_object("config.Config")
@@ -57,10 +57,10 @@ def create_app(test_config=None):
             app_version=__version__,
         )
 
-    from whatismyip.routes.main import bp as main_bp
     from whatismyip.routes.api import bp as api_bp
-    from whatismyip.routes.pages import bp as pages_bp
+    from whatismyip.routes.main import bp as main_bp
     from whatismyip.routes.metrics import bp as metrics_bp
+    from whatismyip.routes.pages import bp as pages_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp)

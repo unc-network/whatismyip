@@ -237,9 +237,7 @@ class XMC_NBI:
             return False
         else:
             if self.test or debug:
-                callTine = float(
-                    "{0:0.1f}".format(response.elapsed.total_seconds() * 1000)
-                )
+                callTine = float(f"{response.elapsed.total_seconds() * 1000:0.1f}")
                 logger.debug("call %s executed [%s ms]" % (caller, callTine))
             self.data = data_out["data"]
             return True

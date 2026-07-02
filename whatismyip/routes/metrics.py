@@ -1,6 +1,6 @@
 """Metrics blueprint — aggregate usage dashboard."""
 
-from flask import Blueprint, current_app, render_template, request
+from flask import Blueprint, Response, current_app, render_template, request
 
 from whatismyip.db import get_metrics_dashboard
 
@@ -8,7 +8,7 @@ bp = Blueprint("metrics", __name__)
 
 
 @bp.route("/metrics")
-def metrics():
+def metrics() -> Response | tuple[str, int, dict[str, str]]:
     """Display aggregate usage metrics."""
     username = current_app.config.get("METRICS_USERNAME", "")
     password = current_app.config.get("METRICS_PASSWORD", "")

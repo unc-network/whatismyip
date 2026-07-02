@@ -2,19 +2,21 @@
 Utility functions
 """
 
+import ipaddress
+import json
 import re
 import time
-import ipaddress
+from typing import Any
+
 import requests
-import json
 
 # from ipwhois import IPWhois
-
 from flask import current_app as app
+
 from whatismyip.extreme import XMC_NBI
 
 
-def is_campus_ip(ip_address):
+def is_campus_ip(ip_address: str) -> bool:
     """
     Check if the IP address falls within a configured campus network.
     Networks are loaded from data/config.toml at startup via app.config["CAMPUS_NETWORKS"].
@@ -27,23 +29,9 @@ def is_campus_ip(ip_address):
     return any(ip in net for net in networks)
 
 
-# def getWhoIs(ip):
-#     # Lookup Who Is information
-#     from ipwhois import IPWhois
-
-#     ipaddr = ipaddress.ip_address(ip)
-#     app.logger.debug("getWhoIs {}".format(ip))
-
-#     if not ipaddr.is_private:
-#         obj = IPWhois(ip)
-#         ret = obj.lookup_rdap()
-#         print("Found {}".format(ret))
-#         return ret
-
-#     return {}
-
-
-def get_client_address(remote_address, forwarded_for):
+def get_client_address(
+    remote_address: str | None, forwarded_for: str | None
+) -> str | None:
     """
     In general the X-Forwarded-For header is a comma separated list of IP
     addresses but the header format is not formally standardized.  We will
@@ -65,8 +53,7 @@ def get_client_address(remote_address, forwarded_for):
     return client_address
 
 
-
-def get_network(ip_address):
+def get_network(ip_address: str) -> dict[str, Any]:
     """Find the network for this address in IPAM."""
     start_time = time.time()
     app.logger.debug(f"get_network {ip_address}")
@@ -129,7 +116,7 @@ def get_network(ip_address):
     return {}
 
 
-def get_address_objects(ip_address):
+def get_address_objects(ip_address: str) -> dict[str, Any]:
     """Find Infoblox records"""
     start_time = time.time()
     app.logger.debug(f"get_address_objects {ip_address}")
@@ -198,7 +185,7 @@ def get_address_objects(ip_address):
     return {}
 
 
-def get_ip_location(ip_address):
+def get_ip_location(ip_address: str) -> dict[str, Any]:
     """
     Get geo-location data for the IP
     """
@@ -261,7 +248,7 @@ def get_ip_location(ip_address):
         return {}
 
 
-def get_nac_info(ip_address, mac=None):
+def get_nac_info(ip_address: str, mac: str | None = None) -> dict[str, Any] | None:
     """
     Collect information about this device from NAC (Extreme Networks XMC).
     Collect EndSystem data about the current connection and the EndSystemInfo about the device's configuration.
@@ -289,7 +276,7 @@ def get_nac_info(ip_address, mac=None):
         test=False,
     )
     if session.error:
-        app.logger.error("ERROR: '%s'" % session.message)
+        app.logger.error(f"ERROR: '{session.message}'")
         raise RuntimeError(f"NAC session failed: {session.message}")
     app.logger.debug("XMC session created")
 
@@ -302,7 +289,7 @@ def get_nac_info(ip_address, mac=None):
         app.logger.debug(f"Looking up end system info for mac {mac}")
         end_system_data = session.getEndSystemByMac(mac)
         if session.error:
-            app.logger.error("ERROR: getEndSystemByMac failed '%s'" % session.message)
+            app.logger.error(f"ERROR: getEndSystemByMac failed '{session.message}'")
         app.logger.debug(f"NAC end system by mac: {end_system_data}")
         data["endSystem"] = end_system_data
 
@@ -310,7 +297,7 @@ def get_nac_info(ip_address, mac=None):
         app.logger.debug(f"Looking up end system info for ip {ip_address}")
         end_system_data = session.getEndSystemByIp(ip_address)
         if session.error:
-            app.logger.error("ERROR: getEndSystemByIP failed '%s'" % session.message)
+            app.logger.error(f"ERROR: getEndSystemByIP failed '{session.message}'")
         app.logger.debug(f"NAC end system by ip: {end_system_data}")
         data["endSystem"] = end_system_data
 
@@ -328,14 +315,14 @@ def get_nac_info(ip_address, mac=None):
         )
         mac_data = session.getMacAddress(end_system_data["macAddress"])
         if session.error:
-            app.logger.error("ERROR: getMacAddress failed '%s'" % session.message)
+            app.logger.error(f"ERROR: getMacAddress failed '{session.message}'")
         app.logger.debug(f"nac_mac: {mac_data}")
         data["endSystemInfo"] = mac_data
     elif mac:
         app.logger.debug(f"Looking up end system info from IPAM mac {mac}")
         mac_data = session.getMacAddress(mac)
         if session.error:
-            app.logger.error("ERROR: getMacAddress failed '%s'" % session.message)
+            app.logger.error(f"ERROR: getMacAddress failed '{session.message}'")
         app.logger.debug(f"nac_mac: {mac_data}")
         data["endSystemInfo"] = mac_data
 
@@ -394,7 +381,7 @@ def get_nac_info(ip_address, mac=None):
     return data
 
 
-def get_nit_building(switch_ip):
+def get_nit_building(switch_ip: str) -> dict[str, Any]:
     """
     Get building information from NIT about this device IP (switch, ap, or ups).
     """
@@ -426,7 +413,7 @@ def get_nit_building(switch_ip):
     return data["building"] if "building" in data else {}
 
 
-def get_nit_building_by_id(building_id):
+def get_nit_building_by_id(building_id: str) -> dict[str, Any]:
     """
     Get building information from NIT about this building id
     """
@@ -458,7 +445,7 @@ def get_nit_building_by_id(building_id):
     return data["building"] if "building" in data else {}
 
 
-def parse_extreme_vsa(vsa_string):
+def parse_extreme_vsa(vsa_string: str) -> dict[str, Any]:
     parsed_data = {"Extreme-Dynamic-Config": []}
 
     # Split the main string by comma, but only if not within nested structures

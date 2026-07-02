@@ -3,7 +3,9 @@
 import os
 import sqlite3
 import time
-from datetime import datetime, time as dt_time, timedelta, timezone
+from datetime import datetime, timedelta, timezone
+from datetime import time as dt_time
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from flask import current_app
@@ -17,11 +19,11 @@ _metrics_cache: dict = {"data": None, "ts": 0.0}
 _METRICS_CACHE_TTL = 300  # seconds
 
 
-def _db_path():
+def _db_path() -> str:
     return current_app.config.get("METRICS_DB_PATH", _DEFAULT_METRICS_DB_PATH)
 
 
-def ensure_metrics_store():
+def ensure_metrics_store() -> None:
     """Create the metrics database and schema when needed."""
     path = _db_path()
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -92,26 +94,26 @@ def ensure_metrics_store():
 
 
 def log_metrics_event(
-    event_type,
-    ip_version=None,
-    isp=None,
-    org=None,
-    asn=None,
-    city=None,
-    region=None,
-    country=None,
-    country_code=None,
-    is_campus=None,
-    network_purpose=None,
-    mobile=None,
-    proxy=None,
-    hosting=None,
-    dns_filtering=None,
-    dns_ip=None,
-    dns_geo=None,
-    edns_ip=None,
-    edns_geo=None,
-):
+    event_type: str,
+    ip_version: int | None = None,
+    isp: str | None = None,
+    org: str | None = None,
+    asn: str | None = None,
+    city: str | None = None,
+    region: str | None = None,
+    country: str | None = None,
+    country_code: str | None = None,
+    is_campus: bool | None = None,
+    network_purpose: str | None = None,
+    mobile: bool | None = None,
+    proxy: bool | None = None,
+    hosting: bool | None = None,
+    dns_filtering: str | None = None,
+    dns_ip: str | None = None,
+    dns_geo: str | None = None,
+    edns_ip: str | None = None,
+    edns_geo: str | None = None,
+) -> None:
     """Store a single aggregate metrics event without persisting raw IP addresses."""
     try:
         ensure_metrics_store()
@@ -168,13 +170,15 @@ def log_metrics_event(
         current_app.logger.warning("Metrics logging skipped: %s", error)
 
 
-def _count_by_query(conn, query, params=()):
+def _count_by_query(
+    conn: sqlite3.Connection, query: str, params: tuple = ()
+) -> list[dict[str, Any]]:
     """Return a list of dictionaries from a grouped count query."""
     rows = conn.execute(query, params).fetchall()
     return [dict(row) for row in rows]
 
 
-def _with_percentages(rows):
+def _with_percentages(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Add percentage values to grouped rows."""
     total = sum(row["count"] for row in rows)
     result = []
@@ -184,7 +188,7 @@ def _with_percentages(rows):
     return result
 
 
-def get_metrics_dashboard(days=None):
+def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
     """Build the metrics summary data for the admin dashboard."""
     ensure_metrics_store()
     if _metrics_cache["data"] is not None and (

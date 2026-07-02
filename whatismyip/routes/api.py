@@ -4,9 +4,17 @@ import ipaddress
 import os
 import time
 
-from flask import Blueprint, abort, current_app, jsonify, make_response, request
-from dns import resolver, reversename
 import dns.exception
+from dns import resolver, reversename
+from flask import (
+    Blueprint,
+    Response,
+    abort,
+    current_app,
+    jsonify,
+    make_response,
+    request,
+)
 from user_agents import parse
 
 from whatismyip.db import log_metrics_event
@@ -199,7 +207,7 @@ _SIMULATE_HOSTINFO = {
 
 
 @bp.route("/hostinfo")
-def hostinfo():
+def hostinfo() -> Response:
     """Return JSON structure with IP address information."""
     simulate = request.args.get("simulate")
     if simulate:
@@ -511,7 +519,7 @@ def hostinfo():
 
 
 @bp.route("/dns-result", methods=["POST"])
-def dns_result():
+def dns_result() -> Response:
     """Accept client-reported DNS test results for aggregate metrics."""
     if request.args.get("simulate"):
         return jsonify({"ok": True})

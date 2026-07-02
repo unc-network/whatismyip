@@ -5,6 +5,7 @@ from urllib.parse import urlsplit
 
 from flask import (
     Blueprint,
+    Response,
     current_app,
     make_response,
     redirect,
@@ -17,13 +18,13 @@ from whatismyip.utils import get_client_address, is_campus_ip
 bp = Blueprint("main", __name__)
 
 
-def _configured_hostname(url):
+def _configured_hostname(url: str) -> str:
     """Return the lowercase hostname component for a configured URL."""
     return (urlsplit(url).hostname or "").lower()
 
 
 @bp.before_app_request
-def redirect_split_stack_hosts_to_primary():
+def redirect_split_stack_hosts_to_primary() -> Response | None:
     """Redirect ipv4/ipv6 hostnames to the primary site, except for /hostinfo."""
     if request.path == "/hostinfo":
         return None
@@ -48,7 +49,7 @@ def redirect_split_stack_hosts_to_primary():
 
 
 @bp.route("/")
-def home():
+def home() -> Response:
     """Display the base homepage with IP address information."""
     data = {}
 
