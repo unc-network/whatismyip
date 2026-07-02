@@ -293,6 +293,8 @@ def hostinfo() -> Response:
             iplocation = get_ip_location(data["client_address"])
         except Exception as error:
             current_app.logger.warning(f"IP location lookup failed: {error}")
+            iplocation = None
+        if not iplocation:
             iplocation = {
                 "country_code2": None,
                 "country_name": "Unknown",
@@ -420,11 +422,11 @@ def hostinfo() -> Response:
     data["network"] = net_details
 
     if data["is_campus"]:
-        if network is not None and not network:
+        if network is None:
             current_app.logger.error(
                 f"On-campus IP {data['client_address']} has no matching network in IPAM"
             )
-        elif network and not net_details["purpose"]:
+        elif not net_details["purpose"]:
             current_app.logger.warning(
                 f"On-campus IP {data['client_address']} matched network "
                 f"{net_details['cidr']} with no Purpose defined"

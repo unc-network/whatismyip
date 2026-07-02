@@ -53,7 +53,7 @@ def get_client_address(
     return client_address
 
 
-def get_network(ip_address: str) -> dict[str, Any]:
+def get_network(ip_address: str) -> dict[str, Any] | None:
     """Find the network for this address in IPAM."""
     start_time = time.time()
     app.logger.debug(f"get_network {ip_address}")
@@ -63,7 +63,7 @@ def get_network(ip_address: str) -> dict[str, Any]:
         ipaddr = ipaddress.ip_address(ip_address)
     except ValueError:
         app.logger.warning(f"{ip_address} is not a valid ip address")
-        return {}
+        return None
 
     if is_campus_ip(ip_address):
         # Do the lookup only if we think this is a campus address
@@ -99,24 +99,16 @@ def get_network(ip_address: str) -> dict[str, Any]:
             execution_time = time.time() - start_time
             app.logger.debug(f"get_network complete in {execution_time} seconds")
             return network_list[0]
-        # else:
-        #     execution_time = time.time() - start_time
-        #     app.logger.debug(f"get_network complete in {execution_time} seconds")
-        #     return {}
         execution_time = time.time() - start_time
         app.logger.debug(f"get_network complete in {execution_time} seconds")
-        return {}
+        return None
 
-    # else:
-    #     execution_time = time.time() - start_time
-    #     app.logger.debug(f"get_network complete in {execution_time} seconds")
-    #     return {}
     execution_time = time.time() - start_time
     app.logger.debug(f"get_network complete in {execution_time} seconds")
-    return {}
+    return None
 
 
-def get_address_objects(ip_address: str) -> dict[str, Any]:
+def get_address_objects(ip_address: str) -> dict[str, Any] | None:
     """Find Infoblox records"""
     start_time = time.time()
     app.logger.debug(f"get_address_objects {ip_address}")
@@ -126,7 +118,7 @@ def get_address_objects(ip_address: str) -> dict[str, Any]:
         ipaddr = ipaddress.ip_address(ip_address)
     except ValueError:
         app.logger.warning(f"{ip_address} is not a valid ip address")
-        return {}
+        return None
 
     if is_campus_ip(ip_address):
         # Do the lookup only if we think this is a campus address
@@ -163,29 +155,21 @@ def get_address_objects(ip_address: str) -> dict[str, Any]:
             app.logger.debug(
                 f"getAddressObject NONE complete in {execution_time} seconds"
             )
-            return {}
+            return None
         elif len(address_list) == 1:
             execution_time = time.time() - start_time
             app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
             return address_list[0]
-        # else:
-        #     execution_time = time.time() - start_time
-        #     app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
-        #     return {}
         execution_time = time.time() - start_time
         app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
-        return {}
+        return None
 
-    # else:
-    #     execution_time = time.time() - start_time
-    #     app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
-    #     return {}
     execution_time = time.time() - start_time
     app.logger.debug(f"getAddressObject complete in {execution_time} seconds")
-    return {}
+    return None
 
 
-def get_ip_location(ip_address: str) -> dict[str, Any]:
+def get_ip_location(ip_address: str) -> dict[str, Any] | None:
     """
     Get geo-location data for the IP
     """
@@ -194,7 +178,7 @@ def get_ip_location(ip_address: str) -> dict[str, Any]:
         ipaddr = ipaddress.ip_address(ip_address)
     except ValueError:
         app.logger.error(f"{ip_address} is not a valid ip address for location lookup")
-        return {}
+        return None
 
     if ipaddr.is_global:
         # Hit the remote API to get location information about this IP address.
@@ -217,7 +201,7 @@ def get_ip_location(ip_address: str) -> dict[str, Any]:
             response = session.get(api_url, timeout=3)
         except requests.ReadTimeout as e:
             app.logger.error(f"Location API failed {e}")
-            return {}
+            return None
         if response.status_code == 200:
             raw = response.json()
             app.logger.debug(f"ip_location details: {raw}")
@@ -241,11 +225,11 @@ def get_ip_location(ip_address: str) -> dict[str, Any]:
             }
         else:
             app.logger.warning(f"ip_location query failed {response}")
-            return {}
+            return None
     else:
         # Do not attempt this lookup on non-global IP addresses
         app.logger.debug(f"{ip_address} is not a global IP address")
-        return {}
+        return None
 
 
 def get_nac_info(ip_address: str, mac: str | None = None) -> dict[str, Any] | None:
@@ -255,7 +239,7 @@ def get_nac_info(ip_address: str, mac: str | None = None) -> dict[str, Any] | No
     """
     start_time = time.time()
     app.logger.debug(f"get_nac_info ip {ip_address} and mac {mac}")
-    data = {
+    data: dict[str, Any] = {
         "endSystem": None,
         "endSystemInfo": None,
     }
@@ -381,7 +365,7 @@ def get_nac_info(ip_address: str, mac: str | None = None) -> dict[str, Any] | No
     return data
 
 
-def get_nit_building(switch_ip: str) -> dict[str, Any]:
+def get_nit_building(switch_ip: str) -> dict[str, Any] | None:
     """
     Get building information from NIT about this device IP (switch, ap, or ups).
     """
@@ -400,20 +384,20 @@ def get_nit_building(switch_ip: str) -> dict[str, Any]:
         app.logger.warning(f"NIT query failed: {url} {type(e).__name__}")
         execution_time = time.time() - start_time
         app.logger.debug(f"get_nit_switch_info complete in {execution_time} seconds")
-        return {}
+        return None
     if response.status_code != 200:
         app.logger.warning(f"NIT query failed {response}")
         execution_time = time.time() - start_time
         app.logger.debug(f"get_nit_switch_info complete in {execution_time} seconds")
-        return {}
+        return None
     data = response.json()
 
     execution_time = time.time() - start_time
     app.logger.debug(f"get_nit_switch_info complete in {execution_time} seconds")
-    return data["building"] if "building" in data else {}
+    return data.get("building") or None
 
 
-def get_nit_building_by_id(building_id: str) -> dict[str, Any]:
+def get_nit_building_by_id(building_id: str) -> dict[str, Any] | None:
     """
     Get building information from NIT about this building id
     """
@@ -432,17 +416,17 @@ def get_nit_building_by_id(building_id: str) -> dict[str, Any]:
         app.logger.warning(f"NIT query failed: {url} {type(e).__name__}")
         execution_time = time.time() - start_time
         app.logger.debug(f"get_nit_switch_info complete in {execution_time} seconds")
-        return {}
+        return None
     if response.status_code != 200:
         app.logger.warning(f"NIT query failed {response}")
         execution_time = time.time() - start_time
         app.logger.debug(f"get_nit_switch_info complete in {execution_time} seconds")
-        return {}
+        return None
     data = response.json()
 
     execution_time = time.time() - start_time
     app.logger.debug(f"get_nit_switch_info complete in {execution_time} seconds")
-    return data["building"] if "building" in data else {}
+    return data.get("building") or None
 
 
 def parse_extreme_vsa(vsa_string: str) -> dict[str, Any]:
