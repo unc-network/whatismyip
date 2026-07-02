@@ -1,9 +1,13 @@
 [lint]
-select = ["E", "F"]
+select = ["E", "F", "I", "W", "UP"]
 ignore = [
     "E501",  # line too long — black owns line length
-    "F403",  # star imports in extreme.py / utils.py (legacy code)
-    "F405",  # names from star imports (same reason)
-    "E711",  # comparison to None — legacy code uses `== None` style
-    "E712",  # comparison to True/False — same
+]
+
+[lint.per-file-ignores]
+"whatismyip/extreme.py" = [
+    "E711",   # comparison to None — vendor code style
+    "E712",   # comparison to True/False — vendor code style
+    "I001",   # import order — vendor code
+    "UP031",  # percent format — vendor code
 ]

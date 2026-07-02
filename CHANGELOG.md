@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.5.0] - 2026-07-02
+
+### Changed
+
+- **Wireless connection path diagram now includes the wireless controller** — the controller IP (`switchIP` from NAC) is shown as the final node in the connection path for all wireless connections. For named AP connections where a building is resolved, the order is Device → AP → Building → Controller. For Meraki-style connections where no building is available, the order is Device → AP → Controller. The controller is rendered with a server icon to distinguish it from campus access switches.
+- **Application refactored to Flask application factory pattern** — `__init__.py` replaced with a `create_app()` factory; routes split into four blueprints (`main`, `api`, `pages`, `metrics`). Enables proper test isolation and is required for gunicorn multi-worker deployments.
+- **Star imports removed** — all `from module import *` replaced with explicit named imports throughout.
+- **Utility return type consistency** — `get_network`, `get_address_objects`, `get_ip_location`, `get_nit_building`, and `get_nit_building_by_id` now return `None` instead of `{}` when no result is found. An empty dict is truthy in JavaScript (causing the frontend to treat absent data as present); `None` serializes to `null` and is correctly treated as absent. A side effect: IP location API timeouts now trigger the same fallback dict as other failures rather than silently returning empty data.
+- **Ruff lint rules expanded** — isort (`I`), pyupgrade (`UP`), and warnings (`W`) rule sets enabled. Import ordering enforced; `logger.warn()` corrected to `logger.warning()` (deprecated alias); percent-format logger calls converted to f-strings; Python 3.10+ union type syntax adopted throughout.
+- **Dead code removed** — commented-out `getWhoIs` block and the unused `get_forwarded_address` function deleted from `utils.py`.
+- **Type annotations added** to all public functions across `utils.py`, `db.py`, `site_config.py`, and all route modules.
+
+### Added
+
+- **Test suite expanded to 41 tests** — new test modules cover `db.py` (metrics store, event logging, dashboard queries), `pages.py` (static pages, redirects, error handlers, IndexNow key serving), and `site_config.py` (valid config, invalid CIDR skipping, unknown map provider fallback, missing/broken TOML). SQLite tests use `tmp_path` fixtures for isolation from the production PVC mount.
+
+---
+
 ## [1.4.2] - 2026-07-01
 
 ### Fixed

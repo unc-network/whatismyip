@@ -53,12 +53,17 @@ function buildNacDiagram(nac, userDevice) {
 	var html = '<div class="nac-diagram" role="img" aria-label="Network connection path">';
 
 	if (isWireless) {
+		var controller = es.wireless_controller || es.switchIP || null;
 		html += node(deviceIcon, 'Your Device', es.macAddress || '');
 		html += connector(true);
 		html += node('fa-wifi', es.wireless_ap_name || 'Access Point', es.wireless_ssid || '');
 		if (bldgName) {
 			html += connector(false);
 			html += node('fa-building', bldgName, bldgSub !== bldgName ? bldgSub : '');
+		}
+		if (controller) {
+			html += connector(false);
+			html += node('fa-server', controller, 'Wireless Controller');
 		}
 	} else {
 		html += node(deviceIcon, 'Your Device', es.macAddress || '');
