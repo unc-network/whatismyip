@@ -658,6 +658,7 @@ function test_primary_url(default_version) {
 			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
 			reportDataPrimary = result;
 			checkAddressMismatch();
+			checkNATType(result['client_address']);
 			if (default_version == 4) reportConnectV4 = 'Supported';
 			else reportConnectV6 = 'Supported';
 			$('#report-btn').removeClass('disabled').removeAttr('aria-disabled');
@@ -748,20 +749,30 @@ function renderNATResult(serverIp, hostIPs, srflxIPs, externalIp, networkPurpose
 	var isV6 = serverIp.includes(':');
 	var sameFamilySrflx = srflxIPs.filter(function (ip) { return ip.includes(':') === isV6; });
 	var stunExternal = sameFamilySrflx.length > 0 ? sameFamilySrflx[0] : null;
-	var pathsDiffer = externalIp && externalIp !== serverIp;
+	// Only compare same-family addresses — ipify returns IPv4 only, so skip when primary is IPv6
+	var pathsDiffer = !isV6 && externalIp && externalIp !== serverIp;
 
 	if (pathsDiffer && networkPurpose === 'VPN') {
 		// Network purpose confirms VPN; internet traffic bypasses the tunnel
 		icon = 'fa-code-branch text-info'; cls = '';
 		label = 'Split tunnel — campus VPN, internet via ' + externalIp;
+		$('#intro_text .intro-status').append(
+			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Internet traffic bypasses the VPN tunnel and exits via ${externalIp}.</div>`
+		);
 	} else if (pathsDiffer && networkPurpose) {
 		// Known campus network type (Wireless, Wired, etc.); internet exits via border NAT
 		icon = 'fa-arrow-right-arrow-left text-info'; cls = '';
 		label = 'Campus NAT — internet traffic exits as ' + externalIp;
+		$('#intro_text .intro-status').append(
+			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Your internet traffic exits the campus network as ${externalIp}.</div>`
+		);
 	} else if (pathsDiffer) {
 		// Paths differ but no network purpose data (e.g. VPN pool not in IPAM)
 		icon = 'fa-code-branch text-info'; cls = '';
 		label = 'Split path — campus ' + serverIp + ', internet ' + externalIp;
+		$('#intro_text .intro-status').append(
+			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Your internet traffic appears to use a different address (${externalIp}) than your campus connection.</div>`
+		);
 	} else if (!stunExternal) {
 		// No srflx gathered — STUN unreachable or no NAT with direct address
 		if (hostIPs.some(function (ip) { return ip === serverIp; })) {
