@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache
+.ruff_cache
 
 # C extensions
 *.so
@@ -80,6 +81,9 @@ celerybeat-schedule
 
 # dotenv
 .env
+
+# Claude Code local project settings
+.claude/
 
 # virtualenv
 venv/
