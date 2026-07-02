@@ -65,25 +65,6 @@ def get_client_address(remote_address, forwarded_for):
     return client_address
 
 
-def get_forwarded_address(forwarded_for):
-    """
-    In general the X-Forwarded-For header is a comma separated list of IP
-    addresses but the header format is not formally standardized.  We will
-    only trust the last two addresses for security concerns.
-
-    Example value: "2610:28:3091:1000:2::a,172.22.158.131"
-    """
-    client_address = None
-
-    # Remove spaces and split on commas
-    fwd_list = forwarded_for.replace(" ", "").split(",")
-    if len(fwd_list) > 2:
-        client_address = fwd_list[-2]
-    else:
-        # normal: the last for cloudapps and second to last for client
-        client_address = fwd_list[-2]
-    return client_address
-
 
 def get_network(ip_address):
     """Find the network for this address in IPAM."""
@@ -94,7 +75,7 @@ def get_network(ip_address):
     try:
         ipaddr = ipaddress.ip_address(ip_address)
     except ValueError:
-        app.logger.warn(f"{ip_address} is not a valid ip address")
+        app.logger.warning(f"{ip_address} is not a valid ip address")
         return {}
 
     if is_campus_ip(ip_address):
@@ -157,7 +138,7 @@ def get_address_objects(ip_address):
     try:
         ipaddr = ipaddress.ip_address(ip_address)
     except ValueError:
-        app.logger.warn(f"{ip_address} is not a valid ip address")
+        app.logger.warning(f"{ip_address} is not a valid ip address")
         return {}
 
     if is_campus_ip(ip_address):
@@ -185,7 +166,7 @@ def get_address_objects(ip_address):
         app.logger.debug(f"{response}")
         if response.status_code != 200:
             address_list = None
-            app.logger.warn(f"{object_type} query failed {response}")
+            app.logger.warning(f"{object_type} query failed {response}")
         else:
             address_list = response.json()
             app.logger.debug(f"{object_type} details: {address_list}")

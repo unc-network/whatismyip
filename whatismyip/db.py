@@ -8,18 +8,24 @@ from zoneinfo import ZoneInfo
 
 from flask import current_app
 
-_APP_ROOT = os.path.join(os.path.dirname(__file__), "..")
-METRICS_DB_PATH = os.path.join(_APP_ROOT, "data", "metrics.sqlite3")
+_DEFAULT_METRICS_DB_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "data", "metrics.sqlite3"
+)
 METRICS_TIMEZONE = ZoneInfo("America/New_York")
 
 _metrics_cache: dict = {"data": None, "ts": 0.0}
 _METRICS_CACHE_TTL = 300  # seconds
 
 
+def _db_path():
+    return current_app.config.get("METRICS_DB_PATH", _DEFAULT_METRICS_DB_PATH)
+
+
 def ensure_metrics_store():
     """Create the metrics database and schema when needed."""
-    os.makedirs(os.path.dirname(METRICS_DB_PATH), exist_ok=True)
-    with sqlite3.connect(METRICS_DB_PATH) as conn:
+    path = _db_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with sqlite3.connect(path) as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS metrics_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,7 +115,7 @@ def log_metrics_event(
     """Store a single aggregate metrics event without persisting raw IP addresses."""
     try:
         ensure_metrics_store()
-        with sqlite3.connect(METRICS_DB_PATH) as conn:
+        with sqlite3.connect(_db_path()) as conn:
             conn.execute(
                 """
                 INSERT INTO metrics_events (
@@ -197,7 +203,7 @@ def get_metrics_dashboard(days=None):
         .isoformat()
     )
 
-    with sqlite3.connect(METRICS_DB_PATH) as conn:
+    with sqlite3.connect(_db_path()) as conn:
         conn.row_factory = sqlite3.Row
         total_hostinfo = conn.execute(
             "SELECT COUNT(*) AS count FROM metrics_events WHERE event_type = ?",

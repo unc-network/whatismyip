@@ -6,8 +6,9 @@ from whatismyip.routes.main import redirect_split_stack_hosts_to_primary
 
 
 @pytest.fixture
-def app():
-    return create_app({"TESTING": True})
+def app(tmp_path):
+    db = tmp_path / "metrics.sqlite3"
+    return create_app({"TESTING": True, "METRICS_DB_PATH": str(db)})
 
 
 @pytest.fixture

@@ -7,6 +7,7 @@ from flask import Flask, abort
 from flask_compress import Compress
 from flask_cors import CORS
 
+from whatismyip.db import _DEFAULT_METRICS_DB_PATH
 from whatismyip.site_config import load_site_config
 
 __version__ = "1.5.0"
@@ -24,6 +25,7 @@ def create_app(test_config=None):
     app.config["METRICS_TIME_WINDOW_DAYS"] = int(
         app.config.get("METRICS_TIME_WINDOW_DAYS", 30)
     )
+    app.config.setdefault("METRICS_DB_PATH", _DEFAULT_METRICS_DB_PATH)
 
     if test_config:
         app.config.update(test_config)
