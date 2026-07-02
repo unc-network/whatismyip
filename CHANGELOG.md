@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.5.0] - 2026-07-02
+
+### Changed
+
+- **Wireless connection path diagram now includes the wireless controller** — the controller IP (`switchIP` from NAC) is shown as the final node in the connection path for all wireless connections. For named AP connections where a building is resolved, the order is Device → AP → Building → Controller. For Meraki-style connections where no building is available, the order is Device → AP → Controller. The controller is rendered with a server icon to distinguish it from campus access switches.
+
+---
+
 ## [1.4.2] - 2026-07-01
 
 ### Fixed

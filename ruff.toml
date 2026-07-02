@@ -2,8 +2,8 @@
 select = ["E", "F"]
 ignore = [
     "E501",  # line too long — black owns line length
-    "F403",  # star imports in extreme.py / utils.py (legacy code)
+    "F403",  # star imports (from whatismyip.utils import *)
     "F405",  # names from star imports (same reason)
-    "E711",  # comparison to None — legacy code uses `== None` style
+    "E711",  # comparison to None — extreme.py uses == None style
     "E712",  # comparison to True/False — same
 ]
