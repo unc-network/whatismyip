@@ -214,6 +214,13 @@ main[role="main"] {
   margin-top: 1.75rem;
   margin-bottom: 0.35rem;
 }
+/* Light mode: darken Bootstrap utility colors that fail 4.5:1 on white at this font size */
+html:not([data-theme="dark"]) .faq-section-label.text-primary { color: #145484 !important; }
+html:not([data-theme="dark"]) .faq-section-label.text-success { color: #0d6040 !important; }
+html:not([data-theme="dark"]) .faq-section-label.text-warning { color: #7a5200 !important; }
+html:not([data-theme="dark"]) .faq-section-label.text-info    { color: #0a5465 !important; }
+/* Dark mode: text-success (#198754) is only 3.2:1 on navy — lighten to pass 4.5:1 */
+html[data-theme="dark"] .faq-section-label.text-success { color: #52c98a !important; }
 
 .faq-accent-primary { border-left: 4px solid var(--unc-carolina-blue) !important; }
 .faq-accent-success  { border-left: 4px solid #5a9a5a !important; }
@@ -340,16 +347,15 @@ html[data-theme="dark"] .text-muted {
   background-color: var(--unc-carolina-blue);
   color: #fff;
   white-space: nowrap;
-  text-decoration: none;
+  cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
-.nav-report-btn:hover {
+.nav-report-btn:hover:not(:disabled) {
   background-color: var(--unc-bolin-creek);
   border-color: var(--unc-bolin-creek);
   color: #fff;
-  text-decoration: none;
 }
-.nav-report-btn.disabled {
+.nav-report-btn:disabled {
   pointer-events: none;
   opacity: 0.45;
 }
@@ -405,6 +411,30 @@ a:hover {
   text-decoration: underline;
 }
 
+#copy-notification {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 2000;
+  padding: 10px 14px;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: none;
+}
+
+/* Social icon links: minimum 24×24 px touch target (WCAG 2.5.8) */
+.main-footer a:has(.fab),
+.main-footer a:has(.fa-brands) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 4px;
+}
+
 html[data-theme="dark"] #copy-notification {
   border: 1px solid var(--unc-cornerstone);
 }
@@ -427,12 +457,9 @@ html[data-theme="dark"] #copy-notification {
   filter: brightness(1.08);
   box-shadow: 0 8px 28px rgba(19,41,75,0.45), inset 0 1px 0 rgba(255,255,255,0.2) !important;
 }
-.ip-copy-card:focus {
-  outline: none;
-}
 .ip-copy-card:focus-visible {
-  outline: 2px solid rgba(255,255,255,0.7);
-  outline-offset: -3px;
+  outline: 3px solid #fff;
+  outline-offset: 3px;
 }
 
 .ip-hero-text {
@@ -444,10 +471,10 @@ html[data-theme="dark"] #copy-notification {
 }
 
 .ip-bar-label {
-  font-size: 0.7rem;
+  font-size: 1.2rem;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  opacity: 0.75;
   min-width: 2.5rem;
 }
 
