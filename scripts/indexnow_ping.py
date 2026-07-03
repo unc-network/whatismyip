@@ -55,7 +55,10 @@ def main() -> None:
     site_url = load_env_var("SERVER_URL").rstrip("/")
     if not site_url or "127.0.0.1" in site_url or "localhost" in site_url:
         print(f"error: SERVER_URL looks like a dev URL: {site_url!r}", file=sys.stderr)
-        print("       Set SERVER_URL in .env to the production URL before running.", file=sys.stderr)
+        print(
+            "       Set SERVER_URL in .env to the production URL before running.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     host = site_url.removeprefix("https://").removeprefix("http://")
@@ -69,11 +72,13 @@ def main() -> None:
     ]
     url_list = [f"{site_url}{path}" for path in pages]
 
-    payload = json.dumps({
-        "host": host,
-        "key": key,
-        "urlList": url_list,
-    }).encode()
+    payload = json.dumps(
+        {
+            "host": host,
+            "key": key,
+            "urlList": url_list,
+        }
+    ).encode()
 
     print(f"Pinging Bing IndexNow for {host}...")
     for url in url_list:
