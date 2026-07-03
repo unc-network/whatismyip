@@ -89,7 +89,7 @@
         <div id="connect-test" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}" data-simulate="{{ '1' if context.simulate else '' }}">
           <h3 class="card-title h5"><i class="fa-solid fa-tower-broadcast text-primary me-2" aria-hidden="true"></i>Campus Connectivity</h3>
           <div class="table-responsive">
-          <table class="table table-sm">
+          <table class="table table-sm mb-0">
             <caption class="visually-hidden">Campus Connectivity</caption>
             <tbody>
                 <tr>
@@ -109,11 +109,10 @@
           </div>
         </div>
 
-        <div id="dns-test" class="mt-0 pt-0" style="display:none;" aria-live="polite" data-dns_test_url="{{ context.dns_security_test_url }}">
-        <!-- <div id="dns-test" class="mt-4 pt-2 border-top" style="display:none;"> -->
+        <div id="dns-test" class="mt-0" style="display:none;" aria-live="polite" data-dns_test_url="{{ context.dns_security_test_url }}">
           <div class="table-responsive">
             <table id="dns-table" class="table table-sm">
-              <caption class="visually-hidden">DNS Security Filtering</caption>
+              <caption class="visually-hidden">Campus DNS Security</caption>
               <tbody>
               </tbody>
             </table>

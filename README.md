@@ -228,7 +228,7 @@ Networks are parsed into `ipaddress.ip_network` objects at startup — changes r
 
 ### DNS security filtering test
 
-The `[dns] security_filter_test_url` setting enables the **DNS Security Filtering** row in the connectivity card. Leave it empty to hide the row entirely.
+The `[dns] security_filter_test_url` setting enables the **Campus DNS Security** row in the connectivity card. Leave it empty to hide the row entirely.
 
 **How it works:** The visitor's browser (not the server) performs a `fetch()` to the configured URL using `HEAD` and `no-cors` mode. Because the test runs client-side, it uses the visitor's actual DNS resolver — not the server's.
 

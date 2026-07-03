@@ -7,6 +7,12 @@ All notable changes to this project will be documented here. This project follow
 ### Fixed
 
 - **IP protocol label pill** — the `IPv4`/`IPv6` badge inside the address copy card was restyled to match the card's color scheme: dark semi-transparent background (`rgba(0,0,0,0.35)`) with white text, consistent with the IP address and copy icon. Removed `text-transform: uppercase` so the label reads `IPv4`/`IPv6` matching the Campus Connectivity and Address Details cards. Empty state (during page load before the label is populated) no longer shows a visible placeholder chip.
+- **Campus Connectivity card spacing** — the Campus DNS Security and Internet DNS Provider rows now sit flush against the connectivity test rows, visually reading as a single unified table. Previously a 1rem Bootstrap table margin and extra top margin created a noticeable gap between the two sections.
+
+### Changed
+
+- **"DNS Security Filtering" renamed to "Campus DNS Security"** — the label in the Campus Connectivity card, the downloadable support report, and the FAQ question have all been updated to clarify that this is a campus-specific protection. The UNC knowledge base article link in the FAQ retains the official UNC service name.
+- **Navbar and footer order** — FAQ moved before About in the navbar to surface the most commonly-needed informational page sooner. The footer "Explore" column reordered to match (Speed Test → Connectivity → FAQ → About → Site Statistics); Connectivity was also missing from the footer and has been added.
 
 ---
 

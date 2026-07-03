@@ -64,7 +64,7 @@
     },
     {
       "@type": "Question",
-      "name": "What is DNS Security Filtering?",
+      "name": "What is Campus DNS Security?",
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "UNC Information Technology Services provides malware and phishing protection through the domain name system (DNS). Devices using campus DNS servers receive this protection automatically — no software or configuration changes required."
@@ -75,7 +75,7 @@
       "name": "Does this site contact any external services?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Your browser contacts up to three external services as part of the diagnostic checks. First, ip-api.com is contacted to identify your internet DNS provider and EDNS client subnet. Second, ipify.org is contacted to check what IPv4 address internet servers see for your connection, which is compared against the campus-detected address to identify split-tunnel VPN or campus NAT scenarios. Third, if DNS security filtering is configured, your browser attempts to reach a known test domain to determine whether filtering is active. In all cases your IP address is visible to any internet service you contact, so these checks do not expose anything beyond what is inherent to browsing the web. No data from these checks is sent back to UNC servers beyond the aggregate filtering result."
+        "text": "Yes. Your browser contacts up to three external services as part of the diagnostic checks. First, ip-api.com is contacted to identify your internet DNS provider and EDNS client subnet. Second, ipify.org is contacted to check what IPv4 address internet servers see for your connection, which is compared against the campus-detected address to identify split-tunnel VPN or campus NAT scenarios. Third, if campus DNS security is configured, your browser attempts to reach a known test domain to determine whether filtering is active. In all cases your IP address is visible to any internet service you contact, so these checks do not expose anything beyond what is inherent to browsing the web. No data from these checks is sent back to UNC servers beyond the aggregate filtering result."
       }
     },
     {
@@ -275,7 +275,7 @@
           <h2 class="accordion-header" id="faq-dns-heading">
             <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-dns" aria-expanded="false" aria-controls="faq-dns">
               <i class="fa-solid fa-shield-halved text-success me-2" aria-hidden="true"></i>
-              What is DNS Security Filtering?
+              What is Campus DNS Security?
             </button>
           </h2>
           <div id="faq-dns" class="accordion-collapse collapse" aria-labelledby="faq-dns-heading">

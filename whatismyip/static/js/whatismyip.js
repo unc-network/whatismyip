@@ -274,7 +274,7 @@ function downloadReport() {
 	var dnsSection = section('DNS', [
 		rpt('Internet DNS Provider', dnsProvider),
 		rpt('EDNS Client Subnet', dnsEdns),
-		rpt('DNS Security Filtering', reportDnsFiltering),
+		rpt('Campus DNS Security', reportDnsFiltering),
 	]);
 
 	var nacRows = [];
@@ -844,7 +844,7 @@ function get_dns_info() {
 	// Add Security Filtering row only if a test URL is configured
 	if (dns_test_url) {
 		append_dns_table_row(
-			'DNS Security Filtering',
+			'Campus DNS Security',
 			'<i class="fa-solid fa-question" aria-hidden="true"></i> Testing',
 			'security-filtering-row',
 			true
