@@ -471,11 +471,17 @@ html[data-theme="dark"] #copy-notification {
 }
 
 .ip-bar-label {
-  font-size: 1.2rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
   min-width: 2.5rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.ip-bar-label:empty {
+  background: transparent;
+  padding: 0;
 }
 
 @keyframes ip-pulse {

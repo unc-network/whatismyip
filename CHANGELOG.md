@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.6.2] - 2026-07-03
+
+### Fixed
+
+- **IP protocol label pill** — the `IPv4`/`IPv6` badge inside the address copy card was restyled to match the card's color scheme: dark semi-transparent background (`rgba(0,0,0,0.35)`) with white text, consistent with the IP address and copy icon. Removed `text-transform: uppercase` so the label reads `IPv4`/`IPv6` matching the Campus Connectivity and Address Details cards. Empty state (during page load before the label is populated) no longer shows a visible placeholder chip.
+
+---
+
 ## [1.6.1] - 2026-07-03
 
 ### Fixed
