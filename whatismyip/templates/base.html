@@ -169,14 +169,14 @@
 								   {% if request.path == '/connectivity' %}aria-current="page"{% endif %}>Connectivity</a>
 							</li>
 							<li class="nav-item">
-								<a class="nav-link small py-1{% if request.path == '/about' %} active fw-semibold{% endif %}"
-								   href="{{ site_url }}/about"
-								   {% if request.path == '/about' %}aria-current="page"{% endif %}>About</a>
-							</li>
-							<li class="nav-item">
 								<a class="nav-link small py-1{% if request.path == '/faq' %} active fw-semibold{% endif %}"
 								   href="{{ site_url }}/faq"
 								   {% if request.path == '/faq' %}aria-current="page"{% endif %}>FAQ</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link small py-1{% if request.path == '/about' %} active fw-semibold{% endif %}"
+								   href="{{ site_url }}/about"
+								   {% if request.path == '/about' %}aria-current="page"{% endif %}>About</a>
 							</li>
 							<li class="nav-item">
 								<a class="nav-link small py-1{% if request.path == '/metrics' %} active fw-semibold{% endif %}"
@@ -206,10 +206,11 @@
 					<div class="col-lg-4">
 						<h2 class="h5">Explore</h2>
 						<ul class="list-unstyled">
-							<li><a href="{{ site_url }}/about">About "What is my IP?"</a></li>
-							<li><a href="{{ site_url }}/faq">Frequently Asked Questions</a></li>
-							<li><a href="{{ site_url }}/metrics">Site Statistics</a></li>
 							<li><a href="{{ site_url }}/speedtest">Speed Test</a></li>
+							<li><a href="{{ site_url }}/connectivity">Connectivity</a></li>
+							<li><a href="{{ site_url }}/faq">Frequently Asked Questions</a></li>
+							<li><a href="{{ site_url }}/about">About "What is my IP?"</a></li>
+							<li><a href="{{ site_url }}/metrics">Site Statistics</a></li>
 						</ul>
 					</div>
 					<div class="col-lg-4">
