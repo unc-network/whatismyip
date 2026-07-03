@@ -76,7 +76,7 @@ def test_sitemap_includes_core_pages(client):
 @pytest.mark.parametrize(
     ("path", "canonical_url"),
     [
-        ("/", "https://whatismyip.unc.edu"),
+        ("/", "https://whatismyip.unc.edu/"),
         ("/about", "https://whatismyip.unc.edu/about"),
         ("/faq", "https://whatismyip.unc.edu/faq"),
         ("/metrics", "https://whatismyip.unc.edu/metrics"),
