@@ -14,6 +14,10 @@ All notable changes to this project will be documented here. This project follow
 - **Navbar simplified** — Site Statistics removed from the top navigation; it remains accessible via the footer. This also prepares for a potential future password-protection of that page without leaving a broken nav link.
 - **Footer "Explore" trimmed** — reduced to three links (FAQ, About, Site Statistics), removing Speed Test and Connectivity which are already prominent in the navbar.
 
+### Added
+
+- **IndexNow ping script** — `scripts/indexnow_ping.py` reads the `indexnow_key` from `data/config.toml` and `SERVER_URL` from `.env`, then POSTs all public pages to Bing IndexNow. Run manually from the repo root after confirming a production deployment is live. Refuses to run if `SERVER_URL` points to localhost.
+
 ## [1.6.2] - 2026-07-03
 
 ### Fixed
