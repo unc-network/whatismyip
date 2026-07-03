@@ -33,6 +33,13 @@ def load_config() -> dict:
 
 
 def load_env_var(name: str) -> str:
+    # Check real environment first (production containers set FLASK_-prefixed vars)
+    for candidate in (name, f"FLASK_{name}"):
+        val = os.environ.get(candidate, "")
+        if val:
+            return val
+
+    # Fall back to .env file for local dev
     env_path = REPO_ROOT / ".env"
     if env_path.exists():
         for line in env_path.read_text().splitlines():
@@ -40,9 +47,9 @@ def load_env_var(name: str) -> str:
             if line.startswith("#") or "=" not in line:
                 continue
             key, _, val = line.partition("=")
-            if key.strip() == name:
+            if key.strip() in (name, f"FLASK_{name}"):
                 return val.strip().strip('"').strip("'")
-    return os.environ.get(name, "")
+    return ""
 
 
 def main() -> None:
