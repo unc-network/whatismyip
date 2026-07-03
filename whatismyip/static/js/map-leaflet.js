@@ -11,21 +11,16 @@ function initLeafletMap(lat, lon, zoom) {
 	map = L.map('map').setView([lat, lon], zoom);
 	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		maxZoom: 19,
+		alt: 'OpenStreetMap tile',
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 	}).addTo(map);
-
-	// Stamp alt="" on every img Leaflet injects (tiles, marker icons, shadows).
-	// Empty alt is correct for decorative/functional map imagery.
-	new MutationObserver(function () {
-		mapEl.querySelectorAll('img:not([alt])').forEach(function (img) { img.alt = ''; });
-	}).observe(mapEl, { childList: true, subtree: true });
 
 	mapInitialized = true;
 }
 
 function placeLeafletMarker(lat, lon, title) {
 	var label = title || 'Location marker';
-	var marker = L.marker([lat, lon]).addTo(map).bindPopup(label).openPopup();
+	var marker = L.marker([lat, lon]).addTo(map).bindPopup(label);
 	marker.on('add', function () {
 		var el = marker.getElement();
 		if (el) {

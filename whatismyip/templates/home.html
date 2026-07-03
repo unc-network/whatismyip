@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block site_heading_open %}<h1 class="mb-0 site-title">{% endblock %}
+{% block site_heading_close %}</h1>{% endblock %}
 {% block content %}
 <noscript>
   <div class="alert alert-warning my-3" role="alert">
@@ -9,14 +11,14 @@
 <div class="row mt-3 mb-2">
   <div class="col">
     <div class="d-flex align-items-center justify-content-between gap-2">
-      <div id="intro_text" data-nosnippet><div class="intro-status text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i>Testing connection&hellip;</div></div>
-      <a id="report-btn" class="nav-report-btn flex-shrink-0 disabled" href="#"
-         onclick="downloadReport(); return false;"
-         aria-label="Download support report"
-         aria-disabled="true"
-         title="Download a PDF support report of your connection details">
-        <i class="fa-solid fa-file-arrow-down me-1"></i>Report
-      </a>
+      <div id="intro_text" aria-live="polite" aria-atomic="true" data-nosnippet><div class="intro-status text-muted"><i class="fa-solid fa-spinner fa-spin me-2" aria-hidden="true"></i>Testing connection&hellip;</div></div>
+      <button id="report-btn" class="nav-report-btn flex-shrink-0" type="button"
+              onclick="downloadReport()"
+              aria-label="Download support report"
+              disabled
+              title="Download a PDF support report of your connection details">
+        <i class="fa-solid fa-file-arrow-down me-1" aria-hidden="true"></i>Report
+      </button>
     </div>
   </div>
 </div>
@@ -88,28 +90,30 @@
           <h3 class="card-title h5"><i class="fa-solid fa-tower-broadcast text-primary me-2" aria-hidden="true"></i>Campus Connectivity</h3>
           <div class="table-responsive">
           <table class="table table-sm">
+            <caption class="visually-hidden">Campus Connectivity</caption>
             <tbody>
                 <tr>
-                  <th style="width: 20%;">Default</th>
-                  <td id="connect-default"></td>
+                  <th style="width: 20%;" scope="row">Default</th>
+                  <td id="connect-default" aria-live="polite"></td>
                 </tr>
                 <tr>
-                  <th style="width: 20%;">IPv4</th>
-                  <td id="connect-ipv4"><i class="fa-solid fa-question text-primary"></i> Testing</td>
+                  <th style="width: 20%;" scope="row">IPv4</th>
+                  <td id="connect-ipv4" aria-live="polite"><i class="fa-solid fa-question text-primary" aria-hidden="true"></i> Testing</td>
                 </tr>
                 <tr>
-                  <th style="width: 20%;">IPv6</th>
-                  <td id="connect-ipv6"><i class="fa-solid fa-question text-primary"></i> Testing</td>
+                  <th style="width: 20%;" scope="row">IPv6</th>
+                  <td id="connect-ipv6" aria-live="polite"><i class="fa-solid fa-question text-primary" aria-hidden="true"></i> Testing</td>
                 </tr>
             </tbody>
           </table>
           </div>
         </div>
 
-        <div id="dns-test" class="mt-0 pt-0" style="display:none;" data-dns_test_url="{{ context.dns_security_test_url }}">
+        <div id="dns-test" class="mt-0 pt-0" style="display:none;" aria-live="polite" data-dns_test_url="{{ context.dns_security_test_url }}">
         <!-- <div id="dns-test" class="mt-4 pt-2 border-top" style="display:none;"> -->
           <div class="table-responsive">
             <table id="dns-table" class="table table-sm">
+              <caption class="visually-hidden">DNS Security Filtering</caption>
               <tbody>
               </tbody>
             </table>
@@ -127,79 +131,80 @@
         <h3 class="card-title h5"><i class="fa-solid fa-globe text-primary me-2" aria-hidden="true"></i>IPv4 Address Details</h3>
         <div class="table-responsive">
           <table class="table table-sm">
+            <caption class="visually-hidden">IPv4 Address Details</caption>
             <tbody>
               <tr>
-                <th style="width: 25%;">Address</th>
+                <th style="width: 25%;" scope="row">Address</th>
                 <td id="address1-address"></td>
               </tr>
               <tr id="addr1-names-row" style="display:none;">
-                <th>Name</th>
+                <th scope="row">Name</th>
                 <td>
                   <ul id="addr1-names" class="list-group list-group-flush">
                   </ul>
                 </td>
               </tr>
               <tr id="addr1-mac-row" style="display:none;">
-                <th>MAC</th>
+                <th scope="row">MAC</th>
                 <td id="addr1-mac"></td>
               </tr>
               <tr id="addr1-comment-row" style="display:none;">
-                <th>Comment</th>
+                <th scope="row">Comment</th>
                 <td id="addr1-comment"></td>
               </tr>
               <tr id="addr1-lease-row" style="display:none;">
-                <th>DHCP Lease</th>
+                <th scope="row">DHCP Lease</th>
                 <td id="addr1-lease"></td>
               </tr>
               <tr id="addr1-username-row" style="display:none;">
-                <th>Username</th>
+                <th scope="row">Username</th>
                 <td id="addr1-username"></td>
               </tr>
               <tr id="addr1-types-row" style="display:none;">
-                <th>Device Type</th>
+                <th scope="row">Device Type</th>
                 <td id="addr1-types"></td>
               </tr>
               <tr id="addr1-status-row" style="display:none;">
-                <th>Status</th>
+                <th scope="row">Status</th>
                 <td id="addr1-status"></td>
               </tr>
               <tr id="addr1-ptr-row" style="display:none;">
-                <th>DNS Name</th>
+                <th scope="row">DNS Name</th>
                 <td id="address1-ptr"></td>
               </tr>
               <tr id="net1-network-row" style="display:none;">
-                <th>Network</th>
+                <th scope="row">Network</th>
                 <td id="net1-network"></td>
               </tr>
               <tr id="net1-vlan-row" style="display:none;">
-                <th>VLAN</th>
+                <th scope="row">VLAN</th>
                 <td id="net1-vlan"></td>
               </tr>
               <tr id="net1-ipam-unavailable-row" style="display:none;">
                 <td colspan="2" class="text-muted small fst-italic py-1">Campus network details not available for this address.</td>
               </tr>
               <tr id="net1-isp-row" style="display:none;">
-                <th>ISP</th>
+                <th scope="row">ISP</th>
                 <td id="net1-isp"></td>
               </tr>
               <tr id="net1-org-row" style="display:none;">
-                <th>Org</th>
+                <th scope="row">Org</th>
                 <td id="net1-org"></td>
               </tr>
               <tr id="net1-location-row" style="display:none;">
-                <th>Location</th>
+                <th scope="row">Location</th>
                 <td id="net1-location"></td>
               </tr>
               <tr id="net1-country-row" style="display:none;">
-                <th>Country</th>
+                <th scope="row">Country</th>
                 <td id="net1-country"></td>
               </tr>
               <tr id="net1-asn-row" style="display:none;">
-                <th>ASN</th>
+                <th scope="row">ASN</th>
                 <td id="net1-asn"></td>
               </tr>
               <tr id="net1-flags-row" style="display:none;">
-                <th>Tags</th>
+                <th scope="row">Tags</th>
                 <td id="net1-flags"></td>
               </tr>
             </tbody>
@@ -217,79 +222,80 @@
         <h3 class="card-title h5"><i class="fa-solid fa-globe text-primary me-2" aria-hidden="true"></i>IPv6 Address Details</h3>
         <div class="table-responsive">
           <table class="table table-sm">
+            <caption class="visually-hidden">IPv6 Address Details</caption>
             <tbody>
               <tr>
-                <th style="width: 25%;">Address</th>
+                <th style="width: 25%;" scope="row">Address</th>
                 <td id="address2-address"></td>
               </tr>
               <tr id="addr2-names-row" style="display:none;">
-                <th>Name</th>
+                <th scope="row">Name</th>
                 <td>
                   <ul id="addr2-names" class="list-group list-group-flush">
                   </ul>
                 </td>
               </tr>
               <tr id="addr2-mac-row" style="display:none;">
-                <th>MAC</th>
+                <th scope="row">MAC</th>
                 <td id="addr2-mac"></td>
               </tr>
               <tr id="addr2-comment-row" style="display:none;">
-                <th>Comment</th>
+                <th scope="row">Comment</th>
                 <td id="addr2-comment"></td>
               </tr>
               <tr id="addr2-lease-row" style="display:none;">
-                <th>DHCP Lease</th>
+                <th scope="row">DHCP Lease</th>
                 <td id="addr2-lease"></td>
               </tr>
               <tr id="addr2-username-row" style="display:none;">
-                <th>Username</th>
+                <th scope="row">Username</th>
                 <td id="addr2-username"></td>
               </tr>
               <tr id="addr2-types-row" style="display:none;">
-                <th>Device Type</th>
+                <th scope="row">Device Type</th>
                 <td id="addr2-types"></td>
               </tr>
               <tr id="addr2-status-row" style="display:none;">
-                <th>Status</th>
+                <th scope="row">Status</th>
                 <td id="addr2-status"></td>
               </tr>
               <tr id="addr2-ptr-row" style="display:none;">
-                <th>DNS Name</th>
+                <th scope="row">DNS Name</th>
                 <td id="address2-ptr"></td>
               </tr>
               <tr id="net2-network-row" style="display:none;">
-                <th>Network</th>
+                <th scope="row">Network</th>
                 <td id="net2-network"></td>
               </tr>
               <tr id="net2-vlan-row" style="display:none;">
-                <th>VLAN</th>
+                <th scope="row">VLAN</th>
                 <td id="net2-vlan"></td>
               </tr>
               <tr id="net2-ipam-unavailable-row" style="display:none;">
                 <td colspan="2" class="text-muted small fst-italic py-1">Campus network details not available for this address.</td>
               </tr>
               <tr id="net2-isp-row" style="display:none;">
-                <th>ISP</th>
+                <th scope="row">ISP</th>
                 <td id="net2-isp"></td>
               </tr>
               <tr id="net2-org-row" style="display:none;">
-                <th>Org</th>
+                <th scope="row">Org</th>
                 <td id="net2-org"></td>
               </tr>
               <tr id="net2-location-row" style="display:none;">
-                <th>Location</th>
+                <th scope="row">Location</th>
                 <td id="net2-location"></td>
               </tr>
               <tr id="net2-country-row" style="display:none;">
-                <th>Country</th>
+                <th scope="row">Country</th>
                 <td id="net2-country"></td>
               </tr>
               <tr id="net2-asn-row" style="display:none;">
-                <th>ASN</th>
+                <th scope="row">ASN</th>
                 <td id="net2-asn"></td>
               </tr>
               <tr id="net2-flags-row" style="display:none;">
-                <th>Tags</th>
+                <th scope="row">Tags</th>
                 <td id="net2-flags"></td>
               </tr>
             </tbody>
@@ -327,6 +333,7 @@
         <h3 class="card-title h5"><i class="fa-solid fa-lock text-primary me-2" aria-hidden="true"></i>Network Access Control</h3>
         <div class="table-responsive">
           <table id="nac-table" class="table table-sm">
+            <caption class="visually-hidden">Network Access Control</caption>
             <tbody>
             </tbody>
           </table>
@@ -346,25 +353,26 @@
           <p class="text-muted small fw-semibold mb-1 mt-2">IPv4</p>
           <div class="table-responsive">
             <table class="table table-sm mb-0">
+              <caption class="visually-hidden">Network Configuration — IPv4</caption>
               <tbody>
                 <tr id="net-config-v4-mask-row" style="display:none;">
                   <th style="width:40%;">Subnet Mask</th>
                   <td id="net-config-v4-mask"></td>
                 </tr>
                 <tr id="net-config-v4-gateway-row" style="display:none;">
-                  <th>Gateway</th>
+                  <th scope="row">Gateway</th>
                   <td id="net-config-v4-gateway"></td>
                 </tr>
                 <tr id="net-config-v4-dns-row" style="display:none;">
-                  <th>DNS Servers</th>
+                  <th scope="row">DNS Servers</th>
                   <td id="net-config-v4-dns"></td>
                 </tr>
                 <tr id="net-config-v4-domain-row" style="display:none;">
-                  <th>Domain Name</th>
+                  <th scope="row">Domain Name</th>
                   <td id="net-config-v4-domain"></td>
                 </tr>
                 <tr id="net-config-v4-router-row" style="display:none;">
-                  <th>Router Device</th>
+                  <th scope="row">Router Device</th>
                   <td id="net-config-v4-router"></td>
                 </tr>
               </tbody>
@@ -376,25 +384,26 @@
           <p class="text-muted small fw-semibold mb-1 mt-2">IPv6</p>
           <div class="table-responsive">
             <table class="table table-sm mb-0">
+              <caption class="visually-hidden">Network Configuration — IPv6</caption>
               <tbody>
                 <tr id="net-config-v6-prefix-row" style="display:none;">
                   <th style="width:40%;">Prefix Length</th>
                   <td id="net-config-v6-prefix"></td>
                 </tr>
                 <tr id="net-config-v6-gateway-row" style="display:none;">
-                  <th>Gateway</th>
+                  <th scope="row">Gateway</th>
                   <td id="net-config-v6-gateway"></td>
                 </tr>
                 <tr id="net-config-v6-dns-row" style="display:none;">
-                  <th>DNS Servers</th>
+                  <th scope="row">DNS Servers</th>
                   <td id="net-config-v6-dns"></td>
                 </tr>
                 <tr id="net-config-v6-domain-row" style="display:none;">
-                  <th>Domain Name</th>
+                  <th scope="row">Domain Name</th>
                   <td id="net-config-v6-domain"></td>
                 </tr>
                 <tr id="net-config-v6-router-row" style="display:none;">
-                  <th>Router Device</th>
+                  <th scope="row">Router Device</th>
                   <td id="net-config-v6-router"></td>
                 </tr>
               </tbody>
@@ -410,17 +419,18 @@
         <h3 class="card-title h5"><i class="fa-solid fa-building text-primary me-2" aria-hidden="true"></i>Campus Building</h3>
         <div class="table-responsive">
           <table class="table table-sm">
+            <caption class="visually-hidden">Campus Building</caption>
             <tbody>
               <tr id="bldg-name-row" style="display:none;">
                 <th style="width:35%;">Name</th>
                 <td id="bldg-name"></td>
               </tr>
               <tr id="bldg-address-row" style="display:none;">
-                <th>Address</th>
+                <th scope="row">Address</th>
                 <td id="bldg-address"></td>
               </tr>
               <tr id="bldg-id-row" style="display:none;">
-                <th>Building ID</th>
+                <th scope="row">Building ID</th>
                 <td id="bldg-id"></td>
               </tr>
             </tbody>
@@ -434,25 +444,26 @@
         <h3 class="card-title h5"><i class="fa-solid fa-laptop text-primary me-2" aria-hidden="true"></i>Your Device</h3>
         <div class="table-responsive">
           <table class="table table-sm">
+            <caption class="visually-hidden">Your Device</caption>
             <tbody>
               <tr id="device-browser-row" style="display:none;">
                 <th style="width:40%;">Browser</th>
                 <td id="device-browser"></td>
               </tr>
               <tr id="device-os-row" style="display:none;">
-                <th>Operating System</th>
+                <th scope="row">Operating System</th>
                 <td id="device-os"></td>
               </tr>
               <tr id="device-type-row" style="display:none;">
-                <th>Device Type</th>
+                <th scope="row">Device Type</th>
                 <td id="device-type"></td>
               </tr>
               <tr id="device-model-row" style="display:none;">
-                <th>Device</th>
+                <th scope="row">Device</th>
                 <td id="device-model"></td>
               </tr>
               <tr id="device-clock-row" style="display:none;">
-                <th>Clock</th>
+                <th scope="row">Clock</th>
                 <td id="device-clock"></td>
               </tr>
             </tbody>

@@ -93,10 +93,12 @@
  </head>
  <body>
 
+	<nav aria-label="Skip links"><a href="#maincontent" class="utility-bar-skip-link screen-reader-text">Skip to main content</a></nav>
+
 	<!-- CUSTOMIZE: Replace or remove this UNC utility bar with your institution's equivalent -->
 	<div id="unc-utility-bar" class="blue" data-color="blue">
 		<div class="utility-bar-container">
-			<nav aria-label="skip"><a href="#unc-search" name="global UNC navigation" class="utility-bar-skip-link screen-reader-text">skip to the end of the global utility bar</a></nav>
+			<nav aria-label="University navigation shortcuts"><a href="#unc-search" name="global UNC navigation" class="utility-bar-skip-link screen-reader-text">Skip to end of university navigation</a></nav>
 			<div class="utility-bar-row">
 				<a href="https://www.unc.edu/" id="utility-bar-unc-link">
 					<svg id="unc-interlocking-logo" xmlns="http://www.w3.org/2000/svg" width="40" height="35" version="1.1" viewBox="0 0 40 35" aria-hidden="true">
@@ -115,7 +117,6 @@
 					<li class="utility-bar-nav-item"><a href="https://www.unc.edu/search" class="utility-bar-link" id="unc-search">UNC Search</a></li>
 				</ul>
 			</div>
-			<nav aria-label="skip"><a href="#maincontent" class="utility-bar-skip-link screen-reader-text">Skip to main content</a></nav>
 		</div>
 	</div>
 
@@ -125,16 +126,16 @@
 				<div class="row">
 					<div class="col">
 					  <div class="py-3 text-center unc-page-title">
-						<button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="Toggle theme" title="Theme: System">
-							<i id="theme-toggle-icon" class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
-						</button>
-						<h1 class="mb-0">
+						{% block site_heading_open %}<p class="mb-0 site-title">{% endblock %}
 						<a href="{{ site_url }}" style="text-decoration: none; color: inherit;">
 							What Is My IP?
 							<img class="site-header-logo" src="{{ url_for('static', filename='logo/logo.png') }}" alt="Laptop logo">
 						</a>
-						</h1>
+						{% block site_heading_close %}</p>{% endblock %}
 						<p class="site-header-tagline">Network diagnostics &middot; UNC Information Technology Services</p>
+						<button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="Toggle theme" title="Theme: System">
+							<i id="theme-toggle-icon" class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+						</button>
 					  </div>
 					</div>
 				</div>
@@ -203,31 +204,31 @@
 				</div>
 				<div class="row mb-3">
 					<div class="col-lg-4">
-						<p class="h5">Explore</p>
+						<h2 class="h5">Explore</h2>
 						<ul class="list-unstyled">
-							<li><a href="{{ site_url }}/about" aria-label="About">About "What is my IP?"</a></li>
-							<li><a href="{{ site_url }}/faq" aria-label="FAQ">Frequently Asked Questions</a></li>
-							<li><a href="{{ site_url }}/metrics" aria-label="Site statistics">Site Statistics</a></li>
-							<li><a href="{{ site_url }}/speedtest" aria-label="Speed test">Speed Test</a></li>
+							<li><a href="{{ site_url }}/about">About "What is my IP?"</a></li>
+							<li><a href="{{ site_url }}/faq">Frequently Asked Questions</a></li>
+							<li><a href="{{ site_url }}/metrics">Site Statistics</a></li>
+							<li><a href="{{ site_url }}/speedtest">Speed Test</a></li>
 						</ul>
 					</div>
 					<div class="col-lg-4">
-						<p class="h5">More Resources</p>
+						<h2 class="h5">More Resources</h2>
 						<ul class="list-unstyled">
-							<li><a href="https://its.unc.edu/" aria-label="ITS">Information Technology Services</a></li>
-							<li><a href="https://itsstatus.unc.edu/" aria-label="ITS Status">ITS System Status</a></li>
-							<li><a href="https://help.unc.edu" aria-label="Service Desk">ITS Service Desk</a></li>
+							<li><a href="https://its.unc.edu/">Information Technology Services</a></li>
+							<li><a href="https://itsstatus.unc.edu/">ITS System Status</a></li>
+							<li><a href="https://help.unc.edu">ITS Service Desk</a></li>
 						</ul>
 					</div>
 					<div class="col-lg-4">
-						<p class="h5">Connect with tech at UNC</p>
+						<h2 class="h5">Connect with tech at UNC</h2>
 						<a href="https://instagram.com/unctarheeltech" aria-label="Instagram"> <i class="fab fa-instagram fa-xl"></i></a> &nbsp;
 						<a href="https://threads.net/unctarheeltech" aria-label="Threads"> <i class="fa-brands fa-threads fa-xl"></i></a> &nbsp;
 						<a href="https://x.com/unctarheeltech" aria-label="X, Twitter"> <i class="fa-brands fa-x-twitter fa-xl"></i></a> &nbsp;
 						<a href="https://youtube.com/@unctarheeltech" aria-label="YouTube"> <i class="fa-brands fa-youtube fa-xl"></i></a>
 						<p>
 						</p>
-						<p style="font-size: 12pt"><a href="https://its.unc.edu/itsnewstechconnect"><i class="fa fa-envelope fa-lg" style="margin-right: 7px"></i>ITS News Tech Connect newsletter</a></p>
+						<p style="font-size: 12pt"><a href="https://its.unc.edu/itsnewstechconnect"><i class="fa fa-envelope fa-lg" aria-hidden="true" style="margin-right: 7px"></i>ITS News Tech Connect newsletter</a></p>
 					</div>
 				</div>
 				<div class="row pb-5">
@@ -250,6 +251,7 @@
 			});
 		}());
 		</script>
+		<div id="copy-notification" role="status" aria-live="polite" aria-atomic="true"></div>
 		{% block javascript %}
 		{% endblock %}
  </body>

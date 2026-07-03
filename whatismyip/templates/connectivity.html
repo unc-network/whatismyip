@@ -45,7 +45,7 @@
               {% endif %}
               {{ target.name }}
             </h3>
-            <div id="conn-status-{{ loop.index0 }}" class="conn-status small text-muted text-nowrap">
+            <div id="conn-status-{{ loop.index0 }}" class="conn-status small text-muted text-nowrap" aria-live="polite" aria-atomic="true">
               <i class="fa-regular fa-clock me-1" aria-hidden="true"></i>Ready
             </div>
           </div>

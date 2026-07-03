@@ -87,25 +87,7 @@ function buildNacDiagram(nac, userDevice) {
 }
 
 function showCopyNotification(message, isError = false) {
-	let notification = $('#copy-notification');
-
-	if (notification.length === 0) {
-		$('body').append('<div id="copy-notification" role="status" aria-live="polite"></div>');
-		notification = $('#copy-notification');
-		notification.css({
-			position: 'fixed',
-			top: '80px',
-			right: '20px',
-			zIndex: 2000,
-			padding: '10px 14px',
-			borderRadius: '6px',
-			color: '#ffffff',
-			fontWeight: '600',
-			boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-			display: 'none'
-		});
-	}
-
+	const notification = $('#copy-notification');
 	notification.stop(true, true);
 	notification.text(message);
 	notification.css('backgroundColor', isError ? '#b42318' : '#4b9cd3');
@@ -166,7 +148,7 @@ function checkAddressMismatch() {
 
 function showPrimaryLoadError() {
 	$('#intro_text').html('<div class="intro-status text-warning"><i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>Connection details could not be retrieved. <a href="javascript:void(0)" onclick="location.reload()">Refresh to try again.</a></div>');
-	$('#report-btn').addClass('disabled').attr('aria-disabled', 'true');
+	$('#report-btn').prop('disabled', true);
 }
 
 function set_intro_text(is_campus, network_purpose) {
@@ -186,7 +168,7 @@ function set_intro_text(is_campus, network_purpose) {
 		icon = 'fa-earth-americas text-secondary';
 		msg  = 'You are connected from off campus over the Internet.';
 	}
-	$('#intro_text').html(`<div class="intro-status"><i class="fa-solid ${icon} me-2"></i>${msg}</div>`);
+	$('#intro_text').html(`<div class="intro-status"><i class="fa-solid ${icon} me-2" aria-hidden="true"></i>${msg}</div>`);
 }
 
 function downloadReport() {
@@ -410,7 +392,7 @@ function test_primary_url(default_version) {
 	if ( default_version == 4 ) {
 		$('#connect-default').text("IPv4");
 		// $('#connect-ipv4').text("Testing...");
-		$('#connect-ipv4').html('<i class="fa-solid fa-question"></i> Testing');
+		$('#connect-ipv4').html('<i class="fa-solid fa-question" aria-hidden="true"></i> Testing');
 	}
 
 	// Make AJAX call to the API to get the ipv4 address
@@ -421,7 +403,7 @@ function test_primary_url(default_version) {
 		dataType: "json",
 		success: function (result, status, xhr) {
 			// $('#connect-ipv4').text("Supported");
-			$('#connect-ipv4').html('<i class="fa-solid fa-circle-check text-success"></i> Supported');
+			$('#connect-ipv4').html('<i class="fa-solid fa-circle-check text-success" aria-hidden="true"></i> Supported');
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 4 ) {
@@ -524,9 +506,9 @@ function test_primary_url(default_version) {
 				$('#net1-asn').text(result['iplocation']["asn"]);
 			}
 			var net1_flags = [];
-			if (result['iplocation']['mobile']) net1_flags.push('<i class="fa-solid fa-mobile-screen text-info" title="Mobile connection"></i> Mobile');
-			if (result['iplocation']['proxy'])  net1_flags.push('<i class="fa-solid fa-shield text-warning" title="Proxy or VPN detected"></i> Proxy / VPN');
-			if (result['iplocation']['hosting']) net1_flags.push('<i class="fa-solid fa-server text-secondary" title="Hosting provider or datacenter"></i> Hosting');
+			if (result['iplocation']['mobile']) net1_flags.push('<i class="fa-solid fa-mobile-screen text-info" aria-hidden="true" title="Mobile connection"></i> Mobile');
+			if (result['iplocation']['proxy'])  net1_flags.push('<i class="fa-solid fa-shield text-warning" aria-hidden="true" title="Proxy or VPN detected"></i> Proxy / VPN');
+			if (result['iplocation']['hosting']) net1_flags.push('<i class="fa-solid fa-server text-secondary" aria-hidden="true" title="Hosting provider or datacenter"></i> Hosting');
 			if (net1_flags.length > 0) {
 				$('#net1-flags-row').show();
 				$('#net1-flags').html(net1_flags.join('&ensp;'));
@@ -557,10 +539,10 @@ function test_primary_url(default_version) {
 			function nacCell(key, value) {
 				var warn = '';
 				if (key === 'ipAddress' && nacIp && value !== nacIp) {
-					warn = ' <i class="fa-solid fa-triangle-exclamation text-warning ms-1" title="Does not match detected IPv4 address (' + nacIp + ')"></i>';
+					warn = ` <i class="fa-solid fa-triangle-exclamation text-warning ms-1" role="img" aria-label="Warning: does not match detected IPv4 address (${nacIp})"></i>`;
 				}
 				if (key === 'macAddress' && nacMac && value.toLowerCase() !== nacMac) {
-					warn = ' <i class="fa-solid fa-triangle-exclamation text-warning ms-1" title="Does not match MAC from IPAM (' + result['address_details']['mac'] + ')"></i>';
+					warn = ` <i class="fa-solid fa-triangle-exclamation text-warning ms-1" role="img" aria-label="Warning: does not match MAC from IPAM (${result['address_details']['mac']})"></i>`;
 				}
 				return value + warn;
 			}
@@ -663,10 +645,10 @@ function test_primary_url(default_version) {
 			checkNATType(result['client_address']);
 			if (default_version == 4) reportConnectV4 = 'Supported';
 			else reportConnectV6 = 'Supported';
-			$('#report-btn').removeClass('disabled').removeAttr('aria-disabled');
+			$('#report-btn').prop('disabled', false);
 		},
 		error: function (xhr, status, error) {
-			$('#connect-ipv4').html('<i class="fa-solid fa-triangle-exclamation text-warning"></i> Not supported');
+			$('#connect-ipv4').html('<i class="fa-solid fa-triangle-exclamation text-warning" aria-hidden="true"></i> Not supported');
 			if (default_version == 4) {
 				reportConnectV4 = 'Not detected';
 				showPrimaryLoadError();
@@ -863,7 +845,7 @@ function get_dns_info() {
 	if (dns_test_url) {
 		append_dns_table_row(
 			'DNS Security Filtering',
-			'<i class="fa-solid fa-question"></i> Testing',
+			'<i class="fa-solid fa-question" aria-hidden="true"></i> Testing',
 			'security-filtering-row',
 			true
 		);
@@ -941,15 +923,15 @@ function get_dns_info() {
 			.then(isFiltered => {
 				let filteringHtml, filteringKey;
 				if (isFiltered === true) {
-					filteringHtml = `<i class="fa-solid fa-circle-check text-success"></i> Active`;
+					filteringHtml = `<i class="fa-solid fa-circle-check text-success" aria-hidden="true"></i> Active`;
 					filteringKey = 'active';
 					reportDnsFiltering = 'Active';
 				} else if (isFiltered === false) {
-					filteringHtml = `<i class="fa-solid fa-triangle-exclamation text-warning"></i> Inactive`;
+					filteringHtml = `<i class="fa-solid fa-triangle-exclamation text-warning" aria-hidden="true"></i> Inactive`;
 					filteringKey = 'inactive';
 					reportDnsFiltering = 'Inactive';
 				} else {
-					filteringHtml = `<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`;
+					filteringHtml = `<i class="fa-solid fa-circle-question text-warning" aria-hidden="true"></i> Unable to verify`;
 					filteringKey = 'inconclusive';
 					reportDnsFiltering = 'Unable to verify';
 				}
@@ -965,7 +947,7 @@ function get_dns_info() {
 			})
 			.catch(error => {
 				console.error('DNS security filtering test error:', error);
-				$('#security-filtering-row .dns-row-value').html(`<i class="fa-solid fa-circle-question text-warning"></i> Unable to verify`);
+				$('#security-filtering-row .dns-row-value').html(`<i class="fa-solid fa-circle-question text-warning" aria-hidden="true"></i> Unable to verify`);
 			});
 	}
 }
@@ -977,7 +959,7 @@ function test_secondary_url(default_version) {
 	var test_url = $('#connect-test').data('ipv6_url');
 	if (!test_url) {
 		if (!simulate) {
-			$('#connect-ipv6').html('<i class="fa-solid fa-minus text-secondary"></i> Not configured');
+			$('#connect-ipv6').html('<i class="fa-solid fa-minus text-secondary" aria-hidden="true"></i> Not configured');
 			return;
 		}
 		// In simulate mode, fall back to the IPv4 server so ?simulate=6 still works
@@ -987,7 +969,7 @@ function test_secondary_url(default_version) {
 	// handle starting state
 	if ( default_version == 6 ) {
 		$('#connect-default').text("IPv6");
-		$('#connect-ipv6').html('<i class="fa-solid fa-question"></i> Testing');
+		$('#connect-ipv6').html('<i class="fa-solid fa-question" aria-hidden="true"></i> Testing');
 	}
 
 	// Make AJAX call to the API to get the ipv6 address
@@ -997,7 +979,7 @@ function test_secondary_url(default_version) {
 		dataType: "json",
 		success: function (result, status, xhr) {
 			// $('#connect-ipv6').text("Supported");
-			$('#connect-ipv6').html('<i class="fa-solid fa-circle-check text-success"></i> Supported');
+			$('#connect-ipv6').html('<i class="fa-solid fa-circle-check text-success" aria-hidden="true"></i> Supported');
 			//console.log("Host check from " + result["address"]);
 
 			if ( default_version == 6 ) {
@@ -1099,9 +1081,9 @@ function test_secondary_url(default_version) {
 				$('#net2-asn').text(result['iplocation']["asn"]);
 			}
 			var net2_flags = [];
-			if (result['iplocation']['mobile']) net2_flags.push('<i class="fa-solid fa-mobile-screen text-info" title="Mobile connection"></i> Mobile');
-			if (result['iplocation']['proxy'])  net2_flags.push('<i class="fa-solid fa-shield text-warning" title="Proxy or VPN detected"></i> Proxy / VPN');
-			if (result['iplocation']['hosting']) net2_flags.push('<i class="fa-solid fa-server text-secondary" title="Hosting provider or datacenter"></i> Hosting');
+			if (result['iplocation']['mobile']) net2_flags.push('<i class="fa-solid fa-mobile-screen text-info" aria-hidden="true" title="Mobile connection"></i> Mobile');
+			if (result['iplocation']['proxy'])  net2_flags.push('<i class="fa-solid fa-shield text-warning" aria-hidden="true" title="Proxy or VPN detected"></i> Proxy / VPN');
+			if (result['iplocation']['hosting']) net2_flags.push('<i class="fa-solid fa-server text-secondary" aria-hidden="true" title="Hosting provider or datacenter"></i> Hosting');
 			if (net2_flags.length > 0) {
 				$('#net2-flags-row').show();
 				$('#net2-flags').html(net2_flags.join('&ensp;'));
@@ -1156,7 +1138,7 @@ function test_secondary_url(default_version) {
 			else reportConnectV4 = 'Supported';
 		},
 		error: function (xhr, status, error) {
-			$('#connect-ipv6').html('<i class="fa-solid fa-triangle-exclamation text-warning"></i> Not supported');
+			$('#connect-ipv6').html('<i class="fa-solid fa-triangle-exclamation text-warning" aria-hidden="true"></i> Not supported');
 			if (default_version == 6) {
 				reportConnectV6 = 'Not detected';
 				showPrimaryLoadError();

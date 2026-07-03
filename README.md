@@ -50,7 +50,7 @@ The front-end fetches `/hostinfo` twice — once over IPv4 and once over IPv6 �
 
 ## Detection flow
 
-All logic lives in `whatismyip/__init__.py` (request handling) and `whatismyip/utils.py` (external calls).
+The application uses a Flask blueprint structure. `whatismyip/__init__.py` contains the `create_app()` factory; routes are split across `whatismyip/routes/` (`main.py` for the home page, `api.py` for `/hostinfo` and `/dns-result`, `pages.py` for static pages and error handlers, `metrics.py` for the dashboard). External API calls live in `whatismyip/utils.py`, metrics storage in `whatismyip/db.py`, and site config loading in `whatismyip/site_config.py`.
 
 ### Step 1 — Client IP (from HTTP)
 
@@ -247,7 +247,7 @@ The test URL **must use `https://`**. Browsers block mixed-content requests — 
 ### Gunicorn
 
 ```bash
-gunicorn --config gunicorn.conf.py "whatismyip:app"
+gunicorn --config gunicorn.conf.py wsgi:application
 ```
 
 ### OpenShift / Kubernetes
@@ -293,8 +293,11 @@ The building lookup (`get_nit_building`, `get_nit_building_by_id` in `utils.py`)
 ## Running tests
 
 ```bash
-pip install pytest
+pip install -r requirements.txt
+pip install pytest pytest-cov
+
 pytest tests/
+pytest tests/ --cov=whatismyip --cov-report=term-missing   # with coverage
 ```
 
 ---
