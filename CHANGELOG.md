@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.8.1] - 2026-07-04
+
+### Changed
+
+- **Internal code organization** — Infoblox IPAM calls moved to a dedicated module, consistent with the existing Meraki and Extreme integrations. Off-campus visitors no longer trigger any campus-specific API calls.
+
 ## [1.7.0] - 2026-07-04
 
 ### Added

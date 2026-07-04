@@ -18,12 +18,11 @@ from flask import (
 from user_agents import parse
 
 from whatismyip.db import log_metrics_event
+from whatismyip.infoblox import get_address_objects, get_network
 from whatismyip.utils import (
-    get_address_objects,
     get_client_address,
     get_ip_location,
     get_nac_info,
-    get_network,
     is_campus_ip,
 )
 
@@ -364,11 +363,12 @@ def hostinfo() -> Response:
         }
     data["iplocation"] = iplocation
 
-    try:
-        network = get_network(data["client_address"])
-    except Exception as error:
-        current_app.logger.warning(f"Network lookup failed: {error}")
-        network = None
+    network = None
+    if data["is_campus"]:
+        try:
+            network = get_network(data["client_address"])
+        except Exception as error:
+            current_app.logger.warning(f"Network lookup failed: {error}")
 
     net_details = {
         "cidr": None,
@@ -484,11 +484,12 @@ def hostinfo() -> Response:
     addr_details["is_global"] = ip.is_global
     addr_details["is_link_local"] = ip.is_link_local
 
-    try:
-        address_records = get_address_objects(data["client_address"])
-    except Exception as error:
-        current_app.logger.warning(f"Address lookup failed: {error}")
-        address_records = None
+    address_records = None
+    if data["is_campus"]:
+        try:
+            address_records = get_address_objects(data["client_address"])
+        except Exception as error:
+            current_app.logger.warning(f"Address lookup failed: {error}")
 
     if address_records:
         addr_details["comment"] = address_records.get("comment", "")
