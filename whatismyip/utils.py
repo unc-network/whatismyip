@@ -358,7 +358,11 @@ def get_nac_info(ip_address: str, mac: str | None = None) -> dict[str, Any] | No
 
             if app.config.get("MERAKI_API_KEY") and app.config.get("MERAKI_ORG_ID"):
                 try:
-                    from whatismyip.meraki import get_meraki_ap, get_meraki_client, get_meraki_signal_quality
+                    from whatismyip.meraki import (
+                        get_meraki_ap,
+                        get_meraki_client,
+                        get_meraki_signal_quality,
+                    )
 
                     meraki_ap = get_meraki_ap(ap_mac)
                     if meraki_ap:
@@ -367,7 +371,9 @@ def get_nac_info(ip_address: str, mac: str | None = None) -> dict[str, Any] | No
                         ap_name = meraki_ap.get("name") or ""
                         ap_match = re.match(ap_name_regex, ap_name)
                         if ap_match:
-                            data["endSystem"]["wireless_ap_tier"] = ap_match.group("tier")
+                            data["endSystem"]["wireless_ap_tier"] = ap_match.group(
+                                "tier"
+                            )
                             data["endSystem"]["wireless_ap_bldg_id"] = ap_match.group(
                                 "bldg_id"
                             )
@@ -379,7 +385,9 @@ def get_nac_info(ip_address: str, mac: str | None = None) -> dict[str, Any] | No
                             )
                         app.logger.debug(f"Meraki AP: {meraki_ap}")
 
-                    client_mac = end_system_data.get("macAddress") if end_system_data else None
+                    client_mac = (
+                        end_system_data.get("macAddress") if end_system_data else None
+                    )
                     if client_mac:
                         meraki_client = get_meraki_client(client_mac)
                         if meraki_client:
@@ -388,11 +396,15 @@ def get_nac_info(ip_address: str, mac: str | None = None) -> dict[str, Any] | No
                             network_id = meraki_client.get("network_id")
                             client_id = meraki_client.get("client_id")
                             if network_id and client_id:
-                                signal = get_meraki_signal_quality(network_id, client_id)
+                                signal = get_meraki_signal_quality(
+                                    network_id, client_id
+                                )
                                 if signal:
                                     data["meraki_signal"] = signal
                 except Exception as e:
-                    app.logger.warning(f"Meraki enrichment failed, continuing without it: {e}")
+                    app.logger.warning(
+                        f"Meraki enrichment failed, continuing without it: {e}"
+                    )
         elif data["endSystem"] and "switchIP" in data["endSystem"]:
             # wired connection
             data["endSystem"]["connection_type"] = "wired"
