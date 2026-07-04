@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.7.0] - 2026-07-04
+
+### Added
+
+- **Cisco Meraki wireless enrichment** — when a campus device is connected to a Meraki AP, the server now optionally queries the Meraki Dashboard API to enrich the connection data. AP name lookup populates the connection diagram and feeds the existing building lookup flow. Client lookup retrieves manufacturer, device description, wireless status, SSID, VLAN, and capabilities. Both calls fail silently — Aruba clients and unconfigured deployments are completely unaffected. Enabled by setting `FLASK_MERAKI_API_KEY` and `FLASK_MERAKI_ORG_ID` environment variables.
+- **Wireless Connection card** — Meraki wireless details (manufacturer, device, OS, user, status, SSID, VLAN, signal quality, AP model) are presented in their own dedicated card in the More Details section.
+- **Wi-Fi signal quality** — the Wireless Connection card shows current signal strength (RSSI in dBm) and signal-to-noise ratio (SNR in dB), each labeled Good, Fair, or Poor. The same values are annotated directly on the dashed wireless link in the connection path diagram.
+
+### Changed
+
+- **More Details layout reorganized** — cards are now arranged with wireless-relevant information on the left (Wireless Connection, Your Device, Network Configuration) and campus infrastructure detail on the right (Network Access Control, Campus Building). This order better matches the information most wireless users are looking for first.
+
 ## [1.6.3] - 2026-07-03
 
 ### Fixed

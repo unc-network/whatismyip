@@ -38,6 +38,10 @@ class Config:  # pylint: disable=too-few-public-methods
     NIT_SERVER = ""
     NIT_AUTH = ""
 
+    # Cisco Meraki Dashboard API
+    MERAKI_API_KEY = ""
+    MERAKI_ORG_ID = ""
+
     # Google Maps API Key
     GOOGLE_MAPS_API_KEY = ""
 

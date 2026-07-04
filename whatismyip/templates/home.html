@@ -326,25 +326,96 @@
 <div class="collapse" id="additionalDetails">
 
 <div id="additional-info" class="row p-1 mt-2" style="display:none;">
-  <div id="nac-col" class="col-xl" style="display:none;">
-    <div id="nac-card" class="card shadow my-3" style="display:none;">
+  <div id="left-col" class="col-xl" style="display:none;">
+    <div id="meraki-card" class="card shadow my-3" style="display:none;">
       <div class="card-body">
-        <h3 class="card-title h5"><i class="fa-solid fa-lock text-primary me-2" aria-hidden="true"></i>Network Access Control</h3>
+        <h3 class="card-title h5"><i class="fa-solid fa-wifi text-primary me-2" aria-hidden="true"></i>Wireless Connection</h3>
         <div class="table-responsive">
-          <table id="nac-table" class="table table-sm">
-            <caption class="visually-hidden">Network Access Control</caption>
+          <table class="table table-sm">
+            <caption class="visually-hidden">Wireless Connection</caption>
             <tbody>
+              <tr id="meraki-manufacturer-row" style="display:none;">
+                <th style="width:40%;" scope="row">Manufacturer</th>
+                <td id="meraki-manufacturer"></td>
+              </tr>
+              <tr id="meraki-description-row" style="display:none;">
+                <th scope="row">Device</th>
+                <td id="meraki-description"></td>
+              </tr>
+              <tr id="meraki-os-row" style="display:none;">
+                <th scope="row">OS</th>
+                <td id="meraki-os"></td>
+              </tr>
+              <tr id="meraki-user-row" style="display:none;">
+                <th scope="row">User</th>
+                <td id="meraki-user"></td>
+              </tr>
+              <tr id="meraki-status-row" style="display:none;">
+                <th scope="row">Status</th>
+                <td id="meraki-status"></td>
+              </tr>
+              <tr id="meraki-ssid-row" style="display:none;">
+                <th scope="row">SSID</th>
+                <td id="meraki-ssid"></td>
+              </tr>
+              <tr id="meraki-vlan-row" style="display:none;">
+                <th scope="row">VLAN</th>
+                <td id="meraki-vlan"></td>
+              </tr>
+              <tr id="meraki-rssi-row" style="display:none;">
+                <th scope="row">Signal (RSSI)</th>
+                <td id="meraki-rssi"></td>
+              </tr>
+              <tr id="meraki-snr-row" style="display:none;">
+                <th scope="row">Signal/Noise</th>
+                <td id="meraki-snr"></td>
+              </tr>
+              <tr id="meraki-capabilities-row" style="display:none;">
+                <th scope="row">Capabilities</th>
+                <td id="meraki-capabilities"></td>
+              </tr>
+              <tr id="meraki-ap-model-row" style="display:none;">
+                <th scope="row">AP Model</th>
+                <td id="meraki-ap-model"></td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
-  </div>
-
-  <div id="detail-col" class="col-xl" style="display:none;">
-  <div class="d-flex flex-wrap align-items-start gap-3 mt-3">
-
-    <div id="net-config-card" class="card shadow" style="display:none; flex:1 1 400px;">
+    <div id="device-card" class="card shadow my-3" style="display:none;">
+      <div class="card-body">
+        <h3 class="card-title h5"><i class="fa-solid fa-laptop text-primary me-2" aria-hidden="true"></i>Your Device</h3>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <caption class="visually-hidden">Your Device</caption>
+            <tbody>
+              <tr id="device-browser-row" style="display:none;">
+                <th style="width:40%;">Browser</th>
+                <td id="device-browser"></td>
+              </tr>
+              <tr id="device-os-row" style="display:none;">
+                <th scope="row">Operating System</th>
+                <td id="device-os"></td>
+              </tr>
+              <tr id="device-type-row" style="display:none;">
+                <th scope="row">Device Type</th>
+                <td id="device-type"></td>
+              </tr>
+              <tr id="device-model-row" style="display:none;">
+                <th scope="row">Device</th>
+                <td id="device-model"></td>
+              </tr>
+              <tr id="device-clock-row" style="display:none;">
+                <th scope="row">Clock</th>
+                <td id="device-clock"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="net-config-card" class="card shadow my-3" style="display:none;">
       <div class="card-body">
         <h3 class="card-title h5"><i class="fa-solid fa-sliders text-primary me-2" aria-hidden="true"></i>Network Configuration</h3>
 
@@ -412,8 +483,22 @@
 
       </div>
     </div>
+  </div><!-- end left-col -->
 
-    <div id="bldg-card" class="card shadow" style="display:none; flex:1 1 400px;">
+  <div id="right-col" class="col-xl" style="display:none;">
+    <div id="nac-card" class="card shadow my-3" style="display:none;">
+      <div class="card-body">
+        <h3 class="card-title h5"><i class="fa-solid fa-lock text-primary me-2" aria-hidden="true"></i>Network Access Control</h3>
+        <div class="table-responsive">
+          <table id="nac-table" class="table table-sm">
+            <caption class="visually-hidden">Network Access Control</caption>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="bldg-card" class="card shadow my-3" style="display:none;">
       <div class="card-body">
         <h3 class="card-title h5"><i class="fa-solid fa-building text-primary me-2" aria-hidden="true"></i>Campus Building</h3>
         <div class="table-responsive">
@@ -437,41 +522,7 @@
         </div>
       </div>
     </div>
-
-    <div id="device-card" class="card shadow" style="display:none; flex:1 1 400px;">
-      <div class="card-body">
-        <h3 class="card-title h5"><i class="fa-solid fa-laptop text-primary me-2" aria-hidden="true"></i>Your Device</h3>
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <caption class="visually-hidden">Your Device</caption>
-            <tbody>
-              <tr id="device-browser-row" style="display:none;">
-                <th style="width:40%;">Browser</th>
-                <td id="device-browser"></td>
-              </tr>
-              <tr id="device-os-row" style="display:none;">
-                <th scope="row">Operating System</th>
-                <td id="device-os"></td>
-              </tr>
-              <tr id="device-type-row" style="display:none;">
-                <th scope="row">Device Type</th>
-                <td id="device-type"></td>
-              </tr>
-              <tr id="device-model-row" style="display:none;">
-                <th scope="row">Device</th>
-                <td id="device-model"></td>
-              </tr>
-              <tr id="device-clock-row" style="display:none;">
-                <th scope="row">Clock</th>
-                <td id="device-clock"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div><!-- end flex wrapper -->
-  </div><!-- end detail-col -->
+  </div><!-- end right-col -->
 
 </div><!-- end additional-info -->
 

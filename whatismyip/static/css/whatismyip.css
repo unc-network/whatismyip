@@ -222,6 +222,30 @@ html:not([data-theme="dark"]) .faq-section-label.text-info    { color: #0a5465 !
 /* Dark mode: text-success (#198754) is only 3.2:1 on navy — lighten to pass 4.5:1 */
 html[data-theme="dark"] .faq-section-label.text-success { color: #52c98a !important; }
 
+/* Signal quality colors — accessible on --site-surface in both themes
+   Light (#FFFFFF): good 7.6:1, fair 6.9:1, poor 8.2:1
+   Dark  (#2C5080): good 5.8:1, fair 5.0:1, poor 4.7:1 */
+:root {
+  --signal-good: #0d6040;
+  --signal-fair: #7a5200;
+  --signal-poor: #9b1c1c;
+}
+html[data-theme="dark"] {
+  --signal-good: #86efac;
+  --signal-fair: #ffc107;
+  --signal-poor: #fdb0b0;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --signal-good: #86efac;
+    --signal-fair: #ffc107;
+    --signal-poor: #fdb0b0;
+  }
+}
+.signal-good { color: var(--signal-good); }
+.signal-fair { color: var(--signal-fair); }
+.signal-poor { color: var(--signal-poor); }
+
 .faq-accent-primary { border-left: 4px solid var(--unc-carolina-blue) !important; }
 .faq-accent-success  { border-left: 4px solid #5a9a5a !important; }
 .faq-accent-warning  { border-left: 4px solid #c9a227 !important; }
@@ -566,6 +590,30 @@ html[data-theme="dark"] #copy-notification {
   );
 }
 
+.nac-connector-wrap {
+  position: relative;
+  width: 2px;
+  height: 24px;
+  margin-left: 19px;
+  flex-shrink: 0;
+}
+
+.nac-connector-wrap > .nac-connector {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.nac-link-label {
+  position: absolute;
+  left: 6px;
+  top: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  white-space: nowrap;
+  line-height: 1;
+}
+
 .nac-label {
   font-size: 0.72rem;
   font-weight: 600;
@@ -643,5 +691,28 @@ html[data-theme="dark"] #copy-notification {
       transparent 6px,
       transparent 13px
     );
+  }
+
+  .nac-connector-wrap {
+    flex: 1 1 60px;
+    min-width: 60px;
+    height: 2px;
+    width: auto;
+    margin-top: 25px;
+    margin-left: 0;
+  }
+
+  .nac-connector-wrap > .nac-connector {
+    flex: none;
+    width: 100%;
+    height: 2px;
+    min-width: unset;
+    margin-top: 0;
+  }
+
+  .nac-link-label {
+    left: 50%;
+    top: 5px;
+    transform: translateX(-50%);
   }
 }

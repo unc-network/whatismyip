@@ -44,8 +44,15 @@ function buildNacDiagram(nac, userDevice) {
 			+ '</div>';
 	}
 
-	function connector(wireless) {
-		return '<div class="nac-connector' + (wireless ? ' wireless' : '') + '" aria-hidden="true"></div>';
+	function connector(wireless, linkLabel, linkClass) {
+		var inner = '<div class="nac-connector' + (wireless ? ' wireless' : '') + '" aria-hidden="true"></div>';
+		if (linkLabel) {
+			return '<div class="nac-connector-wrap">'
+				+ inner
+				+ '<div class="nac-link-label' + (linkClass ? ' ' + linkClass : '') + '">' + esc(linkLabel) + '</div>'
+				+ '</div>';
+		}
+		return inner;
 	}
 
 	var deviceIcon = (userDevice && (userDevice.is_mobile || userDevice.is_tablet))
@@ -55,8 +62,15 @@ function buildNacDiagram(nac, userDevice) {
 
 	if (isWireless) {
 		var controller = es.wireless_controller || es.switchIP || null;
+		var wirelessLabel = '', wirelessClass = '';
+		if (nac.meraki_signal && nac.meraki_signal.rssi != null) {
+			var rssi = nac.meraki_signal.rssi;
+			var quality = rssi >= -65 ? 'Good' : rssi >= -75 ? 'Fair' : 'Poor';
+			wirelessClass = rssi >= -65 ? 'signal-good' : rssi >= -75 ? 'signal-fair' : 'signal-poor';
+			wirelessLabel = rssi + ' dBm — ' + quality;
+		}
 		html += node(deviceIcon, 'Your Device', es.macAddress || '');
-		html += connector(true);
+		html += connector(true, wirelessLabel, wirelessClass);
 		html += node('fa-wifi', es.wireless_ap_name || 'Access Point', es.wireless_ssid || '');
 		if (bldgName) {
 			html += connector(false);
@@ -284,6 +298,33 @@ function downloadReport() {
 	}
 	var nacSection = nacRows.length ? section('Campus NAC Details', nacRows) : '';
 
+	var merakiSection = '';
+	if (r.nac && (r.nac.meraki_client || r.nac.meraki_ap || r.nac.meraki_signal)) {
+		var mc = r.nac.meraki_client || {};
+		var ma = r.nac.meraki_ap || {};
+		var ms = r.nac.meraki_signal || {};
+		var rssiText = ms.rssi !== undefined && ms.rssi !== null
+			? ms.rssi + ' dBm (' + (ms.rssi >= -65 ? 'Good' : ms.rssi >= -75 ? 'Fair' : 'Poor') + ')'
+			: null;
+		var snrText = ms.snr !== undefined && ms.snr !== null
+			? ms.snr + ' dB (' + (ms.snr >= 25 ? 'Good' : ms.snr >= 15 ? 'Fair' : 'Poor') + ')'
+			: null;
+		merakiSection = section('Wireless Connection', [
+			rpt('Manufacturer', mc.manufacturer),
+			rpt('Device', mc.description),
+			rpt('OS', mc.os),
+			rpt('User', mc.user),
+			rpt('Status', mc.status),
+			rpt('SSID', mc.ssid),
+			rpt('VLAN', mc.vlan),
+			rpt('Signal (RSSI)', rssiText),
+			rpt('Signal/Noise (SNR)', snrText),
+			rpt('Capabilities', mc.wireless_capabilities),
+			rpt('AP Name', ma.name),
+			rpt('AP Model', ma.model),
+		]);
+	}
+
 	var bldgSection = '';
 	if (r.nac && r.nac.nit_building && Object.keys(r.nac.nit_building).length) {
 		var bldg = r.nac.nit_building;
@@ -369,6 +410,7 @@ ${secondarySection}
 ${connectSection}
 ${dnsSection}
 ${nacSection}
+${merakiSection}
 ${bldgSection}
 ${netConfigSection}
 ${deviceSection}
@@ -520,6 +562,13 @@ function test_primary_url(default_version) {
 				var bldgMapLat = parseFloat(result['nac']['nit_building']['latitude']);
 				var bldgMapLon = parseFloat(result['nac']['nit_building']['longitude']);
 				loadCampusMap(result['nac']['nit_building']['address'], result['nac']['nit_building']['full_name'], bldgMapLat, bldgMapLon);
+			} else if (result['nac']['meraki_ap'] && result['nac']['meraki_ap']['lat'] && result['nac']['meraki_ap']['lon']) {
+				// Meraki AP coordinates — more precise than IP geolocation when building lookup isn't available
+				var apLat = parseFloat(result['nac']['meraki_ap']['lat']);
+				var apLon = parseFloat(result['nac']['meraki_ap']['lon']);
+				var apLabel = result['nac']['meraki_ap']['name'] || 'Access Point';
+				loadCampusMap(apLabel, apLabel, apLat, apLon);
+				$('#map_label').text(apLabel).show();
 			} else {
 				// Approximate IP geolocation (city-level) for everyone else
 				var mapLat = parseFloat(result['iplocation']['lat']);
@@ -550,7 +599,7 @@ function test_primary_url(default_version) {
 			if (result['nac']['endSystem']) {
 				$('#nac-diagram-row').show();
 				$('#additional-info').show();
-				$('#nac-col').show();
+				$('#right-col').show();
 				$('#nac-card').show();
 
 				// Build connection diagram
@@ -568,7 +617,7 @@ function test_primary_url(default_version) {
 			}
 			if (result['nac']['endSystemInfo']) {
 				$('#additional-info').show();
-				$('#nac-col').show();
+				$('#right-col').show();
 				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystemInfo'])) {
 					if (value) {
@@ -577,10 +626,57 @@ function test_primary_url(default_version) {
 				}
 			}
 
+			// Meraki wireless card
+			var showMerakiCard = false;
+			function merakiRow(rowId, val) {
+				if (val) {
+					$('#' + rowId).text(val);
+					$('#' + rowId + '-row').show();
+					showMerakiCard = true;
+				}
+			}
+			if (result['nac']['meraki_client']) {
+				var mc = result['nac']['meraki_client'];
+				merakiRow('meraki-manufacturer', mc.manufacturer);
+				merakiRow('meraki-description', mc.description);
+				merakiRow('meraki-os', mc.os);
+				merakiRow('meraki-user', mc.user);
+				merakiRow('meraki-status', mc.status);
+				merakiRow('meraki-ssid', mc.ssid);
+				merakiRow('meraki-vlan', mc.vlan);
+				merakiRow('meraki-capabilities', mc.wireless_capabilities);
+			}
+			if (result['nac']['meraki_ap']) {
+				merakiRow('meraki-ap-model', result['nac']['meraki_ap'].model);
+			}
+			if (result['nac']['meraki_signal']) {
+				var ms = result['nac']['meraki_signal'];
+				if (ms.rssi !== null && ms.rssi !== undefined) {
+					var rssiLabel = ms.rssi >= -65 ? 'Good' : ms.rssi >= -75 ? 'Fair' : 'Poor';
+					var rssiClass = ms.rssi >= -65 ? 'signal-good' : ms.rssi >= -75 ? 'signal-fair' : 'signal-poor';
+					$('#meraki-rssi').html(`${ms.rssi} dBm &mdash; <span class="${rssiClass}">${rssiLabel}</span>`);
+					$('#meraki-rssi-row').show();
+					showMerakiCard = true;
+				}
+				if (ms.snr !== null && ms.snr !== undefined) {
+					var snrLabel = ms.snr >= 25 ? 'Good' : ms.snr >= 15 ? 'Fair' : 'Poor';
+					var snrClass = ms.snr >= 25 ? 'signal-good' : ms.snr >= 15 ? 'signal-fair' : 'signal-poor';
+					$('#meraki-snr').html(`${ms.snr} dB &mdash; <span class="${snrClass}">${snrLabel}</span>`);
+					$('#meraki-snr-row').show();
+					showMerakiCard = true;
+				}
+			}
+			if (showMerakiCard) {
+				$('#meraki-card').show();
+				$('#left-col').show();
+				$('#additional-info').show();
+				$('#nac-diagram-row').show();
+			}
+
 			// dump building data
 			if (result['nac']['nit_building'] && Object.keys(result['nac']['nit_building']).length > 0) {
 				var bldg = result['nac']['nit_building'];
-				$('#detail-col').show();
+				$('#right-col').show();
 				$('#bldg-card').show();
 				if (bldg['official_name'] || bldg['full_name']) {
 					$('#bldg-name-row').show();
@@ -630,7 +726,7 @@ function test_primary_url(default_version) {
 			if (hasV4Config) {
 				$('#net-config-v4').show();
 				$('#net-config-card').show();
-				$('#detail-col').show();
+				$('#left-col').show();
 				$('#additional-info').show();
 				$('#nac-diagram-row').show();
 			}
@@ -731,7 +827,7 @@ function checkClockSync(serverTime) {
 	$('#device-clock').html(`<i class="fa-solid ${icon} me-1" aria-hidden="true"></i><span class="${cls}">${label}</span>`);
 	$('#device-clock-row').show();
 	$('#device-card').show();
-	$('#detail-col').show();
+	$('#left-col').show();
 	$('#additional-info').show();
 	$('#nac-diagram-row').show();
 }
@@ -769,7 +865,7 @@ function populateDeviceCard(ud) {
 	}
 	if (hasInfo) {
 		$('#device-card').show();
-		$('#detail-col').show();
+		$('#left-col').show();
 		$('#additional-info').show();
 		$('#nac-diagram-row').show();
 	}
@@ -1122,7 +1218,7 @@ function test_secondary_url(default_version) {
 			if (hasV6Config) {
 				$('#net-config-v6').show();
 				$('#net-config-card').show();
-				$('#detail-col').show();
+				$('#left-col').show();
 				$('#additional-info').show();
 				$('#nac-diagram-row').show();
 			}
