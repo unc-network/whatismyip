@@ -532,16 +532,10 @@ function test_primary_url(default_version) {
 				$('#net1-org').text(result['iplocation']["org"]);
 			}
 			var net1city = result['iplocation']["city"], net1region = result['iplocation']["region"];
-			if (net1city || net1region) {
+			var net1country = result['iplocation']["country_name"] || result['iplocation']["country"];
+			if (net1city || net1region || net1country) {
 				$('#net1-location-row').show();
-				$('#net1-location').text([net1city, net1region].filter(Boolean).join(', '));
-			}
-			if ( result['iplocation']["country_name"] ) {
-				$('#net1-country-row').show();
-				$('#net1-country').text(result['iplocation']["country_name"]);
-			} else if ( result['iplocation']['country']) {
-				$('#net1-country-row').show();
-				$('#net1-country').text(result['iplocation']["country"]);
+				$('#net1-location').text([net1city, net1region, net1country].filter(Boolean).join(', '));
 			}
 			if ( result['iplocation']["asn"] ) {
 				$('#net1-asn-row').show();
@@ -596,10 +590,12 @@ function test_primary_url(default_version) {
 				return value + warn;
 			}
 
+			var nacTbody = $('#nac-table tbody');
+			function escHtml(s) { return $('<span>').text(String(s)).html(); }
+			function nacRow(label, html) { nacTbody.append(`<tr><th>${label}</th><td>${html}</td></tr>`); }
+
 			if (result['nac']['endSystem']) {
 				$('#nac-diagram-row').show();
-				$('#additional-info').show();
-				$('#right-col').show();
 				$('#nac-card').show();
 
 				// Build connection diagram
@@ -609,24 +605,52 @@ function test_primary_url(default_version) {
 					$('#nac-diagram-card').show();
 				}
 
-				for (const [key, value] of Object.entries(result['nac']['endSystem'])) {
-					if (value) {
-						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${nacCell(key, value)}</td></tr>`);
-					}
+				var es = result['nac']['endSystem'];
+				var ei = result['nac']['endSystemInfo'] || {};
+
+				// Connection time — XMC returns ISO string or ms timestamp
+				if (es['lastSeenTime']) {
+					var raw = es['lastSeenTime'];
+					var num = Number(raw);
+					var dt = new Date(isNaN(num) ? raw : (num > 1e12 ? num : num * 1000));
+					nacRow('Connected', escHtml(dt.toLocaleString()));
+				}
+
+				// Client identity
+				if (es['ipAddress'])  nacRow('IP Address',  nacCell('ipAddress',  es['ipAddress']));
+				if (es['macAddress']) nacRow('MAC Address', nacCell('macAddress', es['macAddress']));
+
+				// NAC appliance info
+				if (es['nacApplianceGroupName']) nacRow('Appliance Group', escHtml(es['nacApplianceGroupName']));
+				if (es['nacProfileName'])        nacRow('Profile',         escHtml(es['nacProfileName']));
+				if (es['nacApplianceIP'])        nacRow('Appliance',       escHtml(es['nacApplianceIP']));
+
+				// Policy and reason
+				if (es['policy']) nacRow('Policy', escHtml(es['policy']));
+				if (es['reason']) nacRow('Reason', escHtml(es['reason']));
+
+				// Groups from endSystemInfo (shown here, not in the generic dump below)
+				if (ei['groups']) nacRow('Groups', escHtml(ei['groups']));
+
+				// Switch / AP connection
+				var isWireless = es['connection_type'] === 'wireless';
+				if (es['switchIP']) nacRow(isWireless ? 'Wireless Controller' : 'Switch IP', escHtml(es['switchIP']));
+				if (isWireless) {
+					if (es['wireless_ap_mac']) nacRow('AP MAC', escHtml(es['wireless_ap_mac']));
+				} else {
+					if (es['switchPortId']) nacRow('Port', escHtml(es['switchPortId']));
 				}
 			}
 			if (result['nac']['endSystemInfo']) {
-				$('#additional-info').show();
-				$('#right-col').show();
 				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystemInfo'])) {
-					if (value) {
-						$('#nac-table tbody').append(`<tr><th>${key}</th><td>${nacCell(key, value)}</td></tr>`);
+					if (value && key !== 'groups' && key !== 'groupDescription' && key !== 'groupDescr2') {
+						nacRow(key, escHtml(String(value)));
 					}
 				}
 			}
 
-			// Meraki wireless card
+			// Wireless connection card — common fields from endSystem (Aruba + Meraki)
 			var showMerakiCard = false;
 			function merakiRow(rowId, val) {
 				if (val) {
@@ -635,6 +659,13 @@ function test_primary_url(default_version) {
 					showMerakiCard = true;
 				}
 			}
+			var es = result['nac']['endSystem'];
+			if (es && es['connection_type'] === 'wireless') {
+				merakiRow('wireless-ssid', es['wireless_ssid']);
+				merakiRow('wireless-ap-name', es['wireless_ap_name']);
+				merakiRow('wireless-ap-mac', es['wireless_ap_mac']);
+				merakiRow('wireless-controller', es['wireless_controller']);
+			}
 			if (result['nac']['meraki_client']) {
 				var mc = result['nac']['meraki_client'];
 				merakiRow('meraki-manufacturer', mc.manufacturer);
@@ -642,7 +673,6 @@ function test_primary_url(default_version) {
 				merakiRow('meraki-os', mc.os);
 				merakiRow('meraki-user', mc.user);
 				merakiRow('meraki-status', mc.status);
-				merakiRow('meraki-ssid', mc.ssid);
 				merakiRow('meraki-vlan', mc.vlan);
 				merakiRow('meraki-capabilities', mc.wireless_capabilities);
 			}
@@ -652,31 +682,30 @@ function test_primary_url(default_version) {
 			if (result['nac']['meraki_signal']) {
 				var ms = result['nac']['meraki_signal'];
 				if (ms.rssi !== null && ms.rssi !== undefined) {
+					var rssiIcon = ms.rssi >= -65 ? 'fa-circle-check text-success' : ms.rssi >= -75 ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger';
+					var rssiCls  = ms.rssi >= -65 ? '' : ms.rssi >= -75 ? 'text-warning' : 'text-danger';
 					var rssiLabel = ms.rssi >= -65 ? 'Good' : ms.rssi >= -75 ? 'Fair' : 'Poor';
-					var rssiClass = ms.rssi >= -65 ? 'signal-good' : ms.rssi >= -75 ? 'signal-fair' : 'signal-poor';
-					$('#meraki-rssi').html(`${ms.rssi} dBm &mdash; <span class="${rssiClass}">${rssiLabel}</span>`);
+					$('#meraki-rssi').html(`${ms.rssi} dBm &mdash; <i class="fa-solid ${rssiIcon} me-1" aria-hidden="true"></i><span class="${rssiCls}">${rssiLabel}</span>`);
 					$('#meraki-rssi-row').show();
 					showMerakiCard = true;
 				}
 				if (ms.snr !== null && ms.snr !== undefined) {
+					var snrIcon = ms.snr >= 25 ? 'fa-circle-check text-success' : ms.snr >= 15 ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger';
+					var snrCls  = ms.snr >= 25 ? '' : ms.snr >= 15 ? 'text-warning' : 'text-danger';
 					var snrLabel = ms.snr >= 25 ? 'Good' : ms.snr >= 15 ? 'Fair' : 'Poor';
-					var snrClass = ms.snr >= 25 ? 'signal-good' : ms.snr >= 15 ? 'signal-fair' : 'signal-poor';
-					$('#meraki-snr').html(`${ms.snr} dB &mdash; <span class="${snrClass}">${snrLabel}</span>`);
+					$('#meraki-snr').html(`${ms.snr} dB &mdash; <i class="fa-solid ${snrIcon} me-1" aria-hidden="true"></i><span class="${snrCls}">${snrLabel}</span>`);
 					$('#meraki-snr-row').show();
 					showMerakiCard = true;
 				}
 			}
 			if (showMerakiCard) {
 				$('#meraki-card').show();
-				$('#left-col').show();
-				$('#additional-info').show();
 				$('#nac-diagram-row').show();
 			}
 
 			// dump building data
 			if (result['nac']['nit_building'] && Object.keys(result['nac']['nit_building']).length > 0) {
 				var bldg = result['nac']['nit_building'];
-				$('#right-col').show();
 				$('#bldg-card').show();
 				if (bldg['official_name'] || bldg['full_name']) {
 					$('#bldg-name-row').show();
@@ -685,10 +714,6 @@ function test_primary_url(default_version) {
 				if (bldg['address']) {
 					$('#bldg-address-row').show();
 					$('#bldg-address').text(bldg['address']);
-				}
-				if (bldg['building_id']) {
-					$('#bldg-id-row').show();
-					$('#bldg-id').text(bldg['building_id']);
 				}
 			}
 
@@ -724,11 +749,10 @@ function test_primary_url(default_version) {
 				hasV4Config = true;
 			}
 			if (hasV4Config) {
+				$('#net-config-v4-address').text(result['client_address']);
+				$('#net-config-v4-address-row').show();
 				$('#net-config-v4').show();
 				$('#net-config-card').show();
-				$('#left-col').show();
-				$('#additional-info').show();
-				$('#nac-diagram-row').show();
 			}
 
 			if (result['is_campus'] && !result['network']['cidr']) {
@@ -827,7 +851,6 @@ function checkClockSync(serverTime) {
 	$('#device-clock').html(`<i class="fa-solid ${icon} me-1" aria-hidden="true"></i><span class="${cls}">${label}</span>`);
 	$('#device-clock-row').show();
 	$('#device-card').show();
-	$('#left-col').show();
 	$('#additional-info').show();
 	$('#nac-diagram-row').show();
 }
@@ -865,7 +888,6 @@ function populateDeviceCard(ud) {
 	}
 	if (hasInfo) {
 		$('#device-card').show();
-		$('#left-col').show();
 		$('#additional-info').show();
 		$('#nac-diagram-row').show();
 	}
@@ -1161,16 +1183,10 @@ function test_secondary_url(default_version) {
 				$('#net2-org').text(result['iplocation']["org"]);
 			}
 			var net2city = result['iplocation']["city"], net2region = result['iplocation']["region"];
-			if (net2city || net2region) {
+			var net2country = result['iplocation']["country_name"] || result['iplocation']["country"];
+			if (net2city || net2region || net2country) {
 				$('#net2-location-row').show();
-				$('#net2-location').text([net2city, net2region].filter(Boolean).join(', '));
-			}
-			if ( result['iplocation']["country_name"] ) {
-				$('#net2-country-row').show();
-				$('#net2-country').text(result['iplocation']["country_name"]);
-			} else if ( result['iplocation']['country']) {
-				$('#net2-country-row').show();
-				$('#net2-country').text(result['iplocation']["country"]);
+				$('#net2-location').text([net2city, net2region, net2country].filter(Boolean).join(', '));
 			}
 			if ( result['iplocation']["asn"] ) {
 				$('#net2-asn-row').show();
@@ -1216,11 +1232,10 @@ function test_secondary_url(default_version) {
 				hasV6Config = true;
 			}
 			if (hasV6Config) {
+				$('#net-config-v6-address').text(result['client_address']);
+				$('#net-config-v6-address-row').show();
 				$('#net-config-v6').show();
 				$('#net-config-card').show();
-				$('#left-col').show();
-				$('#additional-info').show();
-				$('#nac-diagram-row').show();
 			}
 
 			if (result['is_campus'] && !result['network']['cidr']) {

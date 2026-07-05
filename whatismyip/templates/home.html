@@ -194,10 +194,6 @@
                 <th scope="row">Location</th>
                 <td id="net1-location"></td>
               </tr>
-              <tr id="net1-country-row" style="display:none;">
-                <th scope="row">Country</th>
-                <td id="net1-country"></td>
-              </tr>
               <tr id="net1-asn-row" style="display:none;">
                 <th scope="row">ASN</th>
                 <td id="net1-asn"></td>
@@ -285,10 +281,6 @@
                 <th scope="row">Location</th>
                 <td id="net2-location"></td>
               </tr>
-              <tr id="net2-country-row" style="display:none;">
-                <th scope="row">Country</th>
-                <td id="net2-country"></td>
-              </tr>
               <tr id="net2-asn-row" style="display:none;">
                 <th scope="row">ASN</th>
                 <td id="net2-asn"></td>
@@ -326,63 +318,7 @@
 <div class="collapse" id="additionalDetails">
 
 <div id="additional-info" class="row p-1 mt-2" style="display:none;">
-  <div id="left-col" class="col-xl" style="display:none;">
-    <div id="meraki-card" class="card shadow my-3" style="display:none;">
-      <div class="card-body">
-        <h3 class="card-title h5"><i class="fa-solid fa-wifi text-primary me-2" aria-hidden="true"></i>Wireless Connection</h3>
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <caption class="visually-hidden">Wireless Connection</caption>
-            <tbody>
-              <tr id="meraki-manufacturer-row" style="display:none;">
-                <th style="width:40%;" scope="row">Manufacturer</th>
-                <td id="meraki-manufacturer"></td>
-              </tr>
-              <tr id="meraki-description-row" style="display:none;">
-                <th scope="row">Device</th>
-                <td id="meraki-description"></td>
-              </tr>
-              <tr id="meraki-os-row" style="display:none;">
-                <th scope="row">OS</th>
-                <td id="meraki-os"></td>
-              </tr>
-              <tr id="meraki-user-row" style="display:none;">
-                <th scope="row">User</th>
-                <td id="meraki-user"></td>
-              </tr>
-              <tr id="meraki-status-row" style="display:none;">
-                <th scope="row">Status</th>
-                <td id="meraki-status"></td>
-              </tr>
-              <tr id="meraki-ssid-row" style="display:none;">
-                <th scope="row">SSID</th>
-                <td id="meraki-ssid"></td>
-              </tr>
-              <tr id="meraki-vlan-row" style="display:none;">
-                <th scope="row">VLAN</th>
-                <td id="meraki-vlan"></td>
-              </tr>
-              <tr id="meraki-rssi-row" style="display:none;">
-                <th scope="row">Signal (RSSI)</th>
-                <td id="meraki-rssi"></td>
-              </tr>
-              <tr id="meraki-snr-row" style="display:none;">
-                <th scope="row">Signal/Noise</th>
-                <td id="meraki-snr"></td>
-              </tr>
-              <tr id="meraki-capabilities-row" style="display:none;">
-                <th scope="row">Capabilities</th>
-                <td id="meraki-capabilities"></td>
-              </tr>
-              <tr id="meraki-ap-model-row" style="display:none;">
-                <th scope="row">AP Model</th>
-                <td id="meraki-ap-model"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+  <div id="left-col" class="col-xl">
     <div id="device-card" class="card shadow my-3" style="display:none;">
       <div class="card-body">
         <h3 class="card-title h5"><i class="fa-solid fa-laptop text-primary me-2" aria-hidden="true"></i>Your Device</h3>
@@ -415,6 +351,41 @@
         </div>
       </div>
     </div>
+    <div id="bldg-card" class="card shadow my-3" style="display:none;">
+      <div class="card-body">
+        <h3 class="card-title h5"><i class="fa-solid fa-building text-primary me-2" aria-hidden="true"></i>Campus Building</h3>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <caption class="visually-hidden">Campus Building</caption>
+            <tbody>
+              <tr id="bldg-name-row" style="display:none;">
+                <th style="width:35%;">Name</th>
+                <td id="bldg-name"></td>
+              </tr>
+              <tr id="bldg-address-row" style="display:none;">
+                <th scope="row">Address</th>
+                <td id="bldg-address"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="nac-card" class="card shadow my-3" style="display:none;">
+      <div class="card-body">
+        <h3 class="card-title h5"><i class="fa-solid fa-lock text-primary me-2" aria-hidden="true"></i>Network Access Control</h3>
+        <div class="table-responsive">
+          <table id="nac-table" class="table table-sm">
+            <caption class="visually-hidden">Network Access Control</caption>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div><!-- end left-col -->
+
+  <div id="right-col" class="col-xl">
     <div id="net-config-card" class="card shadow my-3" style="display:none;">
       <div class="card-body">
         <h3 class="card-title h5"><i class="fa-solid fa-sliders text-primary me-2" aria-hidden="true"></i>Network Configuration</h3>
@@ -425,6 +396,10 @@
             <table class="table table-sm mb-0">
               <caption class="visually-hidden">Network Configuration — IPv4</caption>
               <tbody>
+                <tr id="net-config-v4-address-row" style="display:none;">
+                  <th style="width:40%;">Device Address</th>
+                  <td id="net-config-v4-address"></td>
+                </tr>
                 <tr id="net-config-v4-mask-row" style="display:none;">
                   <th style="width:40%;">Subnet Mask</th>
                   <td id="net-config-v4-mask"></td>
@@ -456,6 +431,10 @@
             <table class="table table-sm mb-0">
               <caption class="visually-hidden">Network Configuration — IPv6</caption>
               <tbody>
+                <tr id="net-config-v6-address-row" style="display:none;">
+                  <th style="width:40%;">Device Address</th>
+                  <td id="net-config-v6-address"></td>
+                </tr>
                 <tr id="net-config-v6-prefix-row" style="display:none;">
                   <th style="width:40%;">Prefix Length</th>
                   <td id="net-config-v6-prefix"></td>
@@ -483,39 +462,68 @@
 
       </div>
     </div>
-  </div><!-- end left-col -->
-
-  <div id="right-col" class="col-xl" style="display:none;">
-    <div id="nac-card" class="card shadow my-3" style="display:none;">
+    <div id="meraki-card" class="card shadow my-3" style="display:none;">
       <div class="card-body">
-        <h3 class="card-title h5"><i class="fa-solid fa-lock text-primary me-2" aria-hidden="true"></i>Network Access Control</h3>
-        <div class="table-responsive">
-          <table id="nac-table" class="table table-sm">
-            <caption class="visually-hidden">Network Access Control</caption>
-            <tbody>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    <div id="bldg-card" class="card shadow my-3" style="display:none;">
-      <div class="card-body">
-        <h3 class="card-title h5"><i class="fa-solid fa-building text-primary me-2" aria-hidden="true"></i>Campus Building</h3>
+        <h3 class="card-title h5"><i class="fa-solid fa-wifi text-primary me-2" aria-hidden="true"></i>Wireless Connection</h3>
         <div class="table-responsive">
           <table class="table table-sm">
-            <caption class="visually-hidden">Campus Building</caption>
+            <caption class="visually-hidden">Wireless Connection</caption>
             <tbody>
-              <tr id="bldg-name-row" style="display:none;">
-                <th style="width:35%;">Name</th>
-                <td id="bldg-name"></td>
+              <tr id="wireless-ssid-row" style="display:none;">
+                <th style="width:40%;" scope="row">SSID</th>
+                <td id="wireless-ssid"></td>
               </tr>
-              <tr id="bldg-address-row" style="display:none;">
-                <th scope="row">Address</th>
-                <td id="bldg-address"></td>
+              <tr id="wireless-ap-name-row" style="display:none;">
+                <th scope="row">Access Point</th>
+                <td id="wireless-ap-name"></td>
               </tr>
-              <tr id="bldg-id-row" style="display:none;">
-                <th scope="row">Building ID</th>
-                <td id="bldg-id"></td>
+              <tr id="wireless-ap-mac-row" style="display:none;">
+                <th scope="row">AP MAC</th>
+                <td id="wireless-ap-mac"></td>
+              </tr>
+              <tr id="wireless-controller-row" style="display:none;">
+                <th scope="row">Controller</th>
+                <td id="wireless-controller"></td>
+              </tr>
+              <tr id="meraki-manufacturer-row" style="display:none;">
+                <th scope="row">Manufacturer</th>
+                <td id="meraki-manufacturer"></td>
+              </tr>
+              <tr id="meraki-description-row" style="display:none;">
+                <th scope="row">Device</th>
+                <td id="meraki-description"></td>
+              </tr>
+              <tr id="meraki-os-row" style="display:none;">
+                <th scope="row">OS</th>
+                <td id="meraki-os"></td>
+              </tr>
+              <tr id="meraki-user-row" style="display:none;">
+                <th scope="row">User</th>
+                <td id="meraki-user"></td>
+              </tr>
+              <tr id="meraki-status-row" style="display:none;">
+                <th scope="row">Status</th>
+                <td id="meraki-status"></td>
+              </tr>
+              <tr id="meraki-vlan-row" style="display:none;">
+                <th scope="row">VLAN</th>
+                <td id="meraki-vlan"></td>
+              </tr>
+              <tr id="meraki-rssi-row" style="display:none;">
+                <th scope="row">Signal (RSSI)</th>
+                <td id="meraki-rssi"></td>
+              </tr>
+              <tr id="meraki-snr-row" style="display:none;">
+                <th scope="row">Signal/Noise</th>
+                <td id="meraki-snr"></td>
+              </tr>
+              <tr id="meraki-capabilities-row" style="display:none;">
+                <th scope="row">Capabilities</th>
+                <td id="meraki-capabilities"></td>
+              </tr>
+              <tr id="meraki-ap-model-row" style="display:none;">
+                <th scope="row">AP Model</th>
+                <td id="meraki-ap-model"></td>
               </tr>
             </tbody>
           </table>
@@ -547,6 +555,7 @@
           <ul class="mb-0">
             <li>Campus network and VLAN assignment</li>
             <li>Network Access Control (NAC) details</li>
+            <li>Wi-Fi connection details — SSID, access point, and signal quality</li>
             <li>Building location map (street-level, where available)</li>
           </ul>
         </div>
@@ -571,7 +580,7 @@
   "@type": "WebApplication",
   "name": "What Is My IP? — UNC Chapel Hill",
   "url": "{{ site_url }}",
-  "description": "Find your IP address and test your connection to the UNC Chapel Hill campus network. Works for on-campus, VPN, and wireless users. Shows IPv4, IPv6, DNS security filtering status, and detailed campus network information.",
+  "description": "Find your IP address and test your connection to the UNC Chapel Hill campus network. Works for on-campus, VPN, and wireless users. Shows IPv4, IPv6, DNS provider detection, DNS security filtering status, and detailed campus network information.",
   "applicationCategory": "NetworkingApplication",
   "operatingSystem": "Any",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -584,6 +593,8 @@
     "IP address lookup",
     "IPv4 and IPv6 detection",
     "Campus VPN detection",
+    "DNS provider detection",
+    "DNS leak test",
     "DNS security filtering test",
     "Network and VLAN details",
     "ISP and geolocation"

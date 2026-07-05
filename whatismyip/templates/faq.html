@@ -19,7 +19,7 @@
       "name": "If I am on campus, what can this tool tell me?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Every visitor sees their IP address, internet provider, approximate geolocation, and DNS security filtering status. On-campus and VPN users additionally see campus network and VLAN assignment, DHCP and network configuration details, Network Access Control (NAC) details including switch port and connection policy, and a building location map for wired and wireless connections."
+        "text": "Every visitor sees their IP address, internet provider, approximate geolocation, and DNS security filtering status. On-campus and VPN users additionally see campus network and VLAN assignment, DHCP and network configuration details, Network Access Control (NAC) details including switch port and connection policy, Wi-Fi connection details including SSID and signal quality, and a building location map for wired and wireless connections."
       }
     },
     {
@@ -68,6 +68,14 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "UNC Information Technology Services provides malware and phishing protection through the domain name system (DNS). Devices using campus DNS servers receive this protection automatically — no software or configuration changes required."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does the DNS provider check show?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The DNS provider check identifies which DNS server your device is actually sending queries to — similar to a DNS leak test. On campus you should see UNC or Akamai as your provider; UNC's campus DNS servers forward all queries through Akamai to apply the DNS security filtering layer, so Akamai is the expected result for devices correctly using campus DNS. Seeing your home ISP instead means your device is not using campus DNS and is not receiving DNS security protection. The UNC VPN pushes campus DNS servers to your device, so VPN users should also see UNC or Akamai; seeing your home ISP instead indicates a DNS leak where queries are bypassing the VPN tunnel. Privacy DNS services such as Cloudflare or Google will also appear here if your device is configured to use them."
       }
     },
     {
@@ -175,6 +183,7 @@
                 <li>Campus network and VLAN assignment</li>
                 <li>DHCP and network configuration details</li>
                 <li>Network Access Control (NAC) details, including switch port and connection policy</li>
+                <li>Wi-Fi connection details — SSID, access point name, and signal quality (for Meraki wireless)</li>
                 <li>Building location map for wired and wireless connections</li>
               </ul>
               <p class="mb-0">Knowing these details helps diagnose connectivity problems and confirm that a VPN connection is active before accessing IP-restricted resources.</p>
@@ -287,6 +296,29 @@
                 <a href="https://tdx.unc.edu/TDClient/33/Portal/KB/ArticleDet?ID=333">DNS Security Filtering Service</a>
                 help article.
               </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item faq-accent-success">
+          <h2 class="accordion-header" id="faq-dns-provider-heading">
+            <button class="accordion-button collapsed" type="button" data-mdb-toggle="collapse" data-mdb-target="#faq-dns-provider" aria-expanded="false" aria-controls="faq-dns-provider">
+              <i class="fa-solid fa-magnifying-glass text-success me-2" aria-hidden="true"></i>
+              What does the DNS provider check show?
+            </button>
+          </h2>
+          <div id="faq-dns-provider" class="accordion-collapse collapse" aria-labelledby="faq-dns-provider-heading">
+            <div class="accordion-body">
+              <p>Every time your device connects to a website, it asks a DNS server to translate the domain name into an IP address.
+                The DNS provider check reveals which server your device is actually sending those queries to — similar to what dedicated
+                <strong>DNS leak test</strong> websites do, but built directly into this tool.</p>
+              <p>This matters in a few situations:</p>
+              <ul class="mb-3">
+                <li><strong>On campus:</strong> you should see UNC or Akamai listed as your DNS provider. UNC's campus DNS servers forward all queries through Akamai to apply the DNS security filtering layer, so Akamai is the expected result for devices correctly using campus DNS. If you see your home internet provider instead, your device is not using campus DNS and will not receive DNS security protection.</li>
+                <li><strong>On VPN:</strong> the UNC VPN pushes campus DNS servers to your device, so you should also see UNC or Akamai here. If you see your home ISP instead, your VPN has a DNS leak — queries are bypassing the tunnel and going directly to your ISP, which can expose your browsing activity and bypass campus DNS security.</li>
+                <li><strong>Using a privacy DNS service:</strong> services like Cloudflare (1.1.1.1) or Google (8.8.8.8) will appear here if your device is configured to use them, which overrides your network's default DNS and may bypass campus DNS security filtering.</li>
+              </ul>
+              <p class="mb-0">The provider name comes from a reverse lookup of the IP address returned by your DNS resolver, cross-referenced with ISP data from ip-api.com.</p>
             </div>
           </div>
         </div>

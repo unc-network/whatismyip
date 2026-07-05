@@ -16,7 +16,7 @@ Built and operated by [UNC Information Technology Services](https://its.unc.edu/
 
 - IPv4 and IPv6 address detection (via separate dual-stack endpoints)
 - ISP name and geolocation
-- Internet DNS provider identification
+- Internet DNS provider identification — shows which DNS resolver your device is actually using (similar to a DNS leak test; useful for verifying VPN DNS routing)
 - DNS security filtering status (tests whether your DNS provider blocks malicious domains)
 
 **For campus devices (addresses matching configured CIDR blocks):**
@@ -25,6 +25,7 @@ Built and operated by [UNC Information Technology Services](https://its.unc.edu/
 - DHCP server, router, and lease details from Infoblox IPAM
 - NAC endpoint details from Extreme Networks XMC (switch port, policy, connection type)
 - Building name and map location for wired and wireless connections (via building lookup API)
+- Cisco Meraki wireless enrichment — AP name, SSID, VLAN, manufacturer, signal quality (RSSI/SNR) when connected to a Meraki AP
 
 **Metrics dashboard** (`/metrics`): aggregate usage statistics — IP version breakdown, campus vs. off-campus ratio, ISP distribution, country distribution, and daily visit trends.
 
@@ -41,6 +42,7 @@ Browser
            ├── ip-api.com / iplocation.net   — geolocation (public API)
            ├── Infoblox IPAM                 — network/VLAN/DHCP details (campus only)
            ├── Extreme Networks XMC          — NAC endpoint details (campus only)
+           ├── Cisco Meraki Dashboard API    — AP details and signal quality (campus wireless only)
            └── Building API (NIT)            — building name & location (wired switch or wireless AP)
 ```
 
@@ -50,7 +52,7 @@ The front-end fetches `/hostinfo` twice — once over IPv4 and once over IPv6 �
 
 ## Detection flow
 
-The application uses a Flask blueprint structure. `whatismyip/__init__.py` contains the `create_app()` factory; routes are split across `whatismyip/routes/` (`main.py` for the home page, `api.py` for `/hostinfo` and `/dns-result`, `pages.py` for static pages and error handlers, `metrics.py` for the dashboard). External API calls live in `whatismyip/utils.py`, metrics storage in `whatismyip/db.py`, and site config loading in `whatismyip/site_config.py`.
+The application uses a Flask blueprint structure. `whatismyip/__init__.py` contains the `create_app()` factory; routes are split across `whatismyip/routes/` (`main.py` for the home page, `api.py` for `/hostinfo` and `/dns-result`, `pages.py` for static pages and error handlers, `metrics.py` for the dashboard). External API calls are organized by integration: `infoblox.py` (IPAM), `extreme.py` (XMC/NAC), `meraki.py` (Meraki Dashboard), and `utils.py` (geolocation, building lookup, shared helpers). Metrics storage lives in `whatismyip/db.py` and site config loading in `whatismyip/site_config.py`.
 
 ### Step 1 — Client IP (from HTTP)
 
@@ -103,6 +105,8 @@ Both NIT calls return a building record with `official_name`, `full_name`, `addr
 | Switch port / AP / policy | Extreme XMC (by IP, then MAC) | Campus IPv4 only |
 | Device vendor / type profile | Extreme XMC `getMacAddress` | Requires a MAC from Step 2 or 3 |
 | Building name, address, map | NIT building API | Derived from switch IP or AP name |
+| AP name, SSID, VLAN | Meraki Dashboard API | Meraki wireless only |
+| Signal quality (RSSI, SNR) | Meraki Dashboard API | Meraki wireless only |
 
 ---
 
@@ -125,13 +129,14 @@ Set these three hostnames in `FLASK_SERVER_URL`, `FLASK_IPV4_SERVER_URL`, and `F
 
 **Optional external integrations** (the app runs without them; campus-specific sections are simply omitted):
 
-| Integration           | Purpose                                             | Required?  |
-| --------------------- | --------------------------------------------------- | ---------- |
-| Infoblox IPAM         | Network, VLAN, and DHCP details for campus IPs      | Optional   |
-| Extreme Networks XMC  | NAC endpoint details (switch port, policy)          | Optional   |
-| Building API (NIT)    | Building name and map (wired switch or wireless AP) | Optional   |
-| Google Maps API       | Embedded map (when `[map] provider = "google"`)     | Optional   |
-| Speedtest Custom      | Branded speed test iframe                           | Optional   |
+| Integration             | Purpose                                             | Required?  |
+| ----------------------- | --------------------------------------------------- | ---------- |
+| Infoblox IPAM           | Network, VLAN, and DHCP details for campus IPs      | Optional   |
+| Extreme Networks XMC    | NAC endpoint details (switch port, policy)          | Optional   |
+| Cisco Meraki Dashboard  | AP details and signal quality for Meraki wireless   | Optional   |
+| Building API (NIT)      | Building name and map (wired switch or wireless AP) | Optional   |
+| Google Maps API         | Embedded map (when `[map] provider = "google"`)     | Optional   |
+| Speedtest Custom        | Branded speed test iframe                           | Optional   |
 
 ---
 
@@ -186,6 +191,8 @@ Key variables:
 | `FLASK_XMC_SERVER`                                   | Extreme Networks XMC hostname                       |
 | `FLASK_XMC_CLIENT_ID` / `FLASK_XMC_SECRET`           | XMC OAuth credentials                               |
 | `FLASK_NIT_SERVER` / `FLASK_NIT_AUTH`                | Building API hostname and auth token                |
+| `FLASK_MERAKI_API_KEY`                               | Meraki Dashboard API key (read-only recommended)    |
+| `FLASK_MERAKI_ORG_ID`                                | Meraki organization ID                              |
 | `FLASK_GOOGLE_MAPS_API_KEY`                          | Google Maps embed API key                           |
 | `FLASK_METRICS_USERNAME` / `FLASK_METRICS_PASSWORD`  | Basic auth for `/metrics` (leave blank for public)  |
 
@@ -284,7 +291,9 @@ Most content that refers to UNC can be found in these locations. Search for `CUS
 
 ### Integrations
 
-If your institution doesn't use Infoblox or Extreme XMC, the relevant sections in `utils.py` (`get_network`, `get_address_objects`, `get_nac_info`) can be removed or replaced with calls to your own IPAM/NAC systems. The app handles failures from all external calls gracefully — a missing integration simply omits that section from the output.
+If your institution doesn't use Infoblox or Extreme XMC, the relevant modules can be removed or replaced with calls to your own IPAM/NAC systems: `infoblox.py` (`get_network`, `get_address_objects`), `extreme.py` (`get_nac_info`). The app handles failures from all external calls gracefully — a missing integration simply omits that section from the output.
+
+The Meraki integration (`meraki.py`) is entirely opt-in — omitting `FLASK_MERAKI_API_KEY` disables it with no effect on other features.
 
 The building lookup (`get_nit_building`, `get_nit_building_by_id` in `utils.py`) uses a UNC-specific internal API. Replace these functions with your own building directory API or remove them if you don't need building-level detail.
 

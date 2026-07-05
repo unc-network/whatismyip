@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.7.1] - 2026-07-05
+
+### Added
+
+- **Device Address row in network configuration** — the IPv4 and IPv6 sections of the Network Configuration card now open with the detected device address as the first row, making it immediately clear which address the section describes.
+- **Simulate mode clock sync** — the `?simulate=` API response now includes a live `server_time` timestamp so the clock synchronization check runs and displays correctly in demo mode without a real campus connection.
+
+### Changed
+
+- **More Details layout reorganized** — left column: Your Device → Campus Building → Network Access Control; right column: Network Configuration → Wireless Connection. Campus infrastructure is grouped on the left; network and wireless detail on the right. Column widths are fixed so the layout is consistent regardless of which cards appear.
+- **Wireless Connection card now shows Aruba data** — when a campus device is on an Aruba wireless network (no Meraki enrichment), the SSID, access point name, AP MAC, and controller IP from the NAC record are now surfaced in the Wireless Connection card. Previously this data was buried in the NAC table.
+- **NAC table restructured** — rows now render in a fixed logical order: Connected time → IP Address → MAC Address → NAC appliance fields (group, profile, appliance) → Policy → Reason → Groups → switch data. "Controller" relabeled "Wireless Controller" for clarity. Wired connections show Switch IP and Port; wireless shows Wireless Controller and AP MAC.
+- **Signal quality display** — RSSI and SNR readings now use the same icon-and-color pattern as the clock sync indicator: a green check for Good, yellow warning triangle for Fair, and red X for Poor. Thresholds: RSSI ≥ −65 dBm / SNR ≥ 25 dB = Good; ≥ −75 / ≥ 15 = Fair; below = Poor.
+- **Location row includes country** — the Location row in the address detail cards now reads "City, Region, Country" in a single row. The separate Country row has been removed.
+- **Internal code organization** — Infoblox IPAM calls moved to a dedicated `infoblox.py` module, consistent with the existing Meraki and Extreme integrations. Off-campus visitors no longer trigger any campus-specific API calls.
+- **Sitemap updated** — entries reordered to match navbar then footer order (Home → Speed Test → Connectivity → FAQ → About → Site Statistics); priorities aligned to decrease with nav position; `lastmod` dates updated.
+
+### Fixed
+
+- **NAC card blank in simulate mode** — `esc` was defined inside `buildNacDiagram` and not available in the AJAX callback that populates the NAC table rows. The NAC section now uses a locally-scoped `escHtml` helper, restoring correct display in simulate mode.
+- **Redundant NAC group description fields hidden** — the two raw group description fields from XMC are no longer shown in the NAC table since the same information is already present in the Groups row.
+
 ## [1.7.0] - 2026-07-04
 
 ### Added
