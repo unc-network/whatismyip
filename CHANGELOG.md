@@ -22,6 +22,7 @@ All notable changes to this project will be documented here. This project follow
 ### Fixed
 
 - **NAC card blank in simulate mode** — `esc` was defined inside `buildNacDiagram` and not available in the AJAX callback that populates the NAC table rows. The NAC section now uses a locally-scoped `escHtml` helper, restoring correct display in simulate mode.
+- **Redundant NAC group description fields hidden** — the two raw group description fields from XMC are no longer shown in the NAC table since the same information is already present in the Groups row.
 
 ## [1.7.0] - 2026-07-04
 

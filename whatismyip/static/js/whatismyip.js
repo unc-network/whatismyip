@@ -644,7 +644,7 @@ function test_primary_url(default_version) {
 			if (result['nac']['endSystemInfo']) {
 				$('#nac-card').show();
 				for (const [key, value] of Object.entries(result['nac']['endSystemInfo'])) {
-					if (value && key !== 'groups') {
+					if (value && key !== 'groups' && key !== 'groupDescription' && key !== 'groupDescr2') {
 						nacRow(key, escHtml(String(value)));
 					}
 				}
