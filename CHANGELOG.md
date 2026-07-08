@@ -15,6 +15,7 @@ All notable changes to this project will be documented here. This project follow
 - **Site meta tags updated for DNS detection** — keywords expanded to include "DNS leak test", "DNS provider", "DNS resolver"; descriptions across meta, Open Graph, and Twitter cards now call out DNS provider detection alongside DNS security filtering.
 - **Home page and FAQ feature lists updated** — "What does this tool show?" sections on both pages now include Wi-Fi connection details and DNS provider detection as campus features. JSON-LD featureList updated to include "DNS provider detection" and "DNS leak test".
 - **NAC redundant group description fields hidden** — the two raw group description fields from XMC are no longer shown in the NAC table since the same information is already present in the Groups row.
+- **Wireless Connection card adds Last Seen and Client MAC** — the Meraki client search response already includes a last-seen timestamp and the client MAC address; both are now surfaced in the Wireless Connection card. The MAC displays a warning indicator if it does not match the MAC on record in IPAM, which can signal MAC randomization or an association mismatch.
 
 ## [1.7.1] - 2026-07-05
 
