@@ -83,12 +83,14 @@ def get_meraki_client(client_mac: str) -> dict[str, Any] | None:
     client_id = result.get("clientId") or None
     return {
         "manufacturer": result.get("manufacturer") or None,
+        "mac": result.get("mac") or None,
         "description": rec.get("description") or None,
         "os": rec.get("os") or None,
         "user": rec.get("user") or None,
         "status": rec.get("status") or None,
         "ssid": rec.get("ssid") or None,
         "vlan": rec.get("vlan") or None,
+        "last_seen": rec.get("lastSeen") or None,
         "wireless_capabilities": rec.get("wirelessCapabilities") or None,
         "network_id": network_id,
         "client_id": client_id,

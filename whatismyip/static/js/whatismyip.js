@@ -309,6 +309,7 @@ function downloadReport() {
 		var snrText = ms.snr !== undefined && ms.snr !== null
 			? ms.snr + ' dB (' + (ms.snr >= 25 ? 'Good' : ms.snr >= 15 ? 'Fair' : 'Poor') + ')'
 			: null;
+		var lastSeenText = mc.last_seen ? new Date(mc.last_seen * 1000).toLocaleString() : null;
 		merakiSection = section('Wireless Connection', [
 			rpt('Manufacturer', mc.manufacturer),
 			rpt('Device', mc.description),
@@ -317,6 +318,8 @@ function downloadReport() {
 			rpt('Status', mc.status),
 			rpt('SSID', mc.ssid),
 			rpt('VLAN', mc.vlan),
+			rpt('Last Seen', lastSeenText),
+			rpt('Client MAC', mc.mac),
 			rpt('Signal (RSSI)', rssiText),
 			rpt('Signal/Noise (SNR)', snrText),
 			rpt('Capabilities', mc.wireless_capabilities),
@@ -674,6 +677,22 @@ function test_primary_url(default_version) {
 				merakiRow('meraki-user', mc.user);
 				merakiRow('meraki-status', mc.status);
 				merakiRow('meraki-vlan', mc.vlan);
+				if (mc.last_seen) {
+					var lsDate = new Date(mc.last_seen * 1000);
+					$('#meraki-last-seen').text(lsDate.toLocaleString());
+					$('#meraki-last-seen-row').show();
+					showMerakiCard = true;
+				}
+				if (mc.mac) {
+					var ipamMac = nacMac;
+					var merakiMacHtml = escHtml(mc.mac);
+					if (ipamMac && mc.mac.toLowerCase() !== ipamMac) {
+						merakiMacHtml += ` <i class="fa-solid fa-triangle-exclamation text-warning ms-1" role="img" aria-label="Warning: does not match MAC from IPAM (${escHtml(result['address_details']['mac'])})"></i>`;
+					}
+					$('#meraki-mac').html(merakiMacHtml);
+					$('#meraki-mac-row').show();
+					showMerakiCard = true;
+				}
 				merakiRow('meraki-capabilities', mc.wireless_capabilities);
 			}
 			if (result['nac']['meraki_ap']) {
