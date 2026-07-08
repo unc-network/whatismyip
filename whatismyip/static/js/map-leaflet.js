@@ -15,6 +15,20 @@ function initLeafletMap(lat, lon, zoom) {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 	}).addTo(map);
 
+	// Leaflet generates tile <img> elements with alt="" — stamp descriptive text as tiles load
+	var tileObserver = new MutationObserver(function (mutations) {
+		mutations.forEach(function (mutation) {
+			mutation.addedNodes.forEach(function (node) {
+				if (node.nodeType !== 1) return;
+				if (node.tagName === 'IMG' && !node.alt) node.alt = 'OpenStreetMap tile';
+				node.querySelectorAll('img:not([alt]), img[alt=""]').forEach(function (img) {
+					img.alt = 'OpenStreetMap tile';
+				});
+			});
+		});
+	});
+	tileObserver.observe(mapEl, { childList: true, subtree: true });
+
 	mapInitialized = true;
 }
 

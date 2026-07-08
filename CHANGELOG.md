@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.7.2] - 2026-07-05
+
+### Fixed
+
+- **Leaflet map tile alt text** — Leaflet generates tile `<img>` elements with `alt=""` which Bing Webmaster Tools flags as missing alt. A MutationObserver now stamps `alt="OpenStreetMap tile"` on every tile image as it is added to the DOM, resolving the SEO notice.
+- **Meta description length** — the home page meta description was 175 characters, exceeding Bing's 150–160 character limit. Trimmed to 153 characters without losing keyword coverage.
+
+### Changed
+
+- **DNS provider FAQ entry added** — new accordion question "What does the DNS provider check show?" explains the DNS leak test angle: on campus or VPN users should see UNC or Akamai (UNC forwards all DNS queries through Akamai for security filtering); seeing a home ISP instead indicates a DNS leak or misconfiguration. Includes scenarios for privacy DNS services. JSON-LD structured data updated to match.
+- **Site meta tags updated for DNS detection** — keywords expanded to include "DNS leak test", "DNS provider", "DNS resolver"; descriptions across meta, Open Graph, and Twitter cards now call out DNS provider detection alongside DNS security filtering.
+- **Home page and FAQ feature lists updated** — "What does this tool show?" sections on both pages now include Wi-Fi connection details and DNS provider detection as campus features. JSON-LD featureList updated to include "DNS provider detection" and "DNS leak test".
+- **NAC redundant group description fields hidden** — the two raw group description fields from XMC are no longer shown in the NAC table since the same information is already present in the Groups row.
+
 ## [1.7.1] - 2026-07-05
 
 ### Added
