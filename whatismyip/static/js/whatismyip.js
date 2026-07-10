@@ -1052,7 +1052,8 @@ function get_dns_info() {
 			}
 		},
 		error: function (xhr, status, error) {
-			console.dir(`DNS provider test failed: ${error}`)
+			console.warn(`DNS provider test failed (${xhr.status}): ${error}`);
+			append_dns_table_row('Internet DNS Provider', 'Unavailable');
 		}
 	});
 
