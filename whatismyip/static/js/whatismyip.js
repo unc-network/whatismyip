@@ -65,8 +65,8 @@ function buildNacDiagram(nac, userDevice) {
 		var wirelessLabel = '', wirelessClass = '';
 		if (nac.meraki_signal && nac.meraki_signal.rssi != null) {
 			var rssi = nac.meraki_signal.rssi;
-			var quality = rssi >= -65 ? 'Good' : rssi >= -75 ? 'Fair' : 'Poor';
-			wirelessClass = rssi >= -65 ? 'signal-good' : rssi >= -75 ? 'signal-fair' : 'signal-poor';
+			var quality = rssi >= -65 ? 'Good' : rssi >= -70 ? 'Fair' : 'Poor';
+			wirelessClass = rssi >= -65 ? 'signal-good' : rssi >= -70 ? 'signal-fair' : 'signal-poor';
 			wirelessLabel = rssi + ' dBm — ' + quality;
 		}
 		html += node(deviceIcon, 'Your Device', es.macAddress || '');
@@ -304,7 +304,7 @@ function downloadReport() {
 		var ma = r.nac.meraki_ap || {};
 		var ms = r.nac.meraki_signal || {};
 		var rssiText = ms.rssi !== undefined && ms.rssi !== null
-			? ms.rssi + ' dBm (' + (ms.rssi >= -65 ? 'Good' : ms.rssi >= -75 ? 'Fair' : 'Poor') + ')'
+			? ms.rssi + ' dBm (' + (ms.rssi >= -65 ? 'Good' : ms.rssi >= -70 ? 'Fair' : 'Poor') + ')'
 			: null;
 		var snrText = ms.snr !== undefined && ms.snr !== null
 			? ms.snr + ' dB (' + (ms.snr >= 25 ? 'Good' : ms.snr >= 15 ? 'Fair' : 'Poor') + ')'
@@ -701,9 +701,9 @@ function test_primary_url(default_version) {
 			if (result['nac']['meraki_signal']) {
 				var ms = result['nac']['meraki_signal'];
 				if (ms.rssi !== null && ms.rssi !== undefined) {
-					var rssiIcon = ms.rssi >= -65 ? 'fa-circle-check text-success' : ms.rssi >= -75 ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger';
-					var rssiCls  = ms.rssi >= -65 ? '' : ms.rssi >= -75 ? 'text-warning' : 'text-danger';
-					var rssiLabel = ms.rssi >= -65 ? 'Good' : ms.rssi >= -75 ? 'Fair' : 'Poor';
+					var rssiIcon = ms.rssi >= -65 ? 'fa-circle-check text-success' : ms.rssi >= -70 ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger';
+					var rssiCls  = ms.rssi >= -65 ? '' : ms.rssi >= -70 ? 'text-warning' : 'text-danger';
+					var rssiLabel = ms.rssi >= -65 ? 'Good' : ms.rssi >= -70 ? 'Fair' : 'Poor';
 					$('#meraki-rssi').html(`${ms.rssi} dBm &mdash; <i class="fa-solid ${rssiIcon} me-1" aria-hidden="true"></i><span class="${rssiCls}">${rssiLabel}</span>`);
 					$('#meraki-rssi-row').show();
 					showMerakiCard = true;
@@ -1003,9 +1003,11 @@ function get_dns_info() {
 
 				// Add DNS provider details as one section to reduce vertical space.
 				if (geo || ip) {
-					let providerDetails = geo || '';
-					if (geo && ip) {
-						providerDetails = `${geo}\n${ip}`;
+					let geoParts = geo ? geo.split(' - ') : [];
+					let geoFormatted = geoParts.length === 2 ? `${geoParts[1]}\n${geoParts[0]}` : (geo || '');
+					let providerDetails = geoFormatted || '';
+					if (geoFormatted && ip) {
+						providerDetails = `${geoFormatted}\n${ip}`;
 					} else if (ip) {
 						providerDetails = ip;
 					}
