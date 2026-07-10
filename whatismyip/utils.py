@@ -44,13 +44,20 @@ def get_client_address(
     if forwarded_for:
         # Remove spaces, split on commas, and get the second to last address
         fwd_list = forwarded_for.replace(" ", "").split(",")
-        if len(fwd_list) > 2:
+        if len(fwd_list) >= 2:
             client_address = fwd_list[-2]
         else:
-            client_address = fwd_list[-2]
+            client_address = fwd_list[0]
     else:
         client_address = remote_address
     return client_address
+
+
+# Simple TTL cache for geolocation results: ip → (monotonic_time, result)
+# Caps ip-api.com calls to at most 1 per unique IP per TTL window.
+_location_cache: dict[str, tuple[float, dict | None]] = {}
+_LOCATION_CACHE_TTL = 300   # seconds — ip-api.com data doesn't change that fast
+_LOCATION_CACHE_MAX = 1000  # entries — ~1 MB overhead at most
 
 
 def get_ip_location(ip_address: str) -> dict[str, Any] | None:
@@ -64,56 +71,79 @@ def get_ip_location(ip_address: str) -> dict[str, Any] | None:
         app.logger.error(f"{ip_address} is not a valid ip address for location lookup")
         return None
 
-    if ipaddr.is_global:
-        # Hit the remote API to get location information about this IP address.
-        # We have a few different APIs to work with.
-
-        # Free for non-commercial use, no API key required.
-        # Limits to 45 requests per minute. SSL is not available on free tier.
-        # Also provides DNS test https://ip-api.com/docs/dns
-        # Returns: lat, lon, city, country, isp, region, timezone, etc.
-        api_url = f"http://ip-api.com/json/{ip_address}"
-
-        # Available for FREE but provides Country and ISP information only — no lat/lon.
-        # api_url = f"https://api.iplocation.net/?ip={ip_address}"
-
-        # Free for 30,000 IP lookups per month, no API key required.  SSL is available.
-        # api_url = f"https://ipapi.co/{ip_address}/json/"
-
-        session = requests.Session()
-        try:
-            response = session.get(api_url, timeout=3)
-        except requests.ReadTimeout as e:
-            app.logger.error(f"Location API failed {e}")
-            return None
-        if response.status_code == 200:
-            raw = response.json()
-            app.logger.debug(f"ip_location details: {raw}")
-            # Normalize to a consistent structure regardless of which API is active.
-            # ip-api.com uses "country"/"countryCode"; the fallback API uses "country_name"/"country_code2".
-            return {
-                "ip": raw.get("query") or raw.get("ip"),
-                "ip_version": raw.get("ip_version", 4),
-                "country_name": raw.get("country_name") or raw.get("country"),
-                "country_code2": raw.get("country_code2") or raw.get("countryCode"),
-                "city": raw.get("city"),
-                "region": raw.get("regionName"),
-                "isp": raw.get("isp"),
-                "org": raw.get("org"),
-                "asn": raw.get("as"),
-                "mobile": raw.get("mobile"),
-                "proxy": raw.get("proxy"),
-                "hosting": raw.get("hosting"),
-                "lat": raw.get("lat"),
-                "lon": raw.get("lon"),
-            }
-        else:
-            app.logger.warning(f"ip_location query failed {response}")
-            return None
-    else:
+    if not ipaddr.is_global:
         # Do not attempt this lookup on non-global IP addresses
         app.logger.debug(f"{ip_address} is not a global IP address")
         return None
+
+    # Return cached result if still fresh
+    cached = _location_cache.get(ip_address)
+    if cached is not None:
+        ts, data = cached
+        if time.monotonic() - ts < _LOCATION_CACHE_TTL:
+            app.logger.debug(f"ip_location cache hit for {ip_address}")
+            return data
+
+    # Hit the remote API to get location information about this IP address.
+    # We have a few different APIs to work with.
+
+    # Free for non-commercial use, no API key required.
+    # Limits to 45 requests per minute. SSL is not available on free tier.
+    # Also provides DNS test https://ip-api.com/docs/dns
+    # Returns: lat, lon, city, country, isp, region, timezone, etc.
+    api_url = f"http://ip-api.com/json/{ip_address}"
+
+    # Available for FREE but provides Country and ISP information only — no lat/lon.
+    # api_url = f"https://api.iplocation.net/?ip={ip_address}"
+
+    # Free for 30,000 IP lookups per month, no API key required.  SSL is available.
+    # api_url = f"https://ipapi.co/{ip_address}/json/"
+
+    session = requests.Session()
+    try:
+        response = session.get(api_url, timeout=3)
+    except requests.ReadTimeout as e:
+        app.logger.error(f"Location API failed {e}")
+        return None
+
+    if response.status_code == 429:
+        ttl = response.headers.get("X-Ttl", "?")
+        app.logger.warning(
+            f"ip-api.com rate limit hit — geolocation unavailable for {ip_address} "
+            f"(window resets in {ttl}s)"
+        )
+        return None
+
+    if response.status_code != 200:
+        app.logger.warning(f"ip_location query failed {response}")
+        return None
+
+    raw = response.json()
+    app.logger.debug(f"ip_location details: {raw}")
+    # Normalize to a consistent structure regardless of which API is active.
+    # ip-api.com uses "country"/"countryCode"; the fallback API uses "country_name"/"country_code2".
+    result: dict | None = {
+        "ip": raw.get("query") or raw.get("ip"),
+        "ip_version": raw.get("ip_version", 4),
+        "country_name": raw.get("country_name") or raw.get("country"),
+        "country_code2": raw.get("country_code2") or raw.get("countryCode"),
+        "city": raw.get("city"),
+        "region": raw.get("regionName"),
+        "isp": raw.get("isp"),
+        "org": raw.get("org"),
+        "asn": raw.get("as"),
+        "mobile": raw.get("mobile"),
+        "proxy": raw.get("proxy"),
+        "hosting": raw.get("hosting"),
+        "lat": raw.get("lat"),
+        "lon": raw.get("lon"),
+    }
+
+    # Store in cache; evict oldest entry (insertion-order) when at capacity
+    if len(_location_cache) >= _LOCATION_CACHE_MAX:
+        del _location_cache[next(iter(_location_cache))]
+    _location_cache[ip_address] = (time.monotonic(), result)
+    return result
 
 
 def get_nac_info(ip_address: str, mac: str | None = None) -> dict[str, Any] | None:

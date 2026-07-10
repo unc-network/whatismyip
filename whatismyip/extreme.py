@@ -19,6 +19,7 @@
 import base64
 import json
 import logging
+import re
 import sys
 import time
 from datetime import datetime
@@ -26,6 +27,8 @@ import requests
 import urllib3
 
 urllib3.disable_warnings()  # supress SSL certificate  warning
+
+_MAC_RE = re.compile(r'^[0-9A-Fa-f]{2}(?:[:\-][0-9A-Fa-f]{2}){5}$')
 # import requests_debugger                                               # pip install requests-debugger
 # requests_debugger.set( max_depth = 5 )
 
@@ -408,6 +411,9 @@ mutation {
     #################################################################################################
     def getMacAddress(self, mac: str):
         """pull MAC details based on MAC address"""
+        if not _MAC_RE.match(mac):
+            logging.warning("getMacAddress: invalid MAC format %r", mac)
+            return None
         query = """
 { accessControl {
     endSystemInfoByMac(macAddress: "<MAC>") {
@@ -578,6 +584,9 @@ mutation {
     #################################################################################################
     def getEndSystemByMac(self, mac: str):
         """pull EndSystem details based on MAC address"""
+        if not _MAC_RE.match(mac):
+            logging.warning("getEndSystemByMac: invalid MAC format %r", mac)
+            return None
         query = """
 {
   accessControl {

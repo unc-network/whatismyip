@@ -568,12 +568,16 @@ def dns_result() -> Response:
     filtering = data.get("filtering")
     if filtering not in ("active", "inactive", "inconclusive"):
         filtering = None
+    def _clamp(val: object, max_len: int) -> str | None:
+        s = str(val)[:max_len] if val else None
+        return s or None
+
     log_metrics_event(
         "dns_result",
         dns_filtering=filtering,
-        dns_ip=data.get("dns_ip") or None,
-        dns_geo=data.get("dns_geo") or None,
-        edns_ip=data.get("edns_ip") or None,
-        edns_geo=data.get("edns_geo") or None,
+        dns_ip=_clamp(data.get("dns_ip"), 64),
+        dns_geo=_clamp(data.get("dns_geo"), 200),
+        edns_ip=_clamp(data.get("edns_ip"), 64),
+        edns_geo=_clamp(data.get("edns_geo"), 200),
     )
     return jsonify({"ok": True})
