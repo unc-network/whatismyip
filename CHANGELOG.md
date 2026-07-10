@@ -10,6 +10,9 @@ All notable changes to this project will be documented here. This project follow
 - **MAC address validation before GraphQL interpolation** — `getMacAddress` and `getEndSystemByMac` in the XMC NBI client now reject values that do not match the expected MAC format before inserting them into the GraphQL query string, preventing injection from a malformed internal data source.
 - **Unbounded string input on `/dns-result`** — `dns_ip`, `dns_geo`, `edns_ip`, and `edns_geo` fields posted by the client are now truncated to a maximum length (64 / 200 chars) before being stored in the metrics database, preventing disk exhaustion from a flood of large payloads.
 - **ip-api.com rate limit handling** — geolocation results are now cached in memory per IP for 5 minutes (up to 1,000 entries), reducing external API calls for repeat visitors. HTTP 429 responses from ip-api.com now log a distinct warning including the window reset time (`X-Ttl` header) instead of the generic failure message.
+- **DNS test error visibility** — browser-side DNS provider test failures now display "Unavailable" in the DNS row instead of leaving it blank.
+- **IndexNow ping missing `/metrics`** — `scripts/indexnow_ping.py` now includes the Site Statistics page, matching all six URLs in the sitemap.
+- **Sitemap date updated** — home page `lastmod` updated to 2026-07-10.
 
 ## [1.7.3] - 2026-07-08
 

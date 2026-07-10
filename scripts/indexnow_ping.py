@@ -76,6 +76,7 @@ def main() -> None:
         "/connectivity",
         "/faq",
         "/about",
+        "/metrics",
     ]
     url_list = [f"{site_url}{path}" for path in pages]
 
