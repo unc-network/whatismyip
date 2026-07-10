@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.7.3] - 2026-07-08
+
+### Changed
+
+- **RSSI Fair/Poor threshold adjusted** — updated from −75 dBm to −70 dBm per wireless team guidance. Thresholds are now: ≥ −65 dBm Good, ≥ −70 dBm Fair, < −70 dBm Poor.
+- **Internet DNS Provider display reformatted** — the provider string is now split across three lines in order: company name, country, IP address. Previously the single "Country - Company" string wrapped awkwardly mid-word.
+
 ## [1.7.2] - 2026-07-05
 
 ### Fixed
