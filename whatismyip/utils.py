@@ -56,7 +56,7 @@ def get_client_address(
 # Simple TTL cache for geolocation results: ip → (monotonic_time, result)
 # Caps ip-api.com calls to at most 1 per unique IP per TTL window.
 _location_cache: dict[str, tuple[float, dict | None]] = {}
-_LOCATION_CACHE_TTL = 300   # seconds — ip-api.com data doesn't change that fast
+_LOCATION_CACHE_TTL = 300  # seconds — ip-api.com data doesn't change that fast
 _LOCATION_CACHE_MAX = 1000  # entries — ~1 MB overhead at most
 
 

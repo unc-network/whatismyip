@@ -28,7 +28,7 @@ import urllib3
 
 urllib3.disable_warnings()  # supress SSL certificate  warning
 
-_MAC_RE = re.compile(r'^[0-9A-Fa-f]{2}(?:[:\-][0-9A-Fa-f]{2}){5}$')
+_MAC_RE = re.compile(r"^[0-9A-Fa-f]{2}(?:[:\-][0-9A-Fa-f]{2}){5}$")
 # import requests_debugger                                               # pip install requests-debugger
 # requests_debugger.set( max_depth = 5 )
 

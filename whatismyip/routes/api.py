@@ -568,6 +568,7 @@ def dns_result() -> Response:
     filtering = data.get("filtering")
     if filtering not in ("active", "inactive", "inconclusive"):
         filtering = None
+
     def _clamp(val: object, max_len: int) -> str | None:
         s = str(val)[:max_len] if val else None
         return s or None
