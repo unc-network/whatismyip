@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.9.0] - 2026-07-11
+
+### Added
+
+- **Page view tracking** — a new `page_views` SQLite table records a timestamped entry on each visit to Home, About, FAQ, Speed Test, and Connectivity. `/health` visits are excluded.
+- **Page views over time chart** — the `/metrics` dashboard now shows a windowed daily line chart of page views alongside the existing IP lookup trend, and an all-time breakdown table (page, views, share) below it.
+- **Dedicated `/health` endpoint** — lightweight plain-text `200 OK` with no template or database overhead, for liveness and readiness probes. Replaces the previous `/about` probe target. Docker Compose healthcheck updated to use it; OpenShift probe will be updated once this version reaches production.
+- **OpenShift deployment guide** — `OPENSHIFT.md` covers the full deployment workflow: S2I build setup, secret creation for all integrations, PVC provisioning, Route setup, config.toml upload, and day-to-day operations (logs, rollback, backup). Includes notes on the Recreate strategy requirement (SQLite + ReadWriteOnce PVC) and dual-stack DNS setup.
+- **`openshift/deployment.yaml`** — clean deployment manifest derived from the UNC production deployment: runtime metadata stripped, `CHANGEME` placeholders for institution-specific values, all optional integration secrets marked `optional: true`, and probes targeting `/health`.
+- **`openshift/pvc.yaml`** — PersistentVolumeClaim manifest for the data directory.
+
+### Changed
+
+- **Metrics dashboard layout** — Traffic section reorganised into two balanced rows: IP lookups over time + Protocol version (row 1); Page views over time + Page views breakdown table (row 2). The lookup trend chart is now labelled "IP lookups over time" to clearly distinguish it from page view counts.
+
 ## [1.8.0] - 2026-07-11
 
 ### Added

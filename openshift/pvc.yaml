@@ -1,0 +1,11 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: whatismyip-data
+  namespace: CHANGEME          # your OpenShift project name
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi             # stores config.toml and metrics.sqlite3; 1Gi is generous

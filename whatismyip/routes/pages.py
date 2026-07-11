@@ -12,6 +12,8 @@ from flask import (
     send_from_directory,
 )
 
+from whatismyip.db import log_page_view
+
 bp = Blueprint("pages", __name__)
 
 
@@ -24,9 +26,15 @@ def _cacheable(template: str) -> Response:
 
 
 @bp.route("/health")
+def health() -> Response:
+    """Lightweight health check for Docker and OpenShift probes."""
+    return current_app.response_class("OK\n", status=200, mimetype="text/plain")
+
+
 @bp.route("/about")
 def about() -> Response:
     """Display a basic webpage with about information."""
+    log_page_view("About")
     return _cacheable("about.html")
 
 
@@ -38,6 +46,7 @@ def about_redirect() -> Response:
 @bp.route("/faq")
 def faq() -> Response:
     """Display the FAQ page."""
+    log_page_view("FAQ")
     return _cacheable("faq.html")
 
 
@@ -49,6 +58,7 @@ def faq_redirect() -> Response:
 @bp.route("/speedtest")
 def speedtest() -> Response:
     """Display the dedicated speed test page."""
+    log_page_view("Speed Test")
     return _cacheable("speedtest.html")
 
 
@@ -60,6 +70,7 @@ def speedtest_redirect() -> Response:
 @bp.route("/connectivity")
 def connectivity() -> Response:
     """Display the connectivity test page."""
+    log_page_view("Connectivity")
     targets = current_app.config.get("CONNECTIVITY_TARGETS", [])
     resp = make_response(
         render_template("connectivity.html", connectivity_targets=targets)

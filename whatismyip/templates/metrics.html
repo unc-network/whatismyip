@@ -93,11 +93,11 @@
   <div class="col-md-9">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title"><i class="fa-solid fa-chart-line text-primary me-2" aria-hidden="true"></i>Visits over time</h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-chart-line text-primary me-2" aria-hidden="true"></i>IP lookups over time</h3>
         {% if metrics.daily_series %}
           <div style="position:relative;height:200px;">
             <canvas id="chartLookupsOverTime"
-                    aria-label="Daily lookups over the past {{ metrics.window_days }} days"
+                    aria-label="Daily IP lookups over the past {{ metrics.window_days }} days"
                     role="img"></canvas>
           </div>
           <script type="application/json" id="dataLookupsOverTime">
@@ -131,6 +131,61 @@
           </script>
         {% else %}
           <p class="mb-0 text-muted">No metrics recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title"><i class="fa-solid fa-arrow-trend-up text-primary me-2" aria-hidden="true"></i>Page views over time</h3>
+        {% if metrics.daily_page_views_series %}
+          <div style="position:relative;height:200px;">
+            <canvas id="chartPageViewsOverTime"
+                    aria-label="Daily page views over the past {{ metrics.window_days }} days"
+                    role="img"></canvas>
+          </div>
+          <script type="application/json" id="dataPageViewsOverTime">
+            {
+              "labels": {{ metrics.daily_page_views_series | map(attribute='day') | list | tojson }},
+              "values": {{ metrics.daily_page_views_series | map(attribute='count') | list | tojson }}
+            }
+          </script>
+        {% else %}
+          <p class="mb-0 text-muted">No page view data recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title"><i class="fa-solid fa-file-lines text-primary me-2" aria-hidden="true"></i>Page views <small class="text-muted fw-normal" style="font-size:0.75em;">all time</small></h3>
+        {% if metrics.page_view_breakdown %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  <th class="text-end">Views</th>
+                  <th class="text-end">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in metrics.page_view_breakdown %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end">{{ '{:,}'.format(row.count) }}</td>
+                  <td class="text-end">{{ row.percentage }}%</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="mb-0 text-muted">No page views recorded yet.</p>
         {% endif %}
       </div>
     </div>
@@ -512,6 +567,53 @@
                 return ' ' + item.label + ': ' + item.raw + ' (' + pct + '%)';
               }
             }
+          }
+        }
+      }
+    });
+  }
+
+  // Line chart — page views over time
+  var pvLineEl   = document.getElementById('chartPageViewsOverTime');
+  var pvLineData = document.getElementById('dataPageViewsOverTime');
+  if (pvLineEl && pvLineData) {
+    var pvd = JSON.parse(pvLineData.textContent);
+    new Chart(pvLineEl, {
+      type: 'line',
+      data: {
+        labels: pvd.labels,
+        datasets: [{
+          data: pvd.values,
+          borderColor: accentBlue,
+          backgroundColor: accentFill,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          fill: true,
+          tension: 0.3,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: function(items) { return items[0].label; },
+              label: function(item)  { return ' ' + item.raw + ' page views'; }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            ticks: { color: textColor, maxTicksLimit: 7, maxRotation: 0 }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: { color: textColor },
+            beginAtZero: true,
           }
         }
       }

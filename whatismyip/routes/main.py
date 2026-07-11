@@ -13,6 +13,7 @@ from flask import (
     request,
 )
 
+from whatismyip.db import log_page_view
 from whatismyip.utils import get_client_address, is_campus_ip
 
 bp = Blueprint("main", __name__)
@@ -76,6 +77,9 @@ def home() -> Response:
     data["map_provider"] = current_app.config.get("MAP_PROVIDER", "leaflet")
     data["dns_security_test_url"] = current_app.config.get("DNS_SECURITY_TEST_URL", "")
     data["simulate"] = bool(request.args.get("simulate"))
+
+    if not data["simulate"]:
+        log_page_view("Home")
 
     resp = make_response(render_template("home.html", context=data))
     if not data["simulate"]:

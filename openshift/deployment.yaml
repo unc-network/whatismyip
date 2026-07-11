@@ -1,0 +1,189 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: whatismyip
+  namespace: CHANGEME          # your OpenShift project name
+  labels:
+    app: whatismyip
+    app.kubernetes.io/component: whatismyip
+    app.kubernetes.io/instance: whatismyip
+    app.kubernetes.io/name: whatismyip
+    app.kubernetes.io/part-of: whatismyip
+    app.openshift.io/runtime: python
+  annotations:
+    app.openshift.io/vcs-ref: main
+    app.openshift.io/vcs-uri: 'https://github.com/your-org/whatismyip.git'  # CHANGEME
+    # Remove the annotation block below if you are not using an OpenShift ImageStream.
+    # If you are using S2I / oc new-app, this trigger is set automatically.
+    alpha.image.policy.openshift.io/resolve-names: '*'
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"whatismyip:latest","namespace":"CHANGEME"},"fieldPath":"spec.template.spec.containers[?(@.name==\"whatismyip\")].image","pause":"false"}]
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whatismyip
+  # Recreate is required — SQLite cannot handle concurrent writers.
+  # A rolling update would briefly overlap the old and new pods on the same PVC.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: whatismyip
+        deployment: whatismyip
+    spec:
+      volumes:
+        - name: whatismyip-data
+          persistentVolumeClaim:
+            claimName: whatismyip-data   # matches pvc.yaml
+      containers:
+        - name: whatismyip
+          # If using an ImageStream trigger above, leave this as-is — OpenShift fills it in.
+          # If deploying a pre-built image directly, replace with your full image reference:
+          #   image: image-registry.openshift-image-registry.svc:5000/YOUR-PROJECT/whatismyip:latest
+          image: image-registry.openshift-image-registry.svc:5000/CHANGEME/whatismyip:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: PORT
+              value: '8080'
+
+            # ── Public URLs ──────────────────────────────────────────────────────────
+            - name: FLASK_SERVER_URL
+              value: 'https://whatismyip.yourinstitution.edu'       # CHANGEME
+            - name: FLASK_IPV4_SERVER_URL
+              value: 'https://ipv4.whatismyip.yourinstitution.edu'  # CHANGEME
+            - name: FLASK_IPV6_SERVER_URL
+              value: 'https://ipv6.whatismyip.yourinstitution.edu'  # CHANGEME; set to '' to disable IPv6
+
+            # ── Required secret ──────────────────────────────────────────────────────
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: whatismyip
+                  key: FLASK_SECRET_KEY
+
+            # ── Metrics dashboard basic auth (optional) ──────────────────────────────
+            - name: FLASK_METRICS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: whatismyip
+                  key: FLASK_METRICS_USERNAME
+            - name: FLASK_METRICS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: whatismyip
+                  key: FLASK_METRICS_PASSWORD
+
+            # ── Infoblox IPAM (optional) ─────────────────────────────────────────────
+            - name: FLASK_IB_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: infoblox
+                  key: SERVER
+                  optional: true
+            - name: FLASK_IB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: infoblox
+                  key: USERNAME
+                  optional: true
+            - name: FLASK_IB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: infoblox
+                  key: PASSWORD
+                  optional: true
+
+            # ── Extreme Networks XMC / XIQ-SE (optional) ─────────────────────────────
+            - name: FLASK_XMC_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: netsight
+                  key: SERVER
+                  optional: true
+            - name: FLASK_XMC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: netsight
+                  key: CLIENT_ID
+                  optional: true
+            - name: FLASK_XMC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: netsight
+                  key: SECRET
+                  optional: true
+
+            # ── Building directory API (optional) ────────────────────────────────────
+            - name: FLASK_NIT_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: nit-public
+                  key: SERVER
+                  optional: true
+            - name: FLASK_NIT_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: nit-public
+                  key: AUTH_KEY
+                  optional: true
+
+            # ── Cisco Meraki (optional) ──────────────────────────────────────────────
+            - name: FLASK_MERAKI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: meraki
+                  key: API_KEY
+                  optional: true
+            - name: FLASK_MERAKI_ORG_ID
+              valueFrom:
+                secretKeyRef:
+                  name: meraki
+                  key: ORG_ID
+                  optional: true
+
+            # ── Google Maps (optional) ───────────────────────────────────────────────
+            - name: FLASK_GOOGLE_MAPS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: google-maps-api
+                  key: KEY
+                  optional: true
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 3
+            timeoutSeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
+            timeoutSeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          volumeMounts:
+            - name: whatismyip-data
+              mountPath: /opt/app-root/src/data
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

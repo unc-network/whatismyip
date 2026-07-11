@@ -273,7 +273,13 @@ cp .env.example .env                            # set FLASK_SECRET_KEY and FLASK
 docker compose up -d
 ```
 
-### OpenShift / Kubernetes
+### OpenShift
+
+See **[OPENSHIFT.md](OPENSHIFT.md)** for the complete step-by-step guide including S2I build setup, secret creation, PVC provisioning, and day-to-day operations.
+
+The deployment uses `strategy: Recreate` (not RollingUpdate) because the metrics store is a SQLite database on a ReadWriteOnce PVC — two pods on the same volume would cause corruption.
+
+### Kubernetes (general)
 
 The app is designed for container deployment. Key points:
 

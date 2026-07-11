@@ -80,6 +80,20 @@ def ensure_metrics_store() -> None:
                     f"ALTER TABLE metrics_events ADD COLUMN {col} {definition}"
                 )
 
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS page_views (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL,
+                page TEXT NOT NULL
+            )
+        """)
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_page_views_created_at ON page_views(created_at)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_page_views_page ON page_views(page)"
+        )
+
         for index_sql in [
             "CREATE INDEX IF NOT EXISTS idx_metrics_events_created_at ON metrics_events(created_at)",
             "CREATE INDEX IF NOT EXISTS idx_metrics_events_event_type ON metrics_events(event_type)",
@@ -170,6 +184,19 @@ def log_metrics_event(
         current_app.logger.warning("Metrics logging skipped: %s", error)
 
 
+def log_page_view(page: str) -> None:
+    """Record a page view for the given page name."""
+    try:
+        ensure_metrics_store()
+        with sqlite3.connect(_db_path()) as conn:
+            conn.execute(
+                "INSERT INTO page_views (created_at, page) VALUES (?, ?)",
+                (datetime.now(timezone.utc).isoformat(), page),
+            )
+    except Exception as error:  # pragma: no cover - metrics must not break page loads
+        current_app.logger.warning("Page view logging skipped: %s", error)
+
+
 def _count_by_query(
     conn: sqlite3.Connection, query: str, params: tuple = ()
 ) -> list[dict[str, Any]]:
@@ -256,6 +283,34 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
             day = (today - timedelta(days=days - 1 - offset)).isoformat()
             daily_series.append({"day": day, "count": daily_lookup.get(day, 0)})
         daily_max = max((row["count"] for row in daily_series), default=0) or 1
+
+        daily_page_view_lookup: dict[str, int] = {}
+        for row in conn.execute(
+            """
+            SELECT created_at
+            FROM page_views
+            WHERE created_at >= ?
+            ORDER BY created_at
+            """,
+            (cutoff,),
+        ).fetchall():
+            day = (
+                datetime.fromisoformat(row["created_at"])
+                .astimezone(METRICS_TIMEZONE)
+                .date()
+                .isoformat()
+            )
+            daily_page_view_lookup[day] = daily_page_view_lookup.get(day, 0) + 1
+
+        daily_page_views_series = [
+            {
+                "day": (today - timedelta(days=days - 1 - offset)).isoformat(),
+                "count": daily_page_view_lookup.get(
+                    (today - timedelta(days=days - 1 - offset)).isoformat(), 0
+                ),
+            }
+            for offset in range(days)
+        ]
 
         ip_versions = _with_percentages(
             _count_by_query(
@@ -386,6 +441,18 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
             )
         )
 
+        page_view_breakdown = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT page AS label, COUNT(*) AS count
+                FROM page_views
+                GROUP BY page
+                ORDER BY count DESC
+                """,
+            )
+        )
+
     result = {
         "window_days": days,
         "total_hostinfo": total_hostinfo,
@@ -401,6 +468,8 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
         "purpose_breakdown": purpose_breakdown,
         "dns_filtering_breakdown": dns_filtering_breakdown,
         "dns_geo_breakdown": dns_geo_breakdown,
+        "page_view_breakdown": page_view_breakdown,
+        "daily_page_views_series": daily_page_views_series,
     }
     _metrics_cache["data"] = result
     _metrics_cache["ts"] = time.monotonic()
