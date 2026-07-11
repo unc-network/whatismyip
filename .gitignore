@@ -100,3 +100,10 @@ ENV/
 
 # Search engine verification files (institution-specific — each adopter gets their own)
 whatismyip/static/*.txt
+
+# SSL certificates — never commit private keys
+nginx/certs/*.pem
+nginx/certs/*.key
+nginx/certs/*.crt
+nginx/certs/*.p12
+nginx/certs/*.pfx

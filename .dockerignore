@@ -1,0 +1,38 @@
+# Python virtual environment
+env/
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Secrets — never bake into the image
+.env
+.env.*
+
+# Runtime data — provided via volume mount, not baked in
+data/config.toml
+data/metrics.sqlite3
+data/*.csv
+
+# Development and CI
+tests/
+.gitlab-ci.yml
+.coverage
+.coveragerc
+ruff.toml
+
+# Documentation
+docs/
+DOCKER.md
+CHANGELOG.md
+CONTRIBUTING.md
+SECURITY.md
+
+# Scripts (run on the host, not inside the container)
+scripts/
+
+# Version control and editor
+.git/
+.gitignore
+.vscode/
+.idea/

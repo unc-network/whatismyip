@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.8.0] - 2026-07-11
+
+### Added
+
+- **Docker deployment support** — the repository now ships a production-ready Docker Compose configuration so other institutions can run the tool without OpenShift or Kubernetes. Includes a minimal `Dockerfile` (Python 3.11-slim, non-root `appuser`, gunicorn), a `docker-compose.yml` with an nginx sidecar for SSL termination, and a sample `nginx/nginx.conf` with HTTP→HTTPS redirect and correct `X-Forwarded-For` passthrough. The Flask container is on an internal Docker network only (no host port binding); only nginx ports 80 and 443 are published externally.
+- **`DOCKER.md`** — comprehensive step-by-step deployment guide written for network teams with Docker experience but without Python development background. Covers setup, SSL certificates (including self-signed for testing), environment variables, all optional campus integrations (Infoblox, XMC, Meraki), day-to-day operations (logs, update, backup), branding customization, and troubleshooting.
+- **`nginx/certs/` directory tracked** — the directory is now committed (via `.gitkeep`) so a fresh clone has the expected bind-mount path in place; actual certificate files (`*.pem`, `*.key`, etc.) remain gitignored.
+
 ## [1.7.4] - 2026-07-10
 
 ### Fixed

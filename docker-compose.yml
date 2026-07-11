@@ -1,0 +1,29 @@
+services:
+  whatismyip:
+    build: .
+    expose:
+      - "8000"              # Internal only — nginx handles external traffic
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data    # Persists config.toml and the metrics database
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/hostinfo?simulate=4', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - whatismyip
+    restart: unless-stopped

@@ -257,6 +257,22 @@ The test URL **must use `https://`**. Browsers block mixed-content requests — 
 gunicorn --config gunicorn.conf.py wsgi:application
 ```
 
+### Docker (self-hosted deployment)
+
+For institutions without OpenShift or Kubernetes, the repository includes a ready-to-use Docker Compose setup with an nginx sidecar for SSL termination.
+
+See **[DOCKER.md](DOCKER.md)** for the complete step-by-step guide.
+
+```bash
+git clone <repo-url>
+cd whatismyip
+cp data/config.toml.example data/config.toml   # edit with your campus ranges
+cp .env.example .env                            # set FLASK_SECRET_KEY and FLASK_SERVER_URL
+# place your SSL cert/key in nginx/certs/
+# edit nginx/nginx.conf — replace the two CHANGEME placeholders with your domain
+docker compose up -d
+```
+
 ### OpenShift / Kubernetes
 
 The app is designed for container deployment. Key points:
