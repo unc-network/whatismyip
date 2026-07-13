@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.9.1] - 2026-07-11
+
+### Changed
+
+- **Metrics dashboard terminology** — "visits" replaced with "lookups" throughout the IP lookup stat cards, table column headers, and chart tooltips. DNS card column headers changed from "Tests" to "Lookups" for consistency. Page view data retains "views".
+- **Metrics dashboard sections reorganised** — Connection origin and Network type cards moved from the Network section into Visitors (where they conceptually belong). The remaining section renamed from "Network" to "DNS", now containing only the Campus DNS Security and Internet DNS provider cards.
+
 ## [1.9.0] - 2026-07-11
 
 ### Added

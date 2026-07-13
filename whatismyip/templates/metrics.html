@@ -39,7 +39,7 @@
 <div class="row mt-3 mb-1">
   <div class="col">
     <h1 class="site-page-heading">Site Statistics</h1>
-    <p class="site-page-subheading">Aggregated page visits for the last {{ metrics.window_days }} days. The database stores counts and classifications only — no raw client IP addresses are retained.</p>
+    <p class="site-page-subheading">Aggregated IP lookups and page views for the last {{ metrics.window_days }} days. The database stores counts and classifications only — no raw client IP addresses are retained.</p>
   </div>
 </div>
 
@@ -47,7 +47,7 @@
   <div class="col-md-3">
     <div class="card shadow h-100">
       <div class="card-body">
-        <div class="metrics-stat-label"><i class="fa-solid fa-users me-1" aria-hidden="true"></i>Total visits</div>
+        <div class="metrics-stat-label"><i class="fa-solid fa-users me-1" aria-hidden="true"></i>Total lookups</div>
         <div class="metrics-stat-number">{{ '{:,}'.format(total) }}</div>
         <div class="metrics-stat-secondary">last {{ metrics.window_days }} days</div>
       </div>
@@ -58,7 +58,7 @@
       <div class="card-body">
         <div class="metrics-stat-label"><i class="fa-solid fa-building me-1" aria-hidden="true"></i>On-campus</div>
         <div class="metrics-stat-number">{{ '{:,}'.format(metrics.total_campus) }}</div>
-        <div class="metrics-stat-secondary">{{ campus_pct }}% of visits</div>
+        <div class="metrics-stat-secondary">{{ campus_pct }}% of lookups</div>
       </div>
     </div>
   </div>
@@ -67,7 +67,7 @@
       <div class="card-body">
         <div class="metrics-stat-label"><i class="fa-solid fa-house me-1" aria-hidden="true"></i>Off-campus</div>
         <div class="metrics-stat-number">{{ '{:,}'.format(metrics.total_remote) }}</div>
-        <div class="metrics-stat-secondary">{{ remote_pct }}% of visits</div>
+        <div class="metrics-stat-secondary">{{ remote_pct }}% of lookups</div>
       </div>
     </div>
   </div>
@@ -76,7 +76,7 @@
       <div class="card-body">
         <div class="metrics-stat-label"><i class="fa-solid fa-chart-simple me-1" aria-hidden="true"></i>Daily average</div>
         <div class="metrics-stat-number">{{ '{:,}'.format(daily_avg) }}</div>
-        <div class="metrics-stat-secondary">visits per day</div>
+        <div class="metrics-stat-secondary">lookups per day</div>
       </div>
     </div>
   </div>
@@ -210,7 +210,7 @@
               <thead>
                 <tr>
                   <th>Provider</th>
-                  <th class="text-end">Visits</th>
+                  <th class="text-end">Lookups</th>
                   <th class="text-end">Share</th>
                 </tr>
               </thead>
@@ -242,7 +242,7 @@
               <thead>
                 <tr>
                   <th>Organization</th>
-                  <th class="text-end">Visits</th>
+                  <th class="text-end">Lookups</th>
                   <th class="text-end">Share</th>
                 </tr>
               </thead>
@@ -274,7 +274,7 @@
               <thead>
                 <tr>
                   <th>Country</th>
-                  <th class="text-end">Visits</th>
+                  <th class="text-end">Lookups</th>
                   <th class="text-end">Share</th>
                 </tr>
               </thead>
@@ -297,14 +297,7 @@
   </div>
 </div>
 
-<div class="row mt-4 mb-1">
-  <div class="col">
-    <p class="metrics-section-label mb-1">Network</p>
-    <hr class="section-divider mb-0">
-  </div>
-</div>
-
-<div class="row g-3">
+<div class="row g-3 mt-0">
   <div class="col-lg-6">
     <div class="card shadow h-100">
       <div class="card-body">
@@ -324,7 +317,7 @@
               <thead>
                 <tr>
                   <th>Origin</th>
-                  <th class="text-end">Visits</th>
+                  <th class="text-end">Lookups</th>
                   <th class="text-end">Share</th>
                 </tr>
               </thead>
@@ -365,7 +358,7 @@
               <thead>
                 <tr>
                   <th>Type</th>
-                  <th class="text-end">Visits</th>
+                  <th class="text-end">Lookups</th>
                   <th class="text-end">Share</th>
                 </tr>
               </thead>
@@ -388,7 +381,14 @@
   </div>
 </div>
 
-<div class="row g-3 mt-3 mb-4">
+<div class="row mt-4 mb-1">
+  <div class="col">
+    <p class="metrics-section-label mb-1">DNS</p>
+    <hr class="section-divider mb-0">
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
   <div class="col-lg-6">
     <div class="card shadow h-100">
       <div class="card-body">
@@ -408,7 +408,7 @@
               <thead>
                 <tr>
                   <th>Status</th>
-                  <th class="text-end">Tests</th>
+                  <th class="text-end">Lookups</th>
                   <th class="text-end">Share</th>
                 </tr>
               </thead>
@@ -440,7 +440,7 @@
               <thead>
                 <tr>
                   <th>Provider</th>
-                  <th class="text-end">Tests</th>
+                  <th class="text-end">Lookups</th>
                   <th class="text-end">Share</th>
                 </tr>
               </thead>
@@ -511,7 +511,7 @@
           tooltip: {
             callbacks: {
               title: function(items) { return items[0].label; },
-              label: function(item)  { return ' ' + item.raw + ' visits'; }
+              label: function(item)  { return ' ' + item.raw + ' lookups'; }
             }
           }
         },
@@ -650,7 +650,7 @@
               label: function(item) {
                 var total = item.dataset.data.reduce(function(a, b) { return a + b; }, 0);
                 var pct   = total ? Math.round(item.raw / total * 100) : 0;
-                return ' ' + item.raw + ' visits (' + pct + '%)';
+                return ' ' + item.raw + ' lookups (' + pct + '%)';
               }
             }
           }
