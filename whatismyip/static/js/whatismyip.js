@@ -767,6 +767,11 @@ function test_primary_url(default_version) {
 				$('#net-config-v4-router').text(result['network']['router_device']);
 				hasV4Config = true;
 			}
+			if (result['network']['contact_name']) {
+				$('#net-config-v4-contact-row').show();
+				$('#net-config-v4-contact').text(result['network']['contact_name']);
+				hasV4Config = true;
+			}
 			if (hasV4Config) {
 				$('#net-config-v4-address').text(result['client_address']);
 				$('#net-config-v4-address-row').show();
@@ -1269,6 +1274,11 @@ function test_secondary_url(default_version) {
 			if (result['network']['router_device']) {
 				$('#net-config-v6-router-row').show();
 				$('#net-config-v6-router').text(result['network']['router_device']);
+				hasV6Config = true;
+			}
+			if (result['network']['contact_name']) {
+				$('#net-config-v6-contact-row').show();
+				$('#net-config-v6-contact').text(result['network']['contact_name']);
 				hasV6Config = true;
 			}
 			if (hasV6Config) {
