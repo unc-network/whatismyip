@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.9.2] - 2026-07-19
+
+### Added
+
+- **Network Contact row** — the Network Configuration card now shows the network administrator name (sourced from the Infoblox "Administrator" extended attribute) when present. The row is hidden when no contact is recorded.
+
+### Changed
+
+- **Wireless Connection card row order** — rows reorganized into four logical groups: connection state (Last Seen, Client MAC, Status, Signal RSSI, Signal/Noise), identity (User, SSID, VLAN), device details (Capabilities, Manufacturer, Device, OS), and infrastructure (Access Point, AP MAC, AP Model, Controller).
+- **EDNS Client Subnet display** — now formatted the same as Internet DNS Provider: organization on the first line, country on the second, IP on the third. Previously the raw "Country - Organization" string was displayed unsplit.
+- **About page** — removed the "Further detail is available via NIT" list item; it is only relevant to authorised staff and adds noise for general users.
+- **Simulate mode** — DNS and EDNS rows now inject static campus-realistic data instead of making a live ip-api.com call; the simulated network range, subnet mask, and gateway are now self-consistent with the device address; all infrastructure addresses and identifiers use RFC 5737 documentation values (`192.0.2.x`) and locally-administered MACs; real external IP no longer leaked via the NAT egress message.
+
+### Documentation
+
+- **Simulate mode documented** — `README.md` now includes a dedicated section explaining `?simulate=4` / `?simulate=6`, what the simulated session covers, and that it is safe to use in production for demos.
+- **Detection flow extracted** — the 4-step enrichment pipeline and field source table moved from `README.md` to `docs/ARCHITECTURE.md` to keep the README focused on setup and deployment.
+- **Deployment guides moved** — `DOCKER.md` and `OPENSHIFT.md` relocated to `docs/` to reduce root-level clutter; README links updated.
+- **Screenshot updated** — README hero image updated to `docs/whatismyip.jpeg`.
+
 ## [1.9.1] - 2026-07-13
 
 ### Changed

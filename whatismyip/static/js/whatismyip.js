@@ -767,6 +767,11 @@ function test_primary_url(default_version) {
 				$('#net-config-v4-router').text(result['network']['router_device']);
 				hasV4Config = true;
 			}
+			if (result['network']['contact_name']) {
+				$('#net-config-v4-contact-row').show();
+				$('#net-config-v4-contact').text(result['network']['contact_name']);
+				hasV4Config = true;
+			}
 			if (hasV4Config) {
 				$('#net-config-v4-address').text(result['client_address']);
 				$('#net-config-v4-address-row').show();
@@ -781,7 +786,7 @@ function test_primary_url(default_version) {
 			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
 			reportDataPrimary = result;
 			checkAddressMismatch();
-			checkNATType(result['client_address']);
+			if (!simulate) checkNATType(result['client_address']);
 			if (default_version == 4) reportConnectV4 = 'Supported';
 			else reportConnectV6 = 'Supported';
 			$('#report-btn').prop('disabled', false);
@@ -978,6 +983,22 @@ function get_dns_info() {
 	const dns_test_url = $('#dns-test').data('dns_test_url') || '';
 	const simulate = !!$('#connect-test').data('simulate');
 
+	if (simulate) {
+		// Inject static campus-realistic DNS data so simulate is fully self-contained.
+		append_dns_table_row('Internet DNS Provider', 'Akamai Technologies\nUnited States\n192.0.2.53');
+		append_dns_table_row('EDNS Client Subnet', 'University of North Carolina at Chapel Hill\nUnited States\n192.0.2.0');
+		if (dns_test_url) {
+			append_dns_table_row(
+				'Campus DNS Security',
+				'<i class="fa-solid fa-circle-check text-success" aria-hidden="true"></i> Active',
+				'security-filtering-row',
+				true
+			);
+		}
+		$('#dns-test').show();
+		return;
+	}
+
 	// Add Security Filtering row only if a test URL is configured
 	if (dns_test_url) {
 		append_dns_table_row(
@@ -1023,9 +1044,11 @@ function get_dns_info() {
 				let ip = result['edns']['ip']
 
 				if (geo || ip) {
-					let clientSubnetDetails = geo || '';
-					if (geo && ip) {
-						clientSubnetDetails = `${geo}\n${ip}`;
+					let geoParts = geo ? geo.split(' - ') : [];
+					let geoFormatted = geoParts.length === 2 ? `${geoParts[1]}\n${geoParts[0]}` : (geo || '');
+					let clientSubnetDetails = geoFormatted || '';
+					if (geoFormatted && ip) {
+						clientSubnetDetails = `${geoFormatted}\n${ip}`;
 					} else if (ip) {
 						clientSubnetDetails = ip;
 					}
@@ -1251,6 +1274,11 @@ function test_secondary_url(default_version) {
 			if (result['network']['router_device']) {
 				$('#net-config-v6-router-row').show();
 				$('#net-config-v6-router').text(result['network']['router_device']);
+				hasV6Config = true;
+			}
+			if (result['network']['contact_name']) {
+				$('#net-config-v6-contact-row').show();
+				$('#net-config-v6-contact').text(result['network']['contact_name']);
 				hasV6Config = true;
 			}
 			if (hasV6Config) {
