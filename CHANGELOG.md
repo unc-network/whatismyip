@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.9.2] - 2026-07-19
+
+### Changed
+
+- **Wireless Connection card row order** — rows reorganised into four logical groups: connection state (Last Seen, Client MAC, Status, Signal RSSI, Signal/Noise), identity (User, SSID, VLAN), device details (Capabilities, Manufacturer, Device, OS), and infrastructure (Access Point, AP MAC, AP Model, Controller).
+- **EDNS Client Subnet display** — now formatted the same as Internet DNS Provider: organisation on the first line, country on the second, IP on the third. Previously the raw "Country - Organisation" string was displayed unsplit.
+- **Simulate mode self-contained** — DNS and EDNS rows now inject static campus-realistic data (Akamai / UNC subnet) instead of making a live ip-api.com call, so the simulate output is consistent regardless of the developer's network. Real external IP no longer leaked via the NAT egress message in simulate mode.
+- **About page** — removed the "Further detail is available via NIT" list item; it is only relevant to authorised staff and adds noise for general users.
+- **Simulate mode data improved** — all address and identifier fields now use RFC 5737 documentation values (`192.0.2.x`) and locally-administered MACs, making the simulate output unambiguously synthetic end-to-end.
+
 ## [1.9.1] - 2026-07-13
 
 ### Changed

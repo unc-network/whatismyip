@@ -6,7 +6,7 @@ Built and operated by [UNC Information Technology Services](https://its.unc.edu/
 
 > **Note:** This GitHub repository is a read-only mirror. The canonical repository is hosted on UNC's internal GitLab instance, which is not reachable from the public internet. Please open issues here on GitHub and we will review them.
 
-![What Is My IP screenshot](docs/whatismyip.png)
+![What Is My IP screenshot](docs/whatismyip.jpeg)
 
 ---
 
@@ -167,6 +167,21 @@ CLIENT_ADDRESS=152.2.1.2   # treated as the visitor's IP for all routes
 ```
 
 Remove or unset the variable to go back to real address detection.
+
+### Simulate mode
+
+Simulate mode renders a fully synthetic campus visitor without requiring any campus integrations (Infoblox, XMC, Meraki) or a campus IP address. It is useful for development, UI walkthroughs, and demonstrating the tool to other institutions.
+
+Append `?simulate=4` or `?simulate=6` to the home page URL to trigger an IPv4 or IPv6 simulated session:
+
+```text
+http://localhost:5000/?simulate=4
+http://localhost:5000/?simulate=6
+```
+
+The simulated session shows a complete wireless campus visitor: IPAM data, NAC/XMC details, a Meraki wireless card (SSID, signal, AP info), building location map, and DNS rows — all populated with RFC 5737 documentation addresses and clearly synthetic identifiers. No external API calls are made for the DNS and EDNS rows in simulate mode; static campus-realistic values are injected client-side instead.
+
+Simulate mode skips metrics recording and the external IP lookup, so it is safe to use in production for demos without polluting usage data.
 
 ---
 
