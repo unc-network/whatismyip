@@ -13,6 +13,7 @@ All notable changes to this project will be documented here. This project follow
 - **IP lookups chart — stacked by protocol** — the "IP lookups over time" line chart is now a stacked area chart showing IPv4 and IPv6 as separate layers. The total height per day is unchanged; the IPv6 contribution is visible as a darker navy band at the bottom with the light-blue IPv4 area stacked above. Tooltip shows each protocol's count and a total footer. A legend is shown top-right.
 - **Metrics page views tracked** — visits to the `/metrics` dashboard are now included in the page views breakdown table and over-time chart alongside Home, About, FAQ, Speed Test, and Connectivity.
 - **Page views chart visual balance** — the page views card body uses a flex-column layout so the chart fills the available height and better aligns with the breakdown table card beside it.
+- **Metrics query consolidation** — the three separate `COUNT` queries for total, on-campus, and off-campus lookup totals are now a single aggregation query, reducing table scans from three to one on each cache miss.
 
 ## [1.9.3] - 2026-07-21
 
