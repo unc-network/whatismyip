@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.9.3] - 2026-07-21
+
+### Added
+
+- **Network Contact row** — the Network Configuration card now shows the network administrator name (sourced from the Infoblox "Administrator" extended attribute) when present. The row is hidden when no contact is recorded.
+
+### Fixed
+
+- **Intro status sub-line race condition** — the "Your internet traffic appears to use a different address" line was intermittently wiped when the IPv6 callback fired and called `set_intro_text` after the external IP lookup had already appended the sub-line. The main status message is now updated in place rather than replacing the full container, so appended sub-lines are preserved regardless of callback timing.
+
+### Changed
+
+- **Metrics charts exclude current day** — the IP lookups and page views over time charts now show only complete days, ending at yesterday. Today's partial count is no longer the final data point, eliminating the misleading drop at the right edge of both charts.
+- **Metrics cache TTL extended** — the dashboard aggregation cache increased from 5 minutes to 30 minutes. Complete-day data is stable until midnight, so the prior 5-minute TTL was unnecessarily frequent for a dataset of this size.
+- **Simulate mode additions** — simulated network configuration now includes a contact name, and the network CIDR, subnet mask, and gateway are corrected to be consistent with the simulated device address.
+
 ## [1.9.2] - 2026-07-19
 
 ### Added
