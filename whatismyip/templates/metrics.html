@@ -103,8 +103,9 @@
           <script type="application/json" id="dataLookupsOverTime">
             {
               "labels": {{ metrics.daily_series | map(attribute='day') | list | tojson }},
-              "v4": {{ metrics.daily_series | map(attribute='v4') | list | tojson }},
-              "v6": {{ metrics.daily_series | map(attribute='v6') | list | tojson }}
+              "v4":     {{ metrics.daily_series | map(attribute='v4') | list | tojson }},
+              "v6":     {{ metrics.daily_series | map(attribute='v6') | list | tojson }},
+              "total":  {{ metrics.daily_series | map(attribute='count') | list | tojson }}
             }
           </script>
         {% else %}
@@ -506,21 +507,19 @@
             borderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
-            fill: true,
+            fill: 'origin',
             tension: 0.3,
-            stack: 'lookups',
           },
           {
             label: 'IPv6',
-            data: ld.v6,
+            data: ld.total,
             borderColor: colorV6Border,
             backgroundColor: colorV6Fill,
             borderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
-            fill: true,
+            fill: '-1',
             tension: 0.3,
-            stack: 'lookups',
           },
         ]
       },
@@ -537,10 +536,14 @@
           tooltip: {
             callbacks: {
               title: function(items) { return items[0].label; },
-              label: function(item)  { return ' ' + item.dataset.label + ': ' + item.raw + ' lookups'; },
+              label: function(item) {
+                var val = item.datasetIndex === 1
+                  ? ld.v6[item.dataIndex]
+                  : item.raw;
+                return ' ' + item.dataset.label + ': ' + val + ' lookups';
+              },
               footer: function(items) {
-                var total = items.reduce(function(s, i) { return s + i.raw; }, 0);
-                return 'Total: ' + total + ' lookups';
+                return 'Total: ' + ld.total[items[0].dataIndex] + ' lookups';
               }
             }
           }
@@ -551,7 +554,6 @@
             ticks: { color: textColor, maxTicksLimit: 7, maxRotation: 0 }
           },
           y: {
-            stacked: true,
             grid: { color: gridColor },
             ticks: { color: textColor },
             beginAtZero: true,
