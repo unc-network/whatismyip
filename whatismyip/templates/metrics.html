@@ -500,10 +500,10 @@
         labels: ld.labels,
         datasets: [
           {
-            label: 'IPv4',
-            data: ld.v4,
-            borderColor: colorV4Border,
-            backgroundColor: colorV4Fill,
+            label: 'IPv6',
+            data: ld.v6,
+            borderColor: colorV6Border,
+            backgroundColor: colorV6Fill,
             borderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
@@ -511,10 +511,10 @@
             tension: 0.3,
           },
           {
-            label: 'IPv6',
+            label: 'IPv4',
             data: ld.total,
-            borderColor: colorV6Border,
-            backgroundColor: colorV6Fill,
+            borderColor: colorV4Border,
+            backgroundColor: colorV4Fill,
             borderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
@@ -538,7 +538,7 @@
               title: function(items) { return items[0].label; },
               label: function(item) {
                 var val = item.datasetIndex === 1
-                  ? ld.v6[item.dataIndex]
+                  ? ld.v4[item.dataIndex]
                   : item.raw;
                 return ' ' + item.dataset.label + ': ' + val + ' lookups';
               },
