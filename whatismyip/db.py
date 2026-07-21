@@ -237,28 +237,20 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
 
     with sqlite3.connect(_db_path()) as conn:
         conn.row_factory = sqlite3.Row
-        total_hostinfo = conn.execute(
-            "SELECT COUNT(*) AS count FROM metrics_events WHERE event_type = ?",
-            ("hostinfo",),
-        ).fetchone()["count"]
-
-        total_campus = conn.execute(
+        totals_row = conn.execute(
             """
-            SELECT COUNT(*) AS count
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN is_campus = 1 THEN 1 ELSE 0 END) AS campus,
+                SUM(CASE WHEN is_campus = 0 THEN 1 ELSE 0 END) AS remote
             FROM metrics_events
-            WHERE event_type = ? AND is_campus = 1
+            WHERE event_type = ?
             """,
             ("hostinfo",),
-        ).fetchone()["count"]
-
-        total_remote = conn.execute(
-            """
-            SELECT COUNT(*) AS count
-            FROM metrics_events
-            WHERE event_type = ? AND is_campus = 0
-            """,
-            ("hostinfo",),
-        ).fetchone()["count"]
+        ).fetchone()
+        total_hostinfo = totals_row["total"]
+        total_campus = totals_row["campus"]
+        total_remote = totals_row["remote"]
 
         daily_lookup_v4: dict[str, int] = {}
         daily_lookup_v6: dict[str, int] = {}
