@@ -10,7 +10,7 @@ from flask_cors import CORS
 from whatismyip.db import _DEFAULT_METRICS_DB_PATH
 from whatismyip.site_config import load_site_config
 
-__version__ = "1.9.3"
+__version__ = "1.9.4"
 
 _APP_ROOT = os.path.join(os.path.dirname(__file__), "..")
 load_dotenv(os.path.join(_APP_ROOT, ".env"))

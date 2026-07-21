@@ -103,7 +103,9 @@
           <script type="application/json" id="dataLookupsOverTime">
             {
               "labels": {{ metrics.daily_series | map(attribute='day') | list | tojson }},
-              "values": {{ metrics.daily_series | map(attribute='count') | list | tojson }}
+              "v4":     {{ metrics.daily_series | map(attribute='v4') | list | tojson }},
+              "v6":     {{ metrics.daily_series | map(attribute='v6') | list | tojson }},
+              "total":  {{ metrics.daily_series | map(attribute='count') | list | tojson }}
             }
           </script>
         {% else %}
@@ -138,10 +140,10 @@
 
   <div class="col-md-7">
     <div class="card shadow h-100">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <h3 class="h5 card-title"><i class="fa-solid fa-arrow-trend-up text-primary me-2" aria-hidden="true"></i>Page views over time</h3>
         {% if metrics.daily_page_views_series %}
-          <div style="position:relative;height:200px;">
+          <div style="position:relative;flex:1;min-height:150px;">
             <canvas id="chartPageViewsOverTime"
                     aria-label="Daily page views over the past {{ metrics.window_days }} days"
                     role="img"></canvas>
@@ -488,41 +490,68 @@
   var lineData = document.getElementById('dataLookupsOverTime');
   if (lineEl && lineData) {
     var ld = JSON.parse(lineData.textContent);
+    var colorV4Border = '#4B9CD3';
+    var colorV6Border = '#1a5fa8';
+    var colorV4Fill   = isDark ? 'rgba(75,156,211,0.5)'  : 'rgba(75,156,211,0.45)';
+    var colorV6Fill   = isDark ? 'rgba(26,95,168,0.55)'  : 'rgba(26,95,168,0.5)';
     new Chart(lineEl, {
       type: 'line',
       data: {
         labels: ld.labels,
-        datasets: [{
-          data: ld.values,
-          borderColor: accentBlue,
-          backgroundColor: accentFill,
-          borderWidth: 2,
-          pointRadius: 3,
-          pointHoverRadius: 5,
-          fill: true,
-          tension: 0.3,
-        }]
+        datasets: [
+          {
+            label: 'IPv6',
+            data: ld.v6,
+            borderColor: colorV6Border,
+            backgroundColor: colorV6Fill,
+            borderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            fill: 'origin',
+            tension: 0.3,
+          },
+          {
+            label: 'IPv4',
+            data: ld.total,
+            borderColor: colorV4Border,
+            backgroundColor: colorV4Fill,
+            borderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            fill: '-1',
+            tension: 0.3,
+          },
+        ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend: {
+            display: true,
+            position: 'top',
+            align: 'end',
+            labels: { color: textColor, padding: 12, boxWidth: 12, usePointStyle: true }
+          },
           tooltip: {
             callbacks: {
               title: function(items) { return items[0].label; },
-              label: function(item)  { return ' ' + item.raw + ' lookups'; }
+              label: function(item) {
+                var val = item.datasetIndex === 1
+                  ? ld.v4[item.dataIndex]
+                  : item.raw;
+                return ' ' + item.dataset.label + ': ' + val + ' lookups';
+              },
+              footer: function(items) {
+                return 'Total: ' + ld.total[items[0].dataIndex] + ' lookups';
+              }
             }
           }
         },
         scales: {
           x: {
             grid: { color: gridColor },
-            ticks: {
-              color: textColor,
-              maxTicksLimit: 7,
-              maxRotation: 0,
-            }
+            ticks: { color: textColor, maxTicksLimit: 7, maxRotation: 0 }
           },
           y: {
             grid: { color: gridColor },

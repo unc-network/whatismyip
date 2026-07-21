@@ -457,11 +457,13 @@ function test_primary_url(default_version) {
 			$('#connect-ipv4').html('<i class="fa-solid fa-circle-check text-success" aria-hidden="true"></i> Supported');
 			//console.log("Host check from " + result["address"]);
 
+			// Seed #intro-main-status unconditionally so renderNATResult can safely append before the IPv6 callback fires.
+			set_intro_text(result['is_campus'], result['network']['purpose']);
+
 			if ( default_version == 4 ) {
 				$('#first_address_section').show();
 				$('#address1').html(formatIPAddress(result["client_address"]));
 				$('#address_box .ip-bar-label').text('IPv4');
-				set_intro_text(result['is_campus'], result['network']['purpose']);
 			} else {
 				$('#second_address_section').show();
 				$('#address2').html(formatIPAddress(result["client_address"]));

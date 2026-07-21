@@ -2,7 +2,7 @@
 
 from flask import Blueprint, Response, current_app, render_template, request
 
-from whatismyip.db import get_metrics_dashboard
+from whatismyip.db import get_metrics_dashboard, log_page_view
 
 bp = Blueprint("metrics", __name__)
 
@@ -20,6 +20,7 @@ def metrics() -> Response | tuple[str, int, dict[str, str]]:
                 401,
                 {"WWW-Authenticate": 'Basic realm="Metrics"'},
             )
+    log_page_view("Metrics")
     return render_template(
         "metrics.html",
         metrics=get_metrics_dashboard(),

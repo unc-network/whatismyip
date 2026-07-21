@@ -237,52 +237,49 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
 
     with sqlite3.connect(_db_path()) as conn:
         conn.row_factory = sqlite3.Row
-        total_hostinfo = conn.execute(
-            "SELECT COUNT(*) AS count FROM metrics_events WHERE event_type = ?",
-            ("hostinfo",),
-        ).fetchone()["count"]
-
-        total_campus = conn.execute(
+        totals_row = conn.execute(
             """
-            SELECT COUNT(*) AS count
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN is_campus = 1 THEN 1 ELSE 0 END) AS campus,
+                SUM(CASE WHEN is_campus = 0 THEN 1 ELSE 0 END) AS remote
             FROM metrics_events
-            WHERE event_type = ? AND is_campus = 1
+            WHERE event_type = ?
             """,
             ("hostinfo",),
-        ).fetchone()["count"]
+        ).fetchone()
+        total_hostinfo = totals_row["total"]
+        total_campus = totals_row["campus"]
+        total_remote = totals_row["remote"]
 
-        total_remote = conn.execute(
+        daily_lookup_v4: dict[str, int] = {}
+        daily_lookup_v6: dict[str, int] = {}
+        for row in conn.execute(
             """
-            SELECT COUNT(*) AS count
-            FROM metrics_events
-            WHERE event_type = ? AND is_campus = 0
-            """,
-            ("hostinfo",),
-        ).fetchone()["count"]
-
-        daily_lookup = {}
-        daily_events = conn.execute(
-            """
-            SELECT created_at
+            SELECT created_at, ip_version
             FROM metrics_events
             WHERE event_type = ? AND created_at >= ?
             ORDER BY created_at
             """,
             ("hostinfo", cutoff),
-        ).fetchall()
-        for row in daily_events:
+        ).fetchall():
             day = (
                 datetime.fromisoformat(row["created_at"])
                 .astimezone(METRICS_TIMEZONE)
                 .date()
                 .isoformat()
             )
-            daily_lookup[day] = daily_lookup.get(day, 0) + 1
+            if row["ip_version"] == 6:
+                daily_lookup_v6[day] = daily_lookup_v6.get(day, 0) + 1
+            else:
+                daily_lookup_v4[day] = daily_lookup_v4.get(day, 0) + 1
 
         daily_series = []
         for offset in range(days):
             day = (last_full_day - timedelta(days=days - 1 - offset)).isoformat()
-            daily_series.append({"day": day, "count": daily_lookup.get(day, 0)})
+            v4 = daily_lookup_v4.get(day, 0)
+            v6 = daily_lookup_v6.get(day, 0)
+            daily_series.append({"day": day, "count": v4 + v6, "v4": v4, "v6": v6})
         daily_max = max((row["count"] for row in daily_series), default=0) or 1
 
         daily_page_view_lookup: dict[str, int] = {}
