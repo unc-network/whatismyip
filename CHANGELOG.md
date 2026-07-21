@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.9.4] - 2026-07-21
+
+### Changed
+
+- **IP lookups chart — stacked by protocol** — the "IP lookups over time" line chart is now a stacked area chart showing IPv4 and IPv6 as separate layers. The total height per day is unchanged; the IPv6 contribution is visible as a darker navy band on top of the light-blue IPv4 area. Tooltip shows each protocol's count and a total footer. A legend is shown top-right.
+
 ## [1.9.3] - 2026-07-21
 
 ### Added
