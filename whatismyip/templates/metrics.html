@@ -140,10 +140,10 @@
 
   <div class="col-md-7">
     <div class="card shadow h-100">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <h3 class="h5 card-title"><i class="fa-solid fa-arrow-trend-up text-primary me-2" aria-hidden="true"></i>Page views over time</h3>
         {% if metrics.daily_page_views_series %}
-          <div style="position:relative;height:200px;">
+          <div style="position:relative;flex:1;min-height:150px;">
             <canvas id="chartPageViewsOverTime"
                     aria-label="Daily page views over the past {{ metrics.window_days }} days"
                     role="img"></canvas>
