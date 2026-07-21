@@ -166,7 +166,7 @@ function showPrimaryLoadError() {
 }
 
 function set_intro_text(is_campus, network_purpose) {
-	var icon, msg, cls;
+	var icon, msg;
 	if (is_campus) {
 		if (network_purpose == 'VPN') {
 			icon = 'fa-shield text-success';
@@ -182,7 +182,13 @@ function set_intro_text(is_campus, network_purpose) {
 		icon = 'fa-earth-americas text-secondary';
 		msg  = 'You are connected from off campus over the Internet.';
 	}
-	$('#intro_text').html(`<div class="intro-status"><i class="fa-solid ${icon} me-2" aria-hidden="true"></i>${msg}</div>`);
+	var mainHtml = `<i class="fa-solid ${icon} me-2" aria-hidden="true"></i>${msg}`;
+	if ($('#intro-main-status').length) {
+		// Update only the main line — preserve any sub-lines appended by renderNATResult.
+		$('#intro-main-status').html(mainHtml);
+	} else {
+		$('#intro_text').html(`<div class="intro-status"><div id="intro-main-status">${mainHtml}</div></div>`);
+	}
 }
 
 function downloadReport() {

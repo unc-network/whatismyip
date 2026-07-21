@@ -8,6 +8,10 @@ All notable changes to this project will be documented here. This project follow
 
 - **Network Contact row** — the Network Configuration card now shows the network administrator name (sourced from the Infoblox "Administrator" extended attribute) when present. The row is hidden when no contact is recorded.
 
+### Fixed
+
+- **Intro status sub-line race condition** — the "Your internet traffic appears to use a different address" line was intermittently wiped when the IPv6 callback fired and called `set_intro_text` after the external IP lookup had already appended the sub-line. The main status message is now updated in place rather than replacing the full container, so appended sub-lines are preserved regardless of callback timing.
+
 ### Changed
 
 - **Metrics charts exclude current day** — the IP lookups and page views over time charts now show only complete days, ending at yesterday. Today's partial count is no longer the final data point, eliminating the misleading drop at the right edge of both charts.
