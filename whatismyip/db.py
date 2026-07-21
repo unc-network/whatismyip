@@ -16,7 +16,7 @@ _DEFAULT_METRICS_DB_PATH = os.path.join(
 METRICS_TIMEZONE = ZoneInfo("America/New_York")
 
 _metrics_cache: dict = {"data": None, "ts": 0.0}
-_METRICS_CACHE_TTL = 300  # seconds
+_METRICS_CACHE_TTL = 1800  # seconds — complete-day data is stable until midnight
 
 
 def _db_path() -> str:
@@ -227,7 +227,8 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
 
     now_local = datetime.now(METRICS_TIMEZONE)
     today = now_local.date()
-    first_day = today - timedelta(days=days - 1)
+    last_full_day = today - timedelta(days=1)
+    first_day = last_full_day - timedelta(days=days - 1)
     cutoff = (
         datetime.combine(first_day, dt_time.min, tzinfo=METRICS_TIMEZONE)
         .astimezone(timezone.utc)
@@ -280,7 +281,7 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
 
         daily_series = []
         for offset in range(days):
-            day = (today - timedelta(days=days - 1 - offset)).isoformat()
+            day = (last_full_day - timedelta(days=days - 1 - offset)).isoformat()
             daily_series.append({"day": day, "count": daily_lookup.get(day, 0)})
         daily_max = max((row["count"] for row in daily_series), default=0) or 1
 
@@ -304,9 +305,9 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
 
         daily_page_views_series = [
             {
-                "day": (today - timedelta(days=days - 1 - offset)).isoformat(),
+                "day": (last_full_day - timedelta(days=days - 1 - offset)).isoformat(),
                 "count": daily_page_view_lookup.get(
-                    (today - timedelta(days=days - 1 - offset)).isoformat(), 0
+                    (last_full_day - timedelta(days=days - 1 - offset)).isoformat(), 0
                 ),
             }
             for offset in range(days)
