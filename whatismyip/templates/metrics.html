@@ -164,7 +164,7 @@
   <div class="col-md-5">
     <div class="card shadow h-100">
       <div class="card-body">
-        <h3 class="h5 card-title"><i class="fa-solid fa-file-lines text-primary me-2" aria-hidden="true"></i>Page views <small class="text-muted fw-normal" style="font-size:0.75em;">all time</small></h3>
+        <h3 class="h5 card-title"><i class="fa-solid fa-file-lines text-primary me-2" aria-hidden="true"></i>Page views <small class="text-muted fw-normal" style="font-size:0.75em;">last {{ metrics.window_days }} days</small></h3>
         {% if metrics.page_view_breakdown %}
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">

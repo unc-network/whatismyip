@@ -22,9 +22,6 @@ def create_app(test_config: dict | None = None) -> Flask:
     app.config.from_object("config.Config")
     app.config.from_prefixed_env()
     app.logger.propagate = False
-    app.config["METRICS_TIME_WINDOW_DAYS"] = int(
-        app.config.get("METRICS_TIME_WINDOW_DAYS", 30)
-    )
     app.config.setdefault("METRICS_DB_PATH", _DEFAULT_METRICS_DB_PATH)
 
     if test_config:

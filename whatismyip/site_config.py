@@ -84,6 +84,14 @@ def load_site_config(app: Flask) -> None:
             "targets", []
         )
 
+        metrics_section = site_cfg.get("metrics", {})
+        app.config["METRICS_TIME_WINDOW_DAYS"] = int(
+            metrics_section.get("window_days", 30)
+        )
+        app.config["METRICS_RETENTION_DAYS"] = int(
+            metrics_section.get("retention_days", 90)
+        )
+
     except Exception as exc:
         app.logger.error(
             f"Failed to load {SITE_CONFIG_PATH}: {exc} — using built-in defaults."
@@ -132,3 +140,5 @@ def _apply_defaults(app: Flask) -> None:
     app.config["BING_VERIFICATION_TOKEN"] = ""
     app.config["INDEXNOW_KEY"] = ""
     app.config["CONNECTIVITY_TARGETS"] = []
+    app.config["METRICS_TIME_WINDOW_DAYS"] = 30
+    app.config["METRICS_RETENTION_DAYS"] = 90
