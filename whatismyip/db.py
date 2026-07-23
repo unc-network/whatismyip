@@ -17,7 +17,9 @@ METRICS_TIMEZONE = ZoneInfo("America/New_York")
 
 _metrics_cache: dict = {"data": None, "ts": 0.0}
 _METRICS_CACHE_TTL = 1800  # seconds — complete-day data is stable until midnight
-_schema_initialized = False  # guards ensure_metrics_store so it only runs once per process
+_schema_initialized = (
+    False  # guards ensure_metrics_store so it only runs once per process
+)
 
 
 def _db_path() -> str:
@@ -123,9 +125,7 @@ def ensure_metrics_store() -> None:
         conn.execute(
             "DELETE FROM metrics_events WHERE created_at < ?", (retention_cutoff,)
         )
-        conn.execute(
-            "DELETE FROM page_views WHERE created_at < ?", (retention_cutoff,)
-        )
+        conn.execute("DELETE FROM page_views WHERE created_at < ?", (retention_cutoff,))
 
     _schema_initialized = True
 
