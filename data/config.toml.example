@@ -85,6 +85,19 @@ url = "https://help.yourinstitution.edu/"
 description = "IT support and service portal"
 type = "campus"
 
+[metrics]
+
+# Number of days shown in the dashboard charts and used for all aggregations
+# (stat cards, ISP/org/country/DNS breakdowns). All numbers on the page reflect
+# this same window so the dashboard is internally consistent.
+window_days = 30
+
+# Rows older than this many days are deleted from the database on process startup.
+# Keeps the database file from growing without bound. Set higher than window_days
+# to retain a buffer of historical data; set equal to window_days to keep only
+# what's displayed. Minimum recommended: window_days × 2.
+retention_days = 90
+
 [campus]
 
 # CIDR blocks that are considered campus/local network addresses.

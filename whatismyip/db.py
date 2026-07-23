@@ -17,6 +17,7 @@ METRICS_TIMEZONE = ZoneInfo("America/New_York")
 
 _metrics_cache: dict = {"data": None, "ts": 0.0}
 _METRICS_CACHE_TTL = 1800  # seconds — complete-day data is stable until midnight
+_schema_initialized_for: str | None = None  # db path last initialized; None = never
 
 
 def _db_path() -> str:
@@ -24,8 +25,16 @@ def _db_path() -> str:
 
 
 def ensure_metrics_store() -> None:
-    """Create the metrics database and schema when needed."""
+    """Create the metrics database and schema when needed.
+
+    Runs at most once per process lifetime — subsequent calls return immediately.
+    On network-mounted storage (OpenShift PVC) the DDL round-trips are expensive,
+    so skipping them after the first successful run is a meaningful speedup.
+    """
+    global _schema_initialized_for
     path = _db_path()
+    if _schema_initialized_for == path:
+        return
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with sqlite3.connect(path) as conn:
         conn.execute("""
@@ -105,6 +114,18 @@ def ensure_metrics_store() -> None:
             "CREATE INDEX IF NOT EXISTS idx_metrics_events_city ON metrics_events(city)",
         ]:
             conn.execute(index_sql)
+
+    retention_days = current_app.config.get("METRICS_RETENTION_DAYS", 90)
+    retention_cutoff = (
+        datetime.now(timezone.utc) - timedelta(days=retention_days)
+    ).isoformat()
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            "DELETE FROM metrics_events WHERE created_at < ?", (retention_cutoff,)
+        )
+        conn.execute("DELETE FROM page_views WHERE created_at < ?", (retention_cutoff,))
+
+    _schema_initialized_for = path
 
 
 def log_metrics_event(
@@ -217,11 +238,11 @@ def _with_percentages(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
     """Build the metrics summary data for the admin dashboard."""
-    ensure_metrics_store()
     if _metrics_cache["data"] is not None and (
         time.monotonic() - _metrics_cache["ts"] < _METRICS_CACHE_TTL
     ):
         return _metrics_cache["data"]
+    ensure_metrics_store()
     if days is None:
         days = current_app.config["METRICS_TIME_WINDOW_DAYS"]
 
@@ -235,8 +256,16 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
         .isoformat()
     )
 
-    with sqlite3.connect(_db_path()) as conn:
-        conn.row_factory = sqlite3.Row
+    # Read the entire DB file into memory in one sequential pass before querying.
+    # On NFS-backed storage (OpenShift PVC) this trades ~11 separate lock/read
+    # cycles for a single 44 MB sequential read, cutting cold-load time significantly.
+    _nfs = sqlite3.connect(_db_path())
+    conn = sqlite3.connect(":memory:")
+    _nfs.backup(conn)
+    _nfs.close()
+    conn.row_factory = sqlite3.Row
+
+    with conn:
         totals_row = conn.execute(
             """
             SELECT
@@ -244,9 +273,9 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                 SUM(CASE WHEN is_campus = 1 THEN 1 ELSE 0 END) AS campus,
                 SUM(CASE WHEN is_campus = 0 THEN 1 ELSE 0 END) AS remote
             FROM metrics_events
-            WHERE event_type = ?
+            WHERE event_type = ? AND created_at >= ?
             """,
-            ("hostinfo",),
+            ("hostinfo", cutoff),
         ).fetchone()
         total_hostinfo = totals_row["total"]
         total_campus = totals_row["campus"]
@@ -316,11 +345,11 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                 """
                 SELECT COALESCE(CAST(ip_version AS TEXT), 'Unknown') AS label, COUNT(*) AS count
                 FROM metrics_events
-                WHERE event_type = ?
+                WHERE event_type = ? AND created_at >= ?
                 GROUP BY label
                 ORDER BY count DESC
                 """,
-                ("hostinfo",),
+                ("hostinfo", cutoff),
             )
         )
         for row in ip_versions:
@@ -335,12 +364,12 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                 """
                 SELECT COALESCE(NULLIF(TRIM(isp), ''), 'Unknown') AS label, COUNT(*) AS count
                 FROM metrics_events
-                WHERE event_type = ?
+                WHERE event_type = ? AND created_at >= ?
                 GROUP BY label
                 ORDER BY count DESC
                 LIMIT 10
                 """,
-                ("hostinfo",),
+                ("hostinfo", cutoff),
             )
         )
 
@@ -350,12 +379,12 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                 """
                 SELECT COALESCE(NULLIF(TRIM(org), ''), 'Unknown') AS label, COUNT(*) AS count
                 FROM metrics_events
-                WHERE event_type = ?
+                WHERE event_type = ? AND created_at >= ?
                 GROUP BY label
                 ORDER BY count DESC
                 LIMIT 10
                 """,
-                ("hostinfo",),
+                ("hostinfo", cutoff),
             )
         )
 
@@ -365,12 +394,12 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                 """
                 SELECT COALESCE(NULLIF(TRIM(country), ''), 'Unknown') AS label, COUNT(*) AS count
                 FROM metrics_events
-                WHERE event_type = ?
+                WHERE event_type = ? AND created_at >= ?
                 GROUP BY label
                 ORDER BY count DESC
                 LIMIT 10
                 """,
-                ("hostinfo",),
+                ("hostinfo", cutoff),
             )
         )
 
@@ -381,11 +410,11 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                 SELECT CASE WHEN is_campus = 1 THEN 'Campus' ELSE 'Off campus' END AS label,
                        COUNT(*) AS count
                 FROM metrics_events
-                WHERE event_type = ?
+                WHERE event_type = ? AND created_at >= ?
                 GROUP BY label
                 ORDER BY count DESC
                 """,
-                ("hostinfo",),
+                ("hostinfo", cutoff),
             )
         )
 
@@ -395,12 +424,12 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                 """
                 SELECT COALESCE(NULLIF(TRIM(network_purpose), ''), 'Unknown') AS label, COUNT(*) AS count
                 FROM metrics_events
-                WHERE event_type = ? AND is_campus = 1
+                WHERE event_type = ? AND is_campus = 1 AND created_at >= ?
                 GROUP BY label
                 ORDER BY count DESC
                 LIMIT 10
                 """,
-                ("hostinfo",),
+                ("hostinfo", cutoff),
             )
         )
 
@@ -416,11 +445,11 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                        END AS label,
                        COUNT(*) AS count
                 FROM metrics_events
-                WHERE event_type = ? AND dns_filtering IS NOT NULL
+                WHERE event_type = ? AND dns_filtering IS NOT NULL AND created_at >= ?
                 GROUP BY dns_filtering
                 ORDER BY count DESC
                 """,
-                ("dns_result",),
+                ("dns_result", cutoff),
             )
         )
 
@@ -430,12 +459,12 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                 """
                 SELECT COALESCE(NULLIF(TRIM(dns_geo), ''), 'Unknown') AS label, COUNT(*) AS count
                 FROM metrics_events
-                WHERE event_type = ? AND dns_geo IS NOT NULL
+                WHERE event_type = ? AND dns_geo IS NOT NULL AND created_at >= ?
                 GROUP BY label
                 ORDER BY count DESC
                 LIMIT 8
                 """,
-                ("dns_result",),
+                ("dns_result", cutoff),
             )
         )
 
@@ -445,11 +474,15 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                 """
                 SELECT page AS label, COUNT(*) AS count
                 FROM page_views
+                WHERE created_at >= ?
                 GROUP BY page
                 ORDER BY count DESC
                 """,
+                (cutoff,),
             )
         )
+
+    conn.close()
 
     result = {
         "window_days": days,

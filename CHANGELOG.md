@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.9.5] - 2026-07-23
+
+### Fixed
+
+- **Metrics chart colors broken on theme switch** — chart colors were computed once at page load and baked into Chart.js instances, so toggling between light and dark mode left stale colors until a full page reload. All charts are now rebuilt via a `MutationObserver` on `data-theme` so colors update immediately when the theme changes.
+- **IPv4/IPv6 colors mismatched between charts** — the stacked line chart and the Protocol version bar chart used independent color arrays, so the color assigned to IPv6 differed between the two. Both charts now derive colors from shared `colorIPv4`/`colorIPv6` variables, with the bar chart mapping by label rather than array position.
+- **IPv6 color indistinct in dark mode** — in dark mode both IPv4 and IPv6 rendered as similar shades of medium blue. IPv6 now uses `#90C8E8` (light sky blue) in dark mode, giving the same clear lightness contrast as the light mode pairing of Carolina Blue vs dark navy.
+- **Metrics page slow first load** — on OpenShift's NFS-backed PVC, each SQLite statement requires a lock round-trip to the NFS lock daemon, turning a simple 11-query dashboard into several seconds of network overhead. Three fixes applied: (1) the schema-check routine (`ensure_metrics_store`) now runs at most once per process lifetime via a module-level flag, eliminating ~20 DDL statements from every subsequent call; (2) the dashboard query pass now loads the entire database file into an in-memory SQLite instance via `backup()` before running queries, replacing many small NFS-locked random reads with a single sequential file read; (3) the in-memory cache check was moved before any database access so cached responses involve no I/O at all.
+- **Metrics data retention and cleanup** — rows were never deleted, causing the database to grow without bound. `ensure_metrics_store` now prunes both tables to a configurable retention window (`METRICS_RETENTION_DAYS`, default 90 days) on process startup. This keeps the file small and the `backup()` read fast over time.
+- **Metrics dashboard fully windowed** — all stat cards, breakdown tables, and charts now reflect the same `METRICS_TIME_WINDOW_DAYS` window (default 30 days). Previously the total lookup counts and all breakdown tables (ISP, org, country, DNS, etc.) scanned the full database with no date filter, so numbers were all-time rather than matching the 30-day charts. The "Page views all time" card title has been corrected to match.
+
+### Changed
+
+- **Metrics window and retention configurable via `config.toml`** — `window_days` and `retention_days` are now settable in the `[metrics]` section of `config.toml`, allowing adjustment without a code redeploy. Defaults remain 30 days (window) and 90 days (retention). `config.toml.example` documents both keys with usage notes.
+
 ## [1.9.4] - 2026-07-21
 
 ### Fixed
