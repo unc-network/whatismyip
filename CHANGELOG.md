@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.9.5] - 2026-07-23
+
+### Fixed
+
+- **Metrics chart colors broken on theme switch** — chart colors were computed once at page load and baked into Chart.js instances, so toggling between light and dark mode left stale colors until a full page reload. All charts are now rebuilt via a `MutationObserver` on `data-theme` so colors update immediately when the theme changes.
+- **IPv4/IPv6 colors mismatched between charts** — the stacked line chart and the Protocol version bar chart used independent color arrays, so the color assigned to IPv6 differed between the two. Both charts now derive colors from shared `colorIPv4`/`colorIPv6` variables, with the bar chart mapping by label rather than array position.
+- **IPv6 color indistinct in dark mode** — in dark mode both IPv4 and IPv6 rendered as similar shades of medium blue. IPv6 now uses `#90C8E8` (light sky blue) in dark mode, giving the same clear lightness contrast as the light mode pairing of Carolina Blue vs dark navy.
+
 ## [1.9.4] - 2026-07-21
 
 ### Fixed

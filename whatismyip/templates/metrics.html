@@ -470,227 +470,237 @@
 <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}?v={{ app_version }}"></script>
 <script>
 (function () {
-  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  var textColor  = isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)';
-  var gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
-  var accentBlue = '#4B9CD3';
-  var accentFill = isDark ? 'rgba(75,156,211,0.18)' : 'rgba(75,156,211,0.12)';
-  // In dark mode avoid --unc-bolin-creek (#2C5080) — it matches the card surface and disappears.
-  var pieColors  = isDark
-    ? ['#4B9CD3', '#90C8E8', '#B7D7ED', '#CFD3D5']
-    : ['#4B9CD3', '#2C5080', '#B7D7ED', '#5B6670'];
-  var pieBorder  = isDark ? '#2C5080' : '#ffffff';
+  var chartInstances = [];
 
-  Chart.defaults.font.family = '"Open Sans", Helvetica, Arial, sans-serif';
-  Chart.defaults.font.size   = 12;
-  Chart.defaults.color       = textColor;
+  function destroyAll() {
+    chartInstances.forEach(function(c) { c.destroy(); });
+    chartInstances = [];
+  }
 
-  // Line chart — lookups over time
-  var lineEl   = document.getElementById('chartLookupsOverTime');
-  var lineData = document.getElementById('dataLookupsOverTime');
-  if (lineEl && lineData) {
-    var ld = JSON.parse(lineData.textContent);
-    var colorV4Border = '#4B9CD3';
-    var colorV6Border = '#1a5fa8';
-    var colorV4Fill   = isDark ? 'rgba(75,156,211,0.5)'  : 'rgba(75,156,211,0.45)';
-    var colorV6Fill   = isDark ? 'rgba(26,95,168,0.55)'  : 'rgba(26,95,168,0.5)';
-    new Chart(lineEl, {
-      type: 'line',
-      data: {
-        labels: ld.labels,
-        datasets: [
-          {
-            label: 'IPv6',
-            data: ld.v6,
-            borderColor: colorV6Border,
-            backgroundColor: colorV6Fill,
+  function buildCharts(isDark) {
+    destroyAll();
+
+    var textColor = isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)';
+    var gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+
+    // IPv4/IPv6 colors — consistent across line chart and bar chart.
+    // Light mode: Carolina Blue (IPv4) vs dark navy (IPv6) — high contrast.
+    // Dark mode: Carolina Blue (IPv4) vs light sky blue (IPv6) — both readable,
+    // clearly distinct in lightness so the stacked layers don't merge visually.
+    var colorIPv4     = '#4B9CD3';
+    var colorIPv6     = isDark ? '#90C8E8' : '#1a5fa8';
+    var colorIPv4Fill = isDark ? 'rgba(75,156,211,0.55)'  : 'rgba(75,156,211,0.45)';
+    var colorIPv6Fill = isDark ? 'rgba(144,200,232,0.45)' : 'rgba(26,95,168,0.5)';
+
+    var accentBlue = colorIPv4;
+    var accentFill = isDark ? 'rgba(75,156,211,0.18)' : 'rgba(75,156,211,0.12)';
+    var pieColors  = isDark
+      ? ['#4B9CD3', '#90C8E8', '#B7D7ED', '#CFD3D5']
+      : ['#4B9CD3', '#2C5080', '#B7D7ED', '#5B6670'];
+    var pieBorder  = isDark ? 'rgba(255,255,255,0.1)' : '#ffffff';
+
+    Chart.defaults.font.family = '"Open Sans", Helvetica, Arial, sans-serif';
+    Chart.defaults.font.size   = 12;
+    Chart.defaults.color       = textColor;
+
+    // Line chart — lookups over time (stacked IPv4 / IPv6)
+    var lineEl   = document.getElementById('chartLookupsOverTime');
+    var lineData = document.getElementById('dataLookupsOverTime');
+    if (lineEl && lineData) {
+      var ld = JSON.parse(lineData.textContent);
+      chartInstances.push(new Chart(lineEl, {
+        type: 'line',
+        data: {
+          labels: ld.labels,
+          datasets: [
+            {
+              label: 'IPv6',
+              data: ld.v6,
+              borderColor: colorIPv6,
+              backgroundColor: colorIPv6Fill,
+              borderWidth: 2,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: 'origin',
+              tension: 0.3,
+            },
+            {
+              label: 'IPv4',
+              data: ld.total,
+              borderColor: colorIPv4,
+              backgroundColor: colorIPv4Fill,
+              borderWidth: 2,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: '-1',
+              tension: 0.3,
+            },
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              align: 'end',
+              labels: { color: textColor, padding: 12, boxWidth: 12, usePointStyle: true }
+            },
+            tooltip: {
+              callbacks: {
+                title: function(items) { return items[0].label; },
+                label: function(item) {
+                  var val = item.datasetIndex === 1 ? ld.v4[item.dataIndex] : item.raw;
+                  return ' ' + item.dataset.label + ': ' + val + ' lookups';
+                },
+                footer: function(items) {
+                  return 'Total: ' + ld.total[items[0].dataIndex] + ' lookups';
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: gridColor }, ticks: { color: textColor, maxTicksLimit: 7, maxRotation: 0 } },
+            y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
+          }
+        }
+      }));
+    }
+
+    // Bar chart — IP version mix (same IPv4/IPv6 colors as line chart, mapped by label)
+    var barVersionEl   = document.getElementById('chartIpVersionMix');
+    var barVersionData = document.getElementById('dataIpVersionMix');
+    if (barVersionEl && barVersionData) {
+      var bvd = JSON.parse(barVersionData.textContent);
+      var barBg = bvd.labels.map(function(l) {
+        return l === 'IPv4' ? colorIPv4 : (l === 'IPv6' ? colorIPv6 : pieColors[2]);
+      });
+      chartInstances.push(new Chart(barVersionEl, {
+        type: 'bar',
+        data: {
+          labels: bvd.labels,
+          datasets: [{ data: bvd.values, backgroundColor: barBg, borderColor: pieBorder, borderWidth: 2 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(item) {
+                  var total = item.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                  var pct   = total ? Math.round(item.raw / total * 100) : 0;
+                  return ' ' + item.raw + ' lookups (' + pct + '%)';
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: gridColor }, ticks: { color: textColor } },
+            y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
+          }
+        }
+      }));
+    }
+
+    // Line chart — page views over time
+    var pvLineEl   = document.getElementById('chartPageViewsOverTime');
+    var pvLineData = document.getElementById('dataPageViewsOverTime');
+    if (pvLineEl && pvLineData) {
+      var pvd = JSON.parse(pvLineData.textContent);
+      chartInstances.push(new Chart(pvLineEl, {
+        type: 'line',
+        data: {
+          labels: pvd.labels,
+          datasets: [{
+            data: pvd.values,
+            borderColor: accentBlue,
+            backgroundColor: accentFill,
             borderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
-            fill: 'origin',
+            fill: true,
             tension: 0.3,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: function(items) { return items[0].label; },
+                label: function(item)  { return ' ' + item.raw + ' page views'; }
+              }
+            }
           },
-          {
-            label: 'IPv4',
-            data: ld.total,
-            borderColor: colorV4Border,
-            backgroundColor: colorV4Fill,
+          scales: {
+            x: { grid: { color: gridColor }, ticks: { color: textColor, maxTicksLimit: 7, maxRotation: 0 } },
+            y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
+          }
+        }
+      }));
+    }
+
+    // Doughnut charts
+    function makeDoughnut(canvasId, dataId) {
+      var el  = document.getElementById(canvasId);
+      var raw = document.getElementById(dataId);
+      if (!el || !raw) return;
+      var d = JSON.parse(raw.textContent);
+      chartInstances.push(new Chart(el, {
+        type: 'doughnut',
+        data: {
+          labels: d.labels,
+          datasets: [{
+            data: d.values,
+            backgroundColor: pieColors,
+            borderColor: pieBorder,
             borderWidth: 2,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            fill: '-1',
-            tension: 0.3,
-          },
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            align: 'end',
-            labels: { color: textColor, padding: 12, boxWidth: 12, usePointStyle: true }
-          },
-          tooltip: {
-            callbacks: {
-              title: function(items) { return items[0].label; },
-              label: function(item) {
-                var val = item.datasetIndex === 1
-                  ? ld.v4[item.dataIndex]
-                  : item.raw;
-                return ' ' + item.dataset.label + ': ' + val + ' lookups';
-              },
-              footer: function(items) {
-                return 'Total: ' + ld.total[items[0].dataIndex] + ' lookups';
-              }
-            }
-          }
+            hoverOffset: 6,
+          }]
         },
-        scales: {
-          x: {
-            grid: { color: gridColor },
-            ticks: { color: textColor, maxTicksLimit: 7, maxRotation: 0 }
-          },
-          y: {
-            grid: { color: gridColor },
-            ticks: { color: textColor },
-            beginAtZero: true,
-          }
-        }
-      }
-    });
-  }
-
-  function makeDoughnut(canvasId, dataId) {
-    var el  = document.getElementById(canvasId);
-    var raw = document.getElementById(dataId);
-    if (!el || !raw) return;
-    var d = JSON.parse(raw.textContent);
-    new Chart(el, {
-      type: 'doughnut',
-      data: {
-        labels: d.labels,
-        datasets: [{
-          data: d.values,
-          backgroundColor: pieColors,
-          borderColor: pieBorder,
-          borderWidth: 2,
-          hoverOffset: 6,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { color: textColor, padding: 12, boxWidth: 12 }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(item) {
-                var total = item.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                var pct   = total ? Math.round(item.raw / total * 100) : 0;
-                return ' ' + item.label + ': ' + item.raw + ' (' + pct + '%)';
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: textColor, padding: 12, boxWidth: 12 }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(item) {
+                  var total = item.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                  var pct   = total ? Math.round(item.raw / total * 100) : 0;
+                  return ' ' + item.label + ': ' + item.raw + ' (' + pct + '%)';
+                }
               }
             }
           }
         }
-      }
-    });
+      }));
+    }
+
+    makeDoughnut('chartCampusMix',      'dataCampusMix');
+    makeDoughnut('chartNetworkPurpose', 'dataNetworkPurpose');
+    makeDoughnut('chartDnsFiltering',   'dataDnsFiltering');
   }
 
-  // Line chart — page views over time
-  var pvLineEl   = document.getElementById('chartPageViewsOverTime');
-  var pvLineData = document.getElementById('dataPageViewsOverTime');
-  if (pvLineEl && pvLineData) {
-    var pvd = JSON.parse(pvLineData.textContent);
-    new Chart(pvLineEl, {
-      type: 'line',
-      data: {
-        labels: pvd.labels,
-        datasets: [{
-          data: pvd.values,
-          borderColor: accentBlue,
-          backgroundColor: accentFill,
-          borderWidth: 2,
-          pointRadius: 3,
-          pointHoverRadius: 5,
-          fill: true,
-          tension: 0.3,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              title: function(items) { return items[0].label; },
-              label: function(item)  { return ' ' + item.raw + ' page views'; }
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: gridColor },
-            ticks: { color: textColor, maxTicksLimit: 7, maxRotation: 0 }
-          },
-          y: {
-            grid: { color: gridColor },
-            ticks: { color: textColor },
-            beginAtZero: true,
-          }
-        }
-      }
-    });
-  }
+  buildCharts(document.documentElement.getAttribute('data-theme') === 'dark');
 
-  makeDoughnut('chartCampusMix',      'dataCampusMix');
-  makeDoughnut('chartNetworkPurpose', 'dataNetworkPurpose');
-  makeDoughnut('chartDnsFiltering',   'dataDnsFiltering');
-
-  // Bar chart — IP version mix
-  var barVersionEl   = document.getElementById('chartIpVersionMix');
-  var barVersionData = document.getElementById('dataIpVersionMix');
-  if (barVersionEl && barVersionData) {
-    var bvd = JSON.parse(barVersionData.textContent);
-    new Chart(barVersionEl, {
-      type: 'bar',
-      data: {
-        labels: bvd.labels,
-        datasets: [{
-          data: bvd.values,
-          backgroundColor: pieColors,
-          borderColor: isDark ? '#2C5080' : '#ffffff',
-          borderWidth: 2,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function(item) {
-                var total = item.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                var pct   = total ? Math.round(item.raw / total * 100) : 0;
-                return ' ' + item.raw + ' lookups (' + pct + '%)';
-              }
-            }
-          }
-        },
-        scales: {
-          x: { grid: { color: gridColor }, ticks: { color: textColor } },
-          y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
-        }
+  // Rebuild all charts when the page theme toggles so colors stay in sync.
+  new MutationObserver(function(mutations) {
+    for (var i = 0; i < mutations.length; i++) {
+      if (mutations[i].attributeName === 'data-theme') {
+        buildCharts(document.documentElement.getAttribute('data-theme') === 'dark');
+        break;
       }
-    });
-  }
+    }
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
 </script>
 {% endblock %}
