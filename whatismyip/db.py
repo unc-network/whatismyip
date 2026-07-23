@@ -246,8 +246,16 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
         .isoformat()
     )
 
-    with sqlite3.connect(_db_path()) as conn:
-        conn.row_factory = sqlite3.Row
+    # Read the entire DB file into memory in one sequential pass before querying.
+    # On NFS-backed storage (OpenShift PVC) this trades ~11 separate lock/read
+    # cycles for a single 44 MB sequential read, cutting cold-load time significantly.
+    _nfs = sqlite3.connect(_db_path())
+    conn = sqlite3.connect(":memory:")
+    _nfs.backup(conn)
+    _nfs.close()
+    conn.row_factory = sqlite3.Row
+
+    with conn:
         totals_row = conn.execute(
             """
             SELECT
@@ -461,6 +469,8 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                 """,
             )
         )
+
+    conn.close()
 
     result = {
         "window_days": days,
