@@ -17,6 +17,7 @@ METRICS_TIMEZONE = ZoneInfo("America/New_York")
 
 _metrics_cache: dict = {"data": None, "ts": 0.0}
 _METRICS_CACHE_TTL = 1800  # seconds — complete-day data is stable until midnight
+_schema_initialized = False  # guards ensure_metrics_store so it only runs once per process
 
 
 def _db_path() -> str:
@@ -24,7 +25,15 @@ def _db_path() -> str:
 
 
 def ensure_metrics_store() -> None:
-    """Create the metrics database and schema when needed."""
+    """Create the metrics database and schema when needed.
+
+    Runs at most once per process lifetime — subsequent calls return immediately.
+    On network-mounted storage (OpenShift PVC) the DDL round-trips are expensive,
+    so skipping them after the first successful run is a meaningful speedup.
+    """
+    global _schema_initialized
+    if _schema_initialized:
+        return
     path = _db_path()
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with sqlite3.connect(path) as conn:
@@ -105,6 +114,8 @@ def ensure_metrics_store() -> None:
             "CREATE INDEX IF NOT EXISTS idx_metrics_events_city ON metrics_events(city)",
         ]:
             conn.execute(index_sql)
+
+    _schema_initialized = True
 
 
 def log_metrics_event(
@@ -217,11 +228,11 @@ def _with_percentages(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
     """Build the metrics summary data for the admin dashboard."""
-    ensure_metrics_store()
     if _metrics_cache["data"] is not None and (
         time.monotonic() - _metrics_cache["ts"] < _METRICS_CACHE_TTL
     ):
         return _metrics_cache["data"]
+    ensure_metrics_store()
     if days is None:
         days = current_app.config["METRICS_TIME_WINDOW_DAYS"]
 
