@@ -17,9 +17,7 @@ METRICS_TIMEZONE = ZoneInfo("America/New_York")
 
 _metrics_cache: dict = {"data": None, "ts": 0.0}
 _METRICS_CACHE_TTL = 1800  # seconds — complete-day data is stable until midnight
-_schema_initialized = (
-    False  # guards ensure_metrics_store so it only runs once per process
-)
+_schema_initialized_for: str | None = None  # db path last initialized; None = never
 
 
 def _db_path() -> str:
@@ -33,10 +31,10 @@ def ensure_metrics_store() -> None:
     On network-mounted storage (OpenShift PVC) the DDL round-trips are expensive,
     so skipping them after the first successful run is a meaningful speedup.
     """
-    global _schema_initialized
-    if _schema_initialized:
-        return
+    global _schema_initialized_for
     path = _db_path()
+    if _schema_initialized_for == path:
+        return
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with sqlite3.connect(path) as conn:
         conn.execute("""
@@ -127,7 +125,7 @@ def ensure_metrics_store() -> None:
         )
         conn.execute("DELETE FROM page_views WHERE created_at < ?", (retention_cutoff,))
 
-    _schema_initialized = True
+    _schema_initialized_for = path
 
 
 def log_metrics_event(
