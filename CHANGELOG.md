@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.10.0] - 2026-07-24
+
+### Added
+
+- **VPN suggestion card** — off-campus visitors see a "Campus VPN" card in the More Details section (right column) with a link to the VPN installation guide. The card appears when `install_url` is set in the new `[vpn]` section of `config.toml` and is hidden entirely for on-campus visitors and those already connected through the campus VPN. An optional `networks` list can identify VPN egress IPs when they fall outside campus ranges.
+- **SSID descriptions in the Wireless Connection card** — campus wireless users see a description and intended-usage line beneath their detected SSID. Descriptions are defined in `[[wireless.ssids]]` blocks in `config.toml` keyed by SSID name. Networks marked `expected = false` (guest or legacy SSIDs) display their description in amber to signal the visitor may want to switch to a better network. Both sections are optional; the card is unchanged if no entries are configured.
+- **Simulate mode — `oncampus` and `offcampus`** — simulate mode now uses named modes instead of IP-version numbers. `?simulate=oncampus` renders a complete dual-stack campus wireless visitor (eduroam, Meraki, building map, DNS security active). `?simulate=offcampus` renders a dual-stack residential ISP visitor with the campus VPN card visible in More Details and DNS security shown as inactive. Both modes are fully self-contained: no external API calls are made for DNS, EDNS, or security filtering — all values are injected client-side. Legacy `?simulate=4` and `?simulate=6` continue to work and fall back to `oncampus` data.
+- **Atlassian Statuspage integration on the connectivity page** — when `url` is set in the new `[status_page]` section of `config.toml`, the connectivity page fetches live data from `<url>/api/v2/summary.json` and displays a status card below the target tests. The card shows the overall status indicator and lists any active incidents with impact badge, title, current status, and a plain-text excerpt of the latest update. Scheduled maintenances are intentionally excluded. The section is hidden if the fetch fails. Leave `url` empty to disable.
+
+### Changed
+
+- **Solid-fill primary buttons** — the VPN install link and the connectivity page Run Again button now use the filled `btn-primary` style (UNC carolina blue with white text) instead of `btn-outline-primary`, matching the existing Report button treatment.
+- **ITS System Status removed from connectivity targets** — replaced by the richer Statuspage widget; the footer link continues to provide direct access to the full status page.
+
+### Accessibility
+
+Remediation based on an external WCAG 2.2 review of v1.9.
+
+- **Section headings** — section label elements on the FAQ page (four category headings) and the Site Statistics page (three section headings) changed from `<p>` to `<h2>`. Visual appearance is unchanged.
+- **IP address button focus contrast** — the focus outline was previously white (invisible on white backgrounds). Replaced with a navy (#13294B) outline in light mode (>16:1 contrast); dark mode retains white.
+- **Primary button focus contrast** — all primary buttons (More Details, VPN install, Run Again) now render an explicit `focus-visible` outline — navy in light mode, light blue (#B7D7ED) in dark mode — replacing the low-contrast browser-default ring.
+- **Page heading contrast** — page headings and large statistical numbers in light mode changed from Carolina blue (#4B9CD3, 2.99:1) to a darker brand blue (#2C5080, 7.86:1 against white). Dark mode is unaffected.
+- **Connectivity status badges** — status labels (Reachable, Timed out, Unreachable) are now rendered as badge chips with accessible background/text color pairs. Light mode contrast ratios: 10.3:1, 6.8:1, and 9.9:1 respectively. Dark mode ratios all ≥ 5:1.
+- **Report button label** — button text changed to "Print Report (PDF)" with a print icon. The `aria-label` reads "Print connection report (saves as PDF)" and a tooltip explains the print-dialog workflow.
+- **Map accessibility** — the map footer label is now marked `aria-live="polite"` so screen readers announce the location when it appears. The map element's `aria-label` is updated dynamically with the campus building name, wireless access point identifier, or approximate IP location (city and country).
+- **Speed Test page subheading** — subheading now describes the server selector and its position relative to the Go button before users tab into the iframe, mitigating the inability to reorder controls inside the third-party Ookla embed.
+- **Connectivity page subheading** — subheading updated to read "Tests run automatically when the page loads — no action needed. Use Run Again to retest at any time," clarifying page behavior for screen reader users before they encounter the Run Again button.
+- **Site Statistics charts** — visually-hidden data tables added behind the three canvas-only charts (IP lookups over time, Protocol version, Page views over time). The three pie charts already had visible data tables on the page.
+
 ## [1.9.5] - 2026-07-23
 
 ### Fixed

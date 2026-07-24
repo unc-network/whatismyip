@@ -155,8 +155,8 @@ def test_split_stack_hostnames_keep_hostinfo_route(app, client, monkeypatch):
 # --- /hostinfo tests ---
 
 
-def test_hostinfo_simulate_ipv4_returns_fixture(client):
-    response = client.get("/hostinfo?simulate=4")
+def test_hostinfo_simulate_oncampus_returns_fixture(client):
+    response = client.get("/hostinfo?simulate=oncampus")
     assert response.status_code == 200
     data = response.get_json()
     assert data["client_address"] == "192.0.2.50"
@@ -166,8 +166,8 @@ def test_hostinfo_simulate_ipv4_returns_fixture(client):
     assert "user_device" in data
 
 
-def test_hostinfo_simulate_ipv6_returns_fixture(client):
-    response = client.get("/hostinfo?simulate=6")
+def test_hostinfo_simulate_oncampus6_returns_fixture(client):
+    response = client.get("/hostinfo?simulate=oncampus6")
     assert response.status_code == 200
     data = response.get_json()
     assert data["client_address"] == "2001:db8::50"
