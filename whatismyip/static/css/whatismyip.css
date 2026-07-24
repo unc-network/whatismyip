@@ -418,6 +418,7 @@ html[data-theme="dark"] .text-muted {
   color: #fff;
   background-color: var(--unc-bolin-creek);
   border-color: var(--unc-bolin-creek);
+  text-decoration: none;
 }
 /* .btn-primary:not(:disabled):not(.disabled):active, .btn-primary:not(:disabled):not(.disabled).active, .show > .btn-primary.dropdown-toggle {
   color: #fff;
