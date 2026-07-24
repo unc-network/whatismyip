@@ -63,6 +63,15 @@
   {% endif %}
 </div>
 
+<div class="row mb-4">
+  <div class="col">
+    <p class="text-muted small mb-0">
+      <i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>
+      Tests use browser fetch requests. A <strong>reachable</strong> result confirms the host responded; an <strong>unreachable</strong> result indicates a network or DNS failure. Results do not verify the content of the response.
+    </p>
+  </div>
+</div>
+
 {% if status_page_url %}
 <div class="row mt-2 mb-3" id="sp-row" style="display:none;" aria-live="polite">
   <div class="col">
@@ -80,15 +89,6 @@
   </div>
 </div>
 {% endif %}
-
-<div class="row mb-4">
-  <div class="col">
-    <p class="text-muted small mb-0">
-      <i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>
-      Tests use browser fetch requests. A <strong>reachable</strong> result confirms the host responded; an <strong>unreachable</strong> result indicates a network or DNS failure. Results do not verify the content of the response.
-    </p>
-  </div>
-</div>
 {% endblock %}
 
 {% block javascript %}
