@@ -108,6 +108,15 @@
               "total":  {{ metrics.daily_series | map(attribute='count') | list | tojson }}
             }
           </script>
+          <table class="visually-hidden">
+            <caption>Daily IP lookups over the past {{ metrics.window_days }} days</caption>
+            <thead><tr><th scope="col">Date</th><th scope="col">IPv4</th><th scope="col">IPv6</th><th scope="col">Total</th></tr></thead>
+            <tbody>
+              {% for row in metrics.daily_series %}
+              <tr><td>{{ row.day }}</td><td>{{ row.v4 }}</td><td>{{ row.v6 }}</td><td>{{ row.count }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
         {% else %}
           <p class="mb-0 text-muted">No metrics recorded yet.</p>
         {% endif %}
@@ -131,6 +140,15 @@
               "values": {{ metrics.ip_versions | map(attribute='count') | list | tojson }}
             }
           </script>
+          <table class="visually-hidden">
+            <caption>IP version distribution over the past {{ metrics.window_days }} days</caption>
+            <thead><tr><th scope="col">Protocol</th><th scope="col">Count</th></tr></thead>
+            <tbody>
+              {% for row in metrics.ip_versions %}
+              <tr><td>{{ row.label }}</td><td>{{ row.count }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
         {% else %}
           <p class="mb-0 text-muted">No metrics recorded yet.</p>
         {% endif %}
@@ -154,6 +172,15 @@
               "values": {{ metrics.daily_page_views_series | map(attribute='count') | list | tojson }}
             }
           </script>
+          <table class="visually-hidden">
+            <caption>Daily page views over the past {{ metrics.window_days }} days</caption>
+            <thead><tr><th scope="col">Date</th><th scope="col">Views</th></tr></thead>
+            <tbody>
+              {% for row in metrics.daily_page_views_series %}
+              <tr><td>{{ row.day }}</td><td>{{ row.count }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
         {% else %}
           <p class="mb-0 text-muted">No page view data recorded yet.</p>
         {% endif %}

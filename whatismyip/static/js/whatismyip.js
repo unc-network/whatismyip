@@ -576,22 +576,30 @@ function test_primary_url(default_version) {
 				// Building lat/lon preferred; address passed as fallback for Google Maps geocoder
 				var bldgMapLat = parseFloat(result['nac']['nit_building']['latitude']);
 				var bldgMapLon = parseFloat(result['nac']['nit_building']['longitude']);
-				loadCampusMap(result['nac']['nit_building']['address'], result['nac']['nit_building']['full_name'], bldgMapLat, bldgMapLon);
+				var bldgMapName = result['nac']['nit_building']['full_name'] || result['nac']['nit_building']['address'];
+				loadCampusMap(result['nac']['nit_building']['address'], bldgMapName, bldgMapLat, bldgMapLon);
+				$('#map').attr('aria-label', 'Map showing location of ' + bldgMapName);
+				$('#map_label').text(bldgMapName).show();
 			} else if (result['nac']['meraki_ap'] && result['nac']['meraki_ap']['lat'] && result['nac']['meraki_ap']['lon']) {
 				// Meraki AP coordinates — more precise than IP geolocation when building lookup isn't available
 				var apLat = parseFloat(result['nac']['meraki_ap']['lat']);
 				var apLon = parseFloat(result['nac']['meraki_ap']['lon']);
 				var apLabel = result['nac']['meraki_ap']['name'] || 'Access Point';
 				loadCampusMap(apLabel, apLabel, apLat, apLon);
-				$('#map_label').text(apLabel).show();
+				$('#map').attr('aria-label', 'Map showing location of wireless access point ' + apLabel);
+				$('#map_label').text('Wireless access point: ' + apLabel).show();
 			} else {
 				// Approximate IP geolocation (city-level) for everyone else
 				var mapLat = parseFloat(result['iplocation']['lat']);
 				var mapLon = parseFloat(result['iplocation']['lon']);
 				// Skip if geolocation failed (null, NaN, or the 0,0 fallback ip-api.com returns on lookup failure)
 				if (!isNaN(mapLat) && !isNaN(mapLon) && !(mapLat === 0 && mapLon === 0)) {
-					var mapLabel = result['iplocation']['city'] || 'IP location';
-					loadLatLonMap(mapLat, mapLon, mapLabel);
+					var mapCity = result['iplocation']['city'] || '';
+					var mapCountry = result['iplocation']['country'] || '';
+					var mapDesc = [mapCity, mapCountry].filter(Boolean).join(', ') || 'IP location';
+					$('#map_label').text('Approximate IP location: ' + mapDesc);
+					$('#map').attr('aria-label', 'Approximate IP location map — ' + mapDesc + ' (city-level accuracy only)');
+					loadLatLonMap(mapLat, mapLon, mapCity || mapDesc);
 				}
 			}
 
