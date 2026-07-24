@@ -16,6 +16,21 @@ All notable changes to this project will be documented here. This project follow
 - **Solid-fill primary buttons** — the VPN install link and the connectivity page Run Again button now use the filled `btn-primary` style (UNC carolina blue with white text) instead of `btn-outline-primary`, matching the existing Report button treatment.
 - **ITS System Status removed from connectivity targets** — replaced by the richer Statuspage widget; the footer link continues to provide direct access to the full status page.
 
+### Accessibility
+
+Remediation based on an external WCAG 2.2 review of v1.9.
+
+- **Section headings** — section label elements on the FAQ page (four category headings) and the Site Statistics page (three section headings) changed from `<p>` to `<h2>`. Visual appearance is unchanged.
+- **IP address button focus contrast** — the focus outline was previously white (invisible on white backgrounds). Replaced with a navy (#13294B) outline in light mode (>16:1 contrast); dark mode retains white.
+- **Primary button focus contrast** — all primary buttons (More Details, VPN install, Run Again) now render an explicit `focus-visible` outline — navy in light mode, light blue (#B7D7ED) in dark mode — replacing the low-contrast browser-default ring.
+- **Page heading contrast** — page headings and large statistical numbers in light mode changed from Carolina blue (#4B9CD3, 2.99:1) to a darker brand blue (#2C5080, 7.86:1 against white). Dark mode is unaffected.
+- **Connectivity status badges** — status labels (Reachable, Timed out, Unreachable) are now rendered as badge chips with accessible background/text color pairs. Light mode contrast ratios: 10.3:1, 6.8:1, and 9.9:1 respectively. Dark mode ratios all ≥ 5:1.
+- **Report button label** — button text changed to "Print Report (PDF)" with a print icon. The `aria-label` reads "Print connection report (saves as PDF)" and a tooltip explains the print-dialog workflow.
+- **Map accessibility** — the map footer label is now marked `aria-live="polite"` so screen readers announce the location when it appears. The map element's `aria-label` is updated dynamically with the campus building name, wireless access point identifier, or approximate IP location (city and country).
+- **Speed Test page subheading** — subheading now describes the server selector and its position relative to the Go button before users tab into the iframe, mitigating the inability to reorder controls inside the third-party Ookla embed.
+- **Connectivity page subheading** — subheading updated to read "Tests run automatically when the page loads — no action needed. Use Run Again to retest at any time," clarifying page behavior for screen reader users before they encounter the Run Again button.
+- **Site Statistics charts** — visually-hidden data tables added behind the three canvas-only charts (IP lookups over time, Protocol version, Page views over time). The three pie charts already had visible data tables on the page.
+
 ## [1.9.5] - 2026-07-23
 
 ### Fixed
