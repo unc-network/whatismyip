@@ -118,16 +118,23 @@ Remove or unset the variable to go back to real address detection.
 
 Simulate mode renders a fully synthetic campus visitor without requiring any campus integrations (Infoblox, XMC, Meraki) or a campus IP address. It is useful for development, UI walkthroughs, and demonstrating the tool to other institutions.
 
-Append `?simulate=4` or `?simulate=6` to the home page URL to trigger an IPv4 or IPv6 simulated session:
+Two modes are available:
+
+|Mode|URL|
+|---|---|
+|On-campus (dual-stack wireless)|`?simulate=oncampus`|
+|Off-campus (dual-stack ISP)|`?simulate=offcampus`|
 
 ```text
-http://localhost:5000/?simulate=4
-http://localhost:5000/?simulate=6
+http://localhost:5000/?simulate=oncampus
+http://localhost:5000/?simulate=offcampus
 ```
 
-The simulated session shows a complete wireless campus visitor: IPAM data, NAC/XMC details, a Meraki wireless card (SSID, signal, AP info), building location map, and DNS rows — all populated with RFC 5737 documentation addresses and clearly synthetic identifiers. No external API calls are made for the DNS and EDNS rows in simulate mode; static campus-realistic values are injected client-side instead.
+**`oncampus`** shows a complete dual-stack campus wireless visitor: IPAM data, NAC/XMC details, a Meraki wireless card (SSID, signal, AP info), building location map, and DNS security active — all populated with RFC 5737 documentation addresses and clearly synthetic identifiers.
 
-Simulate mode skips metrics recording and the external IP lookup, so it is safe to use in production for demos without polluting usage data.
+**`offcampus`** shows a dual-stack off-campus visitor on a residential ISP (Charter Communications, Durham NC), with the campus VPN suggestion card visible in the More Details section and DNS security shown as inactive.
+
+No external API calls are made in either simulate mode — DNS, EDNS, and security filtering rows are all injected client-side with static values. Simulate mode also skips metrics recording, so it is safe to use in production for demos without polluting usage data.
 
 ---
 

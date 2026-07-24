@@ -66,7 +66,16 @@ def home() -> Response:
         f"Home view from {client_address} with forwarded_for {tmp_forwarded_for}"
     )
 
-    data["is_campus"] = is_campus_ip(data["client_address"])
+    simulate_param = request.args.get("simulate", "")
+    data["simulate"] = bool(simulate_param)
+    data["simulate_mode"] = simulate_param
+
+    if simulate_param and simulate_param != "offcampus":
+        data["is_campus"] = True
+    elif simulate_param == "offcampus":
+        data["is_campus"] = False
+    else:
+        data["is_campus"] = is_campus_ip(data["client_address"])
     current_app.logger.debug(
         f"Client address {client_address} is campus IP {data['is_campus']}"
     )
@@ -76,7 +85,10 @@ def home() -> Response:
     data["google_maps_api_key"] = current_app.config["GOOGLE_MAPS_API_KEY"]
     data["map_provider"] = current_app.config.get("MAP_PROVIDER", "leaflet")
     data["dns_security_test_url"] = current_app.config.get("DNS_SECURITY_TEST_URL", "")
-    data["simulate"] = bool(request.args.get("simulate"))
+
+    data["vpn_provider_name"] = current_app.config.get("VPN_PROVIDER_NAME", "")
+    data["vpn_install_url"] = current_app.config.get("VPN_INSTALL_URL", "")
+    data["ssid_info"] = current_app.config.get("SSID_INFO", {})
 
     if not data["simulate"]:
         log_page_view("Home")

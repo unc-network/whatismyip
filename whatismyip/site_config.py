@@ -92,6 +92,24 @@ def load_site_config(app: Flask) -> None:
             metrics_section.get("retention_days", 90)
         )
 
+        vpn_section = site_cfg.get("vpn", {})
+        app.config["VPN_PROVIDER_NAME"] = vpn_section.get("provider_name", "")
+        app.config["VPN_INSTALL_URL"] = vpn_section.get("install_url", "")
+        app.config["VPN_NETWORKS"] = _parse_campus_networks(
+            app, vpn_section.get("networks", [])
+        )
+
+        ssid_map: dict = {}
+        for entry in site_cfg.get("wireless", {}).get("ssids", []):
+            name = entry.get("name", "").strip()
+            if name:
+                ssid_map[name] = {
+                    "description": entry.get("description", ""),
+                    "usage": entry.get("usage", ""),
+                    "expected": entry.get("expected", True),
+                }
+        app.config["SSID_INFO"] = ssid_map
+
     except Exception as exc:
         app.logger.error(
             f"Failed to load {SITE_CONFIG_PATH}: {exc} — using built-in defaults."
@@ -142,3 +160,7 @@ def _apply_defaults(app: Flask) -> None:
     app.config["CONNECTIVITY_TARGETS"] = []
     app.config["METRICS_TIME_WINDOW_DAYS"] = 30
     app.config["METRICS_RETENTION_DAYS"] = 90
+    app.config["VPN_PROVIDER_NAME"] = ""
+    app.config["VPN_INSTALL_URL"] = ""
+    app.config["VPN_NETWORKS"] = []
+    app.config["SSID_INFO"] = {}

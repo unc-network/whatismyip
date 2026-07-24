@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.10.0] - 2026-07-24
+
+### Added
+
+- **VPN suggestion card** — off-campus visitors see a "Campus VPN" card in the More Details section (right column) with a link to the VPN installation guide. The card appears when `install_url` is set in the new `[vpn]` section of `config.toml` and is hidden entirely for on-campus visitors and those already connected through the campus VPN. An optional `networks` list can identify VPN egress IPs when they fall outside campus ranges.
+- **SSID descriptions in the Wireless Connection card** — campus wireless users see a description and intended-usage line beneath their detected SSID. Descriptions are defined in `[[wireless.ssids]]` blocks in `config.toml` keyed by SSID name. Networks marked `expected = false` (guest or legacy SSIDs) display their description in amber to signal the visitor may want to switch to a better network. Both sections are optional; the card is unchanged if no entries are configured.
+- **Simulate mode — `oncampus` and `offcampus`** — simulate mode now uses named modes instead of IP-version numbers. `?simulate=oncampus` renders a complete dual-stack campus wireless visitor (eduroam, Meraki, building map, DNS security active). `?simulate=offcampus` renders a dual-stack residential ISP visitor with the campus VPN card visible in More Details and DNS security shown as inactive. Both modes are fully self-contained: no external API calls are made for DNS, EDNS, or security filtering — all values are injected client-side. Legacy `?simulate=4` and `?simulate=6` continue to work and fall back to `oncampus` data.
+
 ## [1.9.5] - 2026-07-23
 
 ### Fixed

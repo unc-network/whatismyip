@@ -86,7 +86,7 @@
 
     <div class="card shadow my-3">
       <div class="card-body">
-        <div id="connect-test" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}" data-simulate="{{ '1' if context.simulate else '' }}">
+        <div id="connect-test" data-ipv4_url="{{ context.ipv4_url }}" data-ipv6_url="{{ context.ipv6_url }}" data-simulate="{{ context.simulate_mode }}">
           <h3 class="card-title h5"><i class="fa-solid fa-tower-broadcast text-primary me-2" aria-hidden="true"></i>Campus Connectivity</h3>
           <div class="table-responsive">
           <table class="table table-sm mb-0">
@@ -503,7 +503,7 @@
               </tr>
               <tr id="wireless-ssid-row" style="display:none;">
                 <th scope="row">SSID</th>
-                <td id="wireless-ssid"></td>
+                <td><span id="wireless-ssid"></span><small id="wireless-ssid-desc" class="d-block text-muted mt-1" style="display:none;"></small></td>
               </tr>
               <tr id="meraki-vlan-row" style="display:none;">
                 <th scope="row">VLAN</th>
@@ -546,6 +546,17 @@
         </div>
       </div>
     </div>
+    {% if context.vpn_install_url %}
+    <div id="vpn-card" class="card shadow my-3" style="display:none;">
+      <div class="card-body">
+        <h3 class="card-title h5"><i class="fa-solid fa-shield-halved text-primary me-2" aria-hidden="true"></i>Campus VPN</h3>
+        <p class="card-text small mb-3">Connect to the campus VPN to access restricted campus resources from off campus.</p>
+        <a id="vpn-install-link" href="{{ context.vpn_install_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary w-100">
+          <i class="fa-solid fa-download me-1" aria-hidden="true"></i>Install <span id="vpn-provider-name">{{ context.vpn_provider_name or 'VPN Client' }}</span>
+        </a>
+      </div>
+    </div>
+    {% endif %}
   </div><!-- end right-col -->
 
 </div><!-- end additional-info -->
@@ -654,7 +665,9 @@
 {% elif context['map_provider'] == 'google' %}
 <script src="{{ url_for('static', filename='js/map-google.js') }}?v={{ app_version }}"></script>
 {% endif %}
-<script type="application/json" id="is_campus">{{ (true if context.simulate else context['is_campus']) | tojson }}</script>
+<script type="application/json" id="is_campus">{{ context['is_campus'] | tojson }}</script>
 <script type="application/json" id="default_address">{{ ("2001:db8::50" if context.simulate else context['client_address']) | tojson }}</script>
+{% if context.vpn_install_url %}<script type="application/json" id="vpn_config">{{ {'provider_name': context.vpn_provider_name, 'install_url': context.vpn_install_url} | tojson }}</script>{% endif %}
+{% if context.ssid_info %}<script type="application/json" id="ssid_info">{{ context.ssid_info | tojson }}</script>{% endif %}
 <script src="{{ url_for('static', filename='js/whatismyip.js') }}?v={{ app_version }}"></script>
 {% endblock %}

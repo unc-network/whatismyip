@@ -85,6 +85,42 @@ url = "https://help.yourinstitution.edu/"
 description = "IT support and service portal"
 type = "campus"
 
+[vpn]
+
+# Name of the VPN client, shown on the off-campus suggestion card.
+provider_name = "Cisco Secure Client"
+
+# URL to your VPN installation guide, download page, or KB article.
+# Leave empty ("") to disable the VPN card entirely.
+install_url = ""
+
+# Optional: CIDR blocks for VPN egress IPs.
+# When a visitor's IP matches one of these ranges they are identified as
+# connected via VPN even if those IPs are not listed in [campus] networks.
+# Leave empty to skip VPN-IP detection.
+networks = []
+
+[wireless]
+
+# Describe each campus wireless network with a [[wireless.ssids]] block.
+# The description and usage lines appear inline in the Wireless Connection
+# card when the visitor's detected SSID matches.
+# Set expected = false for guest or legacy networks — these are highlighted
+# in amber to indicate the visitor may want to switch to a better network.
+# Omit this section entirely to show no descriptions.
+
+[[wireless.ssids]]
+name = "eduroam"
+description = "Primary campus wireless network"
+usage = "For all campus affiliates with valid credentials"
+expected = true
+
+[[wireless.ssids]]
+name = "YourInstitution-Guest"
+description = "Unauthenticated guest network"
+usage = "For visitors without campus credentials — limited connectivity"
+expected = false
+
 [metrics]
 
 # Number of days shown in the dashboard charts and used for all aggregations

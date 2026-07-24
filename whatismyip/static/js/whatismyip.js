@@ -181,6 +181,15 @@ function set_intro_text(is_campus, network_purpose) {
 	} else {
 		icon = 'fa-earth-americas text-secondary';
 		msg  = 'You are connected from off campus over the Internet.';
+		var vpnCfgEl = document.getElementById('vpn_config');
+		if (vpnCfgEl) {
+			var vpnCfg = JSON.parse(vpnCfgEl.textContent);
+			if (vpnCfg && vpnCfg.install_url) {
+				$('#vpn-install-link').attr('href', vpnCfg.install_url);
+				$('#vpn-provider-name').text(vpnCfg.provider_name || 'VPN Client');
+				$('#vpn-card').show();
+			}
+		}
 	}
 	var mainHtml = `<i class="fa-solid ${icon} me-2" aria-hidden="true"></i>${msg}`;
 	if ($('#intro-main-status').length) {
@@ -437,7 +446,8 @@ ${deviceSection}
 
 function test_primary_url(default_version) {
 	// call the test url and display address information
-	var simulate = !!$('#connect-test').data('simulate');
+	var simulate_mode = $('#connect-test').data('simulate') || '';
+	var simulate = !!simulate_mode;
 
 	// handle starting state
 	if ( default_version == 4 ) {
@@ -450,7 +460,7 @@ function test_primary_url(default_version) {
 	var test_url = $('#connect-test').data('ipv4_url')
 	$.ajax({
 		type: "GET",
-		url: test_url + "/hostinfo" + (simulate ? '?simulate=4' : ''),
+		url: test_url + "/hostinfo" + (simulate ? '?simulate=' + (simulate_mode === 'offcampus' ? 'offcampus' : 'oncampus') : ''),
 		dataType: "json",
 		success: function (result, status, xhr) {
 			// $('#connect-ipv4').text("Supported");
@@ -673,6 +683,26 @@ function test_primary_url(default_version) {
 			var es = result['nac']['endSystem'];
 			if (es && es['connection_type'] === 'wireless') {
 				merakiRow('wireless-ssid', es['wireless_ssid']);
+				var ssidInfoEl = document.getElementById('ssid_info');
+				if (ssidInfoEl && es['wireless_ssid']) {
+					var ssidMap = JSON.parse(ssidInfoEl.textContent);
+					var ssidEntry = ssidMap[es['wireless_ssid']];
+					if (ssidEntry) {
+						var parts = [];
+						if (ssidEntry.description) parts.push(ssidEntry.description);
+						if (ssidEntry.usage) parts.push(ssidEntry.usage);
+						if (parts.length) {
+							var descEl = $('#wireless-ssid-desc');
+							descEl.text(parts.join(' — '));
+							if (ssidEntry.expected === false) {
+								descEl.addClass('text-warning').removeClass('text-muted');
+							} else {
+								descEl.addClass('text-muted').removeClass('text-warning');
+							}
+							descEl.show();
+						}
+					}
+				}
 				merakiRow('wireless-ap-name', es['wireless_ap_name']);
 				merakiRow('wireless-ap-mac', es['wireless_ap_mac']);
 				merakiRow('wireless-controller', es['wireless_controller']);
@@ -988,13 +1018,12 @@ function get_dns_info() {
 	// testing DNS identification
 	// https://ip-api.com/docs/dns
 
+	const simulate_mode = $('#connect-test').data('simulate') || '';
 	const dns_test_url = $('#dns-test').data('dns_test_url') || '';
-	const simulate = !!$('#connect-test').data('simulate');
+	const simulate = !!simulate_mode && simulate_mode !== 'offcampus';
 
 	if (simulate) {
 		// Inject static campus-realistic DNS data so simulate is fully self-contained.
-		append_dns_table_row('Internet DNS Provider', 'Akamai Technologies\nUnited States\n192.0.2.53');
-		append_dns_table_row('EDNS Client Subnet', 'University of North Carolina at Chapel Hill\nUnited States\n192.0.2.0');
 		if (dns_test_url) {
 			append_dns_table_row(
 				'Campus DNS Security',
@@ -1003,6 +1032,23 @@ function get_dns_info() {
 				true
 			);
 		}
+		append_dns_table_row('Internet DNS Provider', 'Akamai Technologies\nUnited States\n192.0.2.53');
+		append_dns_table_row('EDNS Client Subnet', 'University of North Carolina at Chapel Hill\nUnited States\n192.0.2.0');
+		$('#dns-test').show();
+		return;
+	}
+
+	if (simulate_mode === 'offcampus') {
+		// Inject static off-campus DNS data — ISP resolver, no EDNS subnet, filtering inactive.
+		if (dns_test_url) {
+			append_dns_table_row(
+				'Campus DNS Security',
+				'<i class="fa-solid fa-circle-xmark text-secondary" aria-hidden="true"></i> Inactive',
+				'security-filtering-row',
+				true
+			);
+		}
+		append_dns_table_row('Internet DNS Provider', 'Charter Communications\nUnited States\n96.120.1.8');
 		$('#dns-test').show();
 		return;
 	}
@@ -1125,7 +1171,8 @@ function get_dns_info() {
 
 function test_secondary_url(default_version) {
 	// test secondary url
-	var simulate = !!$('#connect-test').data('simulate');
+	var simulate_mode = $('#connect-test').data('simulate') || '';
+	var simulate = !!simulate_mode;
 
 	var test_url = $('#connect-test').data('ipv6_url');
 	if (!test_url) {
@@ -1146,7 +1193,7 @@ function test_secondary_url(default_version) {
 	// Make AJAX call to the API to get the ipv6 address
 	$.ajax({
 		type: "GET",
-		url: test_url + "/hostinfo" + (simulate ? '?simulate=6' : ''),
+		url: test_url + "/hostinfo" + (simulate ? '?simulate=' + (simulate_mode === 'offcampus' ? 'offcampus6' : 'oncampus6') : ''),
 		dataType: "json",
 		success: function (result, status, xhr) {
 			// $('#connect-ipv6').text("Supported");
