@@ -13,7 +13,7 @@
 <div class="row mt-3 mb-1">
   <div class="col">
     <h1 class="site-page-heading">Connectivity Tests</h1>
-    <p class="site-page-subheading">Tests whether your device can reach key campus and internet resources from your current connection. Tests run automatically and reflect your network at this moment.</p>
+    <p class="site-page-subheading">Tests whether your device can reach key campus and internet resources from your current connection. Tests run automatically when the page loads — no action needed. Use Run Again to retest at any time.</p>
   </div>
 </div>
 
@@ -187,21 +187,21 @@
       clearTimeout(timer);
       var ms = Math.round(performance.now() - t0);
       setStatus(idx,
-        '<i class="fa-solid fa-circle-check text-success me-1" aria-hidden="true"></i>' +
-        '<span class="text-success">Reachable</span>' +
-        '<span class="text-muted"> — ' + ms + ' ms</span>'
+        '<span class="conn-badge-success">' +
+        '<i class="fa-solid fa-circle-check me-1" aria-hidden="true"></i>Reachable</span>' +
+        '<span class="text-muted ms-1"> — ' + ms + ' ms</span>'
       );
     } catch (e) {
       clearTimeout(timer);
       if (e.name === 'AbortError') {
         setStatus(idx,
-          '<i class="fa-solid fa-triangle-exclamation text-warning me-1" aria-hidden="true"></i>' +
-          '<span class="text-warning">Timed out</span>'
+          '<span class="conn-badge-warning">' +
+          '<i class="fa-solid fa-triangle-exclamation me-1" aria-hidden="true"></i>Timed out</span>'
         );
       } else {
         setStatus(idx,
-          '<i class="fa-solid fa-circle-xmark text-danger me-1" aria-hidden="true"></i>' +
-          '<span class="text-danger">Unreachable</span>'
+          '<span class="conn-badge-danger">' +
+          '<i class="fa-solid fa-circle-xmark me-1" aria-hidden="true"></i>Unreachable</span>'
         );
       }
     }

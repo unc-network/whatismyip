@@ -222,6 +222,27 @@ html:not([data-theme="dark"]) .faq-section-label.text-info    { color: #0a5465 !
 /* Dark mode: text-success (#198754) is only 3.2:1 on navy — lighten to pass 4.5:1 */
 html[data-theme="dark"] .faq-section-label.text-success { color: #52c98a !important; }
 
+/* Light mode: #4b9cd3 on white = 2.99:1, under the 3:1 large-text threshold — darken page headings and large stat numbers */
+html:not([data-theme="dark"]) .site-page-heading,
+html:not([data-theme="dark"]) .metrics-stat-number { color: var(--unc-bolin-creek); }
+
+/* Connectivity status badge chips — accessible bg/text pairs for both themes */
+.conn-badge-success,
+.conn-badge-warning,
+.conn-badge-danger {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+  padding: 0 5px;
+  font-weight: 600;
+}
+.conn-badge-success { color: #0a3622; background-color: #d1e7dd; }  /* 10.3:1 */
+.conn-badge-warning { color: #664d03; background-color: #fff3cd; }  /* 6.8:1  */
+.conn-badge-danger  { color: #58151c; background-color: #f8d7da; }  /* 9.9:1  */
+html[data-theme="dark"] .conn-badge-success { color: #a3cfbb; background-color: #0f5132; }  /* 5.1:1 */
+html[data-theme="dark"] .conn-badge-warning { color: #ffe69c; background-color: #664d03; }  /* 7.0:1 */
+html[data-theme="dark"] .conn-badge-danger  { color: #f1aeb5; background-color: #842029; }  /* 5.5:1 */
+
 /* Signal quality colors — accessible on --site-surface in both themes
    Light (#FFFFFF): good 7.6:1, fair 6.9:1, poor 8.2:1
    Dark  (#2C5080): good 5.8:1, fair 5.0:1, poor 4.7:1 */
@@ -383,6 +404,15 @@ html[data-theme="dark"] .text-muted {
   pointer-events: none;
   opacity: 0.45;
 }
+.nav-report-btn:focus,
+.nav-report-btn:focus-visible {
+  outline: 3px solid var(--unc-navy);
+  outline-offset: 2px;
+}
+html[data-theme="dark"] .nav-report-btn:focus,
+html[data-theme="dark"] .nav-report-btn:focus-visible {
+  outline-color: var(--unc-fordham-fountain);
+}
 
 /* Modify the background color */
 .navbar-unc {
@@ -419,6 +449,16 @@ html[data-theme="dark"] .text-muted {
   background-color: var(--unc-bolin-creek);
   border-color: var(--unc-bolin-creek);
   text-decoration: none;
+}
+.btn-primary:focus,
+.btn-primary:focus-visible {
+  outline: 3px solid var(--unc-navy);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+html[data-theme="dark"] .btn-primary:focus,
+html[data-theme="dark"] .btn-primary:focus-visible {
+  outline-color: var(--unc-fordham-fountain);
 }
 /* .btn-primary:not(:disabled):not(.disabled):active, .btn-primary:not(:disabled):not(.disabled).active, .show > .btn-primary.dropdown-toggle {
   color: #fff;
@@ -483,8 +523,11 @@ html[data-theme="dark"] #copy-notification {
   box-shadow: 0 8px 28px rgba(19,41,75,0.45), inset 0 1px 0 rgba(255,255,255,0.2) !important;
 }
 .ip-copy-card:focus-visible {
-  outline: 3px solid #fff;
-  outline-offset: 3px;
+  outline: 3px solid var(--unc-navy);
+  outline-offset: 2px;
+}
+html[data-theme="dark"] .ip-copy-card:focus-visible {
+  outline-color: #fff;
 }
 
 .ip-hero-text {
