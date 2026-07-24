@@ -17,8 +17,8 @@
   --site-subtle-bg: var(--unc-cloud);
   --site-text: var(--unc-navy);
   --site-muted-text: var(--unc-old-well-basin);
-  --site-link: var(--unc-carolina-blue);
-  --site-link-hover: var(--unc-bolin-creek);
+  --site-link: #2e6da4;
+  --site-link-hover: var(--unc-navy);
   --site-border: var(--unc-cornerstone);
   --site-chrome: var(--unc-navy);
   --site-chrome-text: var(--unc-white);
@@ -36,7 +36,7 @@ html[data-theme="dark"] {
   --site-subtle-bg: var(--unc-old-well-basin);
   --site-text: var(--unc-white);
   --site-muted-text: var(--unc-cornerstone);
-  --site-link: var(--unc-fordham-fountain);
+  --site-link: #d0e9ff;
   --site-link-hover: var(--unc-white);
   --site-border: var(--unc-flat-gray);
   --site-chrome: var(--unc-bolin-creek);
@@ -219,8 +219,11 @@ html:not([data-theme="dark"]) .faq-section-label.text-primary { color: #145484 !
 html:not([data-theme="dark"]) .faq-section-label.text-success { color: #0d6040 !important; }
 html:not([data-theme="dark"]) .faq-section-label.text-warning { color: #7a5200 !important; }
 html:not([data-theme="dark"]) .faq-section-label.text-info    { color: #0a5465 !important; }
-/* Dark mode: text-success (#198754) is only 3.2:1 on navy — lighten to pass 4.5:1 */
+/* Dark mode: Bootstrap utility colors are too dark on navy — lighten each to pass 4.5:1 */
+html[data-theme="dark"] .faq-section-label.text-primary { color: var(--unc-carolina-blue) !important; }
 html[data-theme="dark"] .faq-section-label.text-success { color: #52c98a !important; }
+html[data-theme="dark"] .faq-section-label.text-warning { color: #ffd966 !important; }
+html[data-theme="dark"] .faq-section-label.text-info    { color: #6dd4e8 !important; }
 
 /* Light mode: #4b9cd3 on white = 2.99:1, under the 3:1 large-text threshold — darken page headings and large stat numbers */
 html:not([data-theme="dark"]) .site-page-heading,
@@ -335,6 +338,7 @@ html[data-theme="dark"] .text-muted {
 }
 .main-footer a {
   color: var(--site-chrome-link);
+  text-decoration: none;
 }
 .main-footer a:hover {
   color: var(--site-chrome-text);
@@ -350,6 +354,7 @@ html[data-theme="dark"] .text-muted {
   letter-spacing: 0.08em;
   font-size: 0.78rem;
   font-weight: 600;
+  text-decoration: none;
 }
 .site-navbar .nav-link:hover {
   color: var(--unc-carolina-blue);
@@ -385,33 +390,7 @@ html[data-theme="dark"] .text-muted {
 }
 
 .nav-report-btn {
-  font-size: 0.8rem;
-  padding: 0.25rem 0.7rem;
-  border: 1px solid var(--unc-carolina-blue);
-  border-radius: 4px;
-  background-color: var(--unc-carolina-blue);
-  color: #fff;
   white-space: nowrap;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-.nav-report-btn:hover:not(:disabled) {
-  background-color: var(--unc-bolin-creek);
-  border-color: var(--unc-bolin-creek);
-  color: #fff;
-}
-.nav-report-btn:disabled {
-  pointer-events: none;
-  opacity: 0.45;
-}
-.nav-report-btn:focus,
-.nav-report-btn:focus-visible {
-  outline: 3px solid var(--unc-navy);
-  outline-offset: 2px;
-}
-html[data-theme="dark"] .nav-report-btn:focus,
-html[data-theme="dark"] .nav-report-btn:focus-visible {
-  outline-color: var(--unc-fordham-fountain);
 }
 
 /* Modify the background color */
@@ -456,19 +435,35 @@ html[data-theme="dark"] .nav-report-btn:focus-visible {
   outline-offset: 2px;
   box-shadow: none;
 }
+html[data-theme="dark"] .btn-primary {
+  color: #fff;
+  background-color: var(--unc-bolin-creek);
+  border-color: var(--unc-carolina-blue);
+  border-width: 2px;
+}
+html[data-theme="dark"] .btn-primary:hover,
+html[data-theme="dark"] .btn-primary:not(:disabled):not(.disabled):active,
+html[data-theme="dark"] .btn-primary:not(:disabled):not(.disabled).active {
+  color: #fff;
+  background-color: var(--unc-bolin-creek);
+  border-color: var(--unc-carolina-blue);
+  filter: brightness(1.2);
+}
 html[data-theme="dark"] .btn-primary:focus,
 html[data-theme="dark"] .btn-primary:focus-visible {
   outline-color: var(--unc-fordham-fountain);
 }
-/* .btn-primary:not(:disabled):not(.disabled):active, .btn-primary:not(:disabled):not(.disabled).active, .show > .btn-primary.dropdown-toggle {
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active,
+.show > .btn-primary.dropdown-toggle {
   color: #fff;
-  background-color: #4B9CD3;
-  border-color: #4B9CD3;
-} */
+  background-color: var(--unc-bolin-creek);
+  border-color: var(--unc-bolin-creek);
+}
 
 a {
   color: var(--site-link);
-  text-decoration: none;
+  text-decoration: underline;
   background-color: transparent;
 }
 a:hover {
@@ -545,7 +540,7 @@ html[data-theme="dark"] .ip-copy-card:focus-visible {
   min-width: 2.5rem;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--unc-navy);
 }
 .ip-bar-label:empty {
   background: transparent;

@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.10.1] - 2026-07-24
+
+### Changed
+
+- **Print Report button size** — normalized to standard primary button size; the `(PDF)` suffix now renders at the same font size as the rest of the button label.
+- **Run Again button size** — removed `btn-sm`; now renders at standard primary button size matching other buttons on the site.
+
+### Accessibility
+
+Self-audit with a WCAG contrast checker browser extension following the v1.10.0 production release.
+
+- **Body link contrast and underlines** — light mode link color changed to `#2e6da4` (4.96:1 on white, 4.96:1 on light-blue card backgrounds); dark mode link color changed to `#d0e9ff` (11.6:1 on dark navy, 4.68:1 on muted card backgrounds). Body links are now underlined, consistent with its.unc.edu and satisfying WCAG 1.4.1 without relying on color alone. Footer and navbar links retain no-underline treatment.
+- **ITS System Status indicator** — the overall status label on the connectivity page converted from Bootstrap text-color utility classes to the same `conn-badge-*` chip system used by the connectivity test results, bringing contrast ratios in line with those already documented for the test badges.
+- **FAQ section label dark mode colors** — dark mode color overrides added for the text-primary, text-warning, and text-info section label variants; text-success already had an override. All four variants now achieve ≥ 4.5:1 contrast on the dark navy background.
+- **IP address bar label background** — the IPv4/IPv6 badge inside each address bar changed from a semi-transparent overlay (`rgba(0,0,0,0.35)`) to opaque navy (#13294B), making the contrast accurately measurable and achieving 14.5:1 against white text.
+- **Primary button dark mode** — hover and active states reworked so the button remains visually distinct against the dark navy page background; uses bolin creek (#2C5080) fill with a 2 px carolina blue border.
+
 ## [1.10.0] - 2026-07-24
 
 ### Added
