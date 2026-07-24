@@ -19,7 +19,7 @@
 
 <div class="row mb-3 mt-2">
   <div class="col d-flex justify-content-end">
-    <button class="btn btn-sm btn-primary" id="conn-rerun-btn" onclick="runAllTests()">
+    <button class="btn btn-primary" id="conn-rerun-btn" onclick="runAllTests()">
       <i class="fa-solid fa-rotate-right me-1" aria-hidden="true"></i>Run Again
     </button>
   </div>
@@ -99,10 +99,10 @@
   var SP_URL = {{ status_page_url | tojson }};
 
   var INDICATOR = {
-    none:     { icon: 'fa-circle-check',        cls: 'text-success', label: 'All Systems Operational' },
-    minor:    { icon: 'fa-triangle-exclamation', cls: 'text-warning', label: 'Minor Service Disruption' },
-    major:    { icon: 'fa-circle-exclamation',   cls: 'text-warning', label: 'Partial System Outage' },
-    critical: { icon: 'fa-circle-xmark',         cls: 'text-danger',  label: 'Major System Outage' },
+    none:     { icon: 'fa-circle-check',        cls: 'conn-badge-success', label: 'All Systems Operational' },
+    minor:    { icon: 'fa-triangle-exclamation', cls: 'conn-badge-warning', label: 'Minor Service Disruption' },
+    major:    { icon: 'fa-circle-exclamation',   cls: 'conn-badge-warning', label: 'Partial System Outage' },
+    critical: { icon: 'fa-circle-xmark',         cls: 'conn-badge-danger',  label: 'Major System Outage' },
   };
 
   var IMPACT_BADGE = {
@@ -132,8 +132,9 @@
 
       var ind = INDICATOR[data.status && data.status.indicator] || INDICATOR.none;
       document.getElementById('sp-overall').innerHTML =
-        '<i class="fa-solid ' + ind.icon + ' ' + ind.cls + ' me-1" aria-hidden="true"></i>' +
-        '<span class="' + ind.cls + '">' + esc(ind.label) + '</span>' +
+        '<span class="' + ind.cls + '">' +
+        '<i class="fa-solid ' + ind.icon + ' me-1" aria-hidden="true"></i>' +
+        esc(ind.label) + '</span>' +
         ' <a href="' + esc(SP_URL) + '" target="_blank" rel="noopener noreferrer" class="ms-2 small text-muted">Details</a>';
 
       var all = (data.incidents || []).filter(function (i) { return i.status !== 'resolved'; });
