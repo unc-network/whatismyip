@@ -63,6 +63,24 @@
   {% endif %}
 </div>
 
+{% if status_page_url %}
+<div class="row mt-2 mb-3" id="sp-row" style="display:none;" aria-live="polite">
+  <div class="col">
+    <div class="card shadow">
+      <div class="card-body py-2 px-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span class="small fw-semibold">
+            <i class="fa-solid fa-server text-secondary me-1" aria-hidden="true"></i>ITS System Status
+          </span>
+          <span id="sp-overall" class="small"></span>
+        </div>
+        <div id="sp-incidents" class="mt-1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <div class="row mb-4">
   <div class="col">
     <p class="text-muted small mb-0">
@@ -75,6 +93,81 @@
 
 {% block javascript %}
 <script type="application/json" id="conn-targets">{{ connectivity_targets | tojson }}</script>
+{% if status_page_url %}
+<script>
+(function () {
+  var SP_URL = {{ status_page_url | tojson }};
+
+  var INDICATOR = {
+    none:     { icon: 'fa-circle-check',        cls: 'text-success', label: 'All Systems Operational' },
+    minor:    { icon: 'fa-triangle-exclamation', cls: 'text-warning', label: 'Minor Service Disruption' },
+    major:    { icon: 'fa-circle-exclamation',   cls: 'text-warning', label: 'Partial System Outage' },
+    critical: { icon: 'fa-circle-xmark',         cls: 'text-danger',  label: 'Major System Outage' },
+  };
+
+  var IMPACT_BADGE = {
+    none:     'bg-secondary',
+    minor:    'bg-warning text-dark',
+    major:    'bg-warning text-dark',
+    critical: 'bg-danger',
+  };
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function stripHtml(s) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = String(s);
+    return tmp.textContent || tmp.innerText || '';
+  }
+
+  async function loadStatus() {
+    try {
+      var resp = await fetch(SP_URL + '/api/v2/summary.json', { cache: 'no-store' });
+      if (!resp.ok) return;
+      var data = await resp.json();
+
+      var ind = INDICATOR[data.status && data.status.indicator] || INDICATOR.none;
+      document.getElementById('sp-overall').innerHTML =
+        '<i class="fa-solid ' + ind.icon + ' ' + ind.cls + ' me-1" aria-hidden="true"></i>' +
+        '<span class="' + ind.cls + '">' + esc(ind.label) + '</span>' +
+        ' <a href="' + esc(SP_URL) + '" target="_blank" rel="noopener noreferrer" class="ms-2 small text-muted">Details</a>';
+
+      var incidents = (data.incidents || []).filter(function (i) { return i.status !== 'resolved'; });
+      var maintenances = (data.scheduled_maintenances || []).filter(function (m) { return m.status !== 'completed'; });
+      var all = incidents.concat(maintenances);
+
+      if (all.length) {
+        var html = all.map(function (item) {
+          var badgeCls = IMPACT_BADGE[item.impact] || 'bg-secondary';
+          var update = item.incident_updates && item.incident_updates[0];
+          var body = update ? stripHtml(update.body) : '';
+          if (body.length > 120) body = body.slice(0, 120) + '…';
+          return '<div class="border-start border-warning ps-2 mt-2">' +
+            '<div class="small">' +
+            '<span class="badge ' + badgeCls + ' me-1">' + esc(item.impact || 'notice') + '</span>' +
+            '<a href="' + esc(item.shortlink || SP_URL) + '" target="_blank" rel="noopener noreferrer" class="fw-semibold">' + esc(item.name) + '</a>' +
+            '<span class="text-muted ms-1">— ' + esc(item.status) + '</span>' +
+            '</div>' +
+            (body ? '<div class="text-muted" style="font-size:0.72rem;">' + esc(body) + '</div>' : '') +
+            '</div>';
+        }).join('');
+        document.getElementById('sp-incidents').innerHTML = html;
+      }
+
+      document.getElementById('sp-row').style.display = '';
+    } catch (_) {
+      // Silently skip the status section if the fetch fails (CORS, network, etc.)
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadStatus);
+}());
+</script>
+{% endif %}
 <script>
 (function () {
   var targets = JSON.parse(document.getElementById('conn-targets').textContent);

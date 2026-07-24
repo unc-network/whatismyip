@@ -72,8 +72,13 @@ def connectivity() -> Response:
     """Display the connectivity test page."""
     log_page_view("Connectivity")
     targets = current_app.config.get("CONNECTIVITY_TARGETS", [])
+    status_page_url = current_app.config.get("STATUS_PAGE_URL", "")
     resp = make_response(
-        render_template("connectivity.html", connectivity_targets=targets)
+        render_template(
+            "connectivity.html",
+            connectivity_targets=targets,
+            status_page_url=status_page_url,
+        )
     )
     resp.cache_control.public = True
     resp.cache_control.max_age = 300

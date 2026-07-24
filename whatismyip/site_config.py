@@ -84,6 +84,10 @@ def load_site_config(app: Flask) -> None:
             "targets", []
         )
 
+        app.config["STATUS_PAGE_URL"] = (
+            site_cfg.get("status_page", {}).get("url", "").rstrip("/")
+        )
+
         metrics_section = site_cfg.get("metrics", {})
         app.config["METRICS_TIME_WINDOW_DAYS"] = int(
             metrics_section.get("window_days", 30)
@@ -158,6 +162,7 @@ def _apply_defaults(app: Flask) -> None:
     app.config["BING_VERIFICATION_TOKEN"] = ""
     app.config["INDEXNOW_KEY"] = ""
     app.config["CONNECTIVITY_TARGETS"] = []
+    app.config["STATUS_PAGE_URL"] = ""
     app.config["METRICS_TIME_WINDOW_DAYS"] = 30
     app.config["METRICS_RETENTION_DAYS"] = 90
     app.config["VPN_PROVIDER_NAME"] = ""

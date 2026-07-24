@@ -85,6 +85,14 @@ url = "https://help.yourinstitution.edu/"
 description = "IT support and service portal"
 type = "campus"
 
+[status_page]
+
+# Atlassian Statuspage URL. When set, the connectivity page fetches live incident
+# data from <url>/api/v2/summary.json and shows it above the target tests.
+# All Systems Operational, active incidents, and scheduled maintenances are displayed.
+# Leave empty ("") to disable the status section entirely.
+url = ""
+
 [vpn]
 
 # Name of the VPN client, shown on the off-campus suggestion card.
