@@ -136,9 +136,7 @@
         '<span class="' + ind.cls + '">' + esc(ind.label) + '</span>' +
         ' <a href="' + esc(SP_URL) + '" target="_blank" rel="noopener noreferrer" class="ms-2 small text-muted">Details</a>';
 
-      var incidents = (data.incidents || []).filter(function (i) { return i.status !== 'resolved'; });
-      var maintenances = (data.scheduled_maintenances || []).filter(function (m) { return m.status !== 'completed'; });
-      var all = incidents.concat(maintenances);
+      var all = (data.incidents || []).filter(function (i) { return i.status !== 'resolved'; });
 
       if (all.length) {
         var html = all.map(function (item) {
