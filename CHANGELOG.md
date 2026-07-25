@@ -7,6 +7,11 @@ All notable changes to this project will be documented here. This project follow
 ### Fixed
 
 - **iCloud Private Relay / proxy notice for single-stack and dual-stack same-status clients** — previously the iCloud Private Relay and VPN/proxy sub-line only appeared when IPv4 and IPv6 disagreed on campus status (mismatch case). Clients where both protocols go through the same relay (dual-stack) or where only one protocol is available (single-stack) received no notice. `checkProxyNotice()` now fires from the IPv6 success and error callbacks and works with any combination of loaded results, showing the appropriate notice whenever an off-campus result carries an iCloud or proxy ISP signature — regardless of whether both stacks are present or agree.
+- **NAT sub-line suppressed for relay clients** — when iCloud Private Relay or a proxy is detected, the ipify NAT sub-line is now suppressed. Relay services rotate exit IPs between connections, so the address difference is expected behavior rather than a meaningful NAT finding.
+
+### Code quality
+
+- **`test_ipv4_url` / `test_ipv6_url`** — renamed from `test_primary_url` / `test_secondary_url` to reflect that these functions always test the IPv4 and IPv6 endpoints respectively, regardless of which protocol is the default.
 
 ## [1.10.1] - 2026-07-24
 

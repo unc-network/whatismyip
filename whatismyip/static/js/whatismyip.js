@@ -482,7 +482,7 @@ ${deviceSection}
 	}
 }
 
-function test_primary_url(default_version) {
+function test_ipv4_url(default_version) {
 	// call the test url and display address information
 	var simulate_mode = $('#connect-test').data('simulate') || '';
 	var simulate = !!simulate_mode;
@@ -1221,7 +1221,7 @@ function get_dns_info() {
 	}
 }
 
-function test_secondary_url(default_version) {
+function test_ipv6_url(default_version) {
 	// test secondary url
 	var simulate_mode = $('#connect-test').data('simulate') || '';
 	var simulate = !!simulate_mode;
@@ -1442,8 +1442,8 @@ $(document).ready(function () {
 		default_version = 4;
 	}
 
-	test_primary_url(default_version);
-	test_secondary_url(default_version);
+	test_ipv4_url(default_version);
+	test_ipv6_url(default_version);
 
 	// if (isLocalhost || is_campus) {
 		// console.log(`Doing extended testing for campus`);
