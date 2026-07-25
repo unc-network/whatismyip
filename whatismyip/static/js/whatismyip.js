@@ -912,6 +912,12 @@ function renderNATResult(serverIp, externalIp, networkPurpose) {
 	var pathsDiffer = !isV6 && externalIp && externalIp !== serverIp;
 	if (!pathsDiffer) return;
 
+	// Suppress if a proxy/relay is detected — differing IPs are expected relay behavior, not a meaningful NAT.
+	var ipLoc = reportDataPrimary && reportDataPrimary['iplocation'];
+	var primaryIsp = (ipLoc && ipLoc['isp']) || '';
+	var primaryOrg = (ipLoc && ipLoc['org']) || '';
+	if (/icloud|private relay/i.test(primaryIsp) || /icloud|private relay/i.test(primaryOrg) || (ipLoc && ipLoc['proxy'])) return;
+
 	reportInternetIp = externalIp;
 
 	if (networkPurpose === 'VPN') {
