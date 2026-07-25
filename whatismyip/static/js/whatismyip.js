@@ -20,6 +20,8 @@ var reportDnsEdnsIp = null;
 var reportDnsFiltering = null;
 var reportInternetIp = null;
 var proxyNoticeShown = false;
+var ipv4Resolved = false;
+var ipv6Resolved = false;
 
 function buildNacDiagram(nac, userDevice) {
 	var es = nac.endSystem || {};
@@ -165,6 +167,7 @@ function checkAddressMismatch() {
 
 function checkProxyNotice() {
 	if (proxyNoticeShown) return;
+	if (!ipv4Resolved || !ipv6Resolved) return;
 	// If a mismatch note was already shown, don't add a second sub-line.
 	if (reportDataIPv4 && reportDataIPv6 &&
 		reportDataIPv4['is_campus'] !== reportDataIPv6['is_campus']) return;
@@ -869,7 +872,9 @@ function test_ipv4_url(default_version) {
 
 			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
 			reportDataIPv4 = result;
+			ipv4Resolved = true;
 			checkAddressMismatch();
+			checkProxyNotice();
 			if (!simulate) checkNATType(result['client_address']);
 			if (default_version == 4) reportConnectV4 = 'Supported';
 			else reportConnectV6 = 'Supported';
@@ -883,6 +888,8 @@ function test_ipv4_url(default_version) {
 			} else {
 				reportConnectV6 = 'Not detected';
 			}
+			ipv4Resolved = true;
+			checkProxyNotice();
 		}
 	});
 
@@ -1401,6 +1408,7 @@ function test_ipv6_url(default_version) {
 
 			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
 			reportDataIPv6 = result;
+			ipv6Resolved = true;
 			checkAddressMismatch();
 			checkProxyNotice();
 			if (default_version == 4) reportConnectV6 = 'Supported';
@@ -1414,6 +1422,7 @@ function test_ipv6_url(default_version) {
 			} else {
 				reportConnectV4 = 'Not detected';
 			}
+			ipv6Resolved = true;
 			checkProxyNotice();
 		}
 	});
