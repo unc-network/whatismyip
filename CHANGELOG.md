@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.10.2] - 2026-07-25
+
+### Fixed
+
+- **iCloud Private Relay / proxy notice for single-stack and dual-stack same-status clients** — previously the iCloud Private Relay and VPN/proxy sub-line only appeared when IPv4 and IPv6 disagreed on campus status (mismatch case). Clients where both protocols go through the same relay (dual-stack) or where only one protocol is available (single-stack) received no notice. `checkProxyNotice()` now fires from the IPv6 success and error callbacks and works with any combination of loaded results, showing the appropriate notice whenever an off-campus result carries an iCloud or proxy ISP signature — regardless of whether both stacks are present or agree.
+
 ## [1.10.1] - 2026-07-24
 
 ### Changed

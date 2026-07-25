@@ -19,6 +19,7 @@ var reportDnsEdnsGeo = null;
 var reportDnsEdnsIp = null;
 var reportDnsFiltering = null;
 var reportInternetIp = null;
+var proxyNoticeShown = false;
 
 function buildNacDiagram(nac, userDevice) {
 	var es = nac.endSystem || {};
@@ -141,6 +142,7 @@ function copyAddress(addressSelector) {
 
 function checkAddressMismatch() {
 	if (!reportDataPrimary || !reportDataSecondary) return;
+
 	if (reportDataPrimary['is_campus'] === reportDataSecondary['is_campus']) return;
 
 	var offCampus = reportDataPrimary['is_campus'] ? reportDataSecondary : reportDataPrimary;
@@ -155,6 +157,38 @@ function checkAddressMismatch() {
 		note = 'Your two addresses are on different networks — one campus, one off-campus.';
 	}
 
+	$('#intro_text .intro-status').append(
+		`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${note}</div>`
+	);
+}
+
+function checkProxyNotice() {
+	if (proxyNoticeShown) return;
+	// If a mismatch note was already shown, don't add a second sub-line.
+	if (reportDataPrimary && reportDataSecondary &&
+		reportDataPrimary['is_campus'] !== reportDataSecondary['is_campus']) return;
+
+	// Need at least one off-campus result — nothing to warn about if on-campus.
+	var offCampusExists = (reportDataPrimary && !reportDataPrimary['is_campus']) ||
+		(reportDataSecondary && !reportDataSecondary['is_campus']);
+	if (!offCampusExists) return;
+
+	// Check proxy/iCloud flags from any available result.
+	var isp1 = (reportDataPrimary && reportDataPrimary['iplocation'] && reportDataPrimary['iplocation']['isp']) || '';
+	var isp2 = (reportDataSecondary && reportDataSecondary['iplocation'] && reportDataSecondary['iplocation']['isp']) || '';
+	var proxy1 = reportDataPrimary && reportDataPrimary['iplocation'] && reportDataPrimary['iplocation']['proxy'];
+	var proxy2 = reportDataSecondary && reportDataSecondary['iplocation'] && reportDataSecondary['iplocation']['proxy'];
+
+	var note;
+	if (/icloud|private relay/i.test(isp1) || /icloud|private relay/i.test(isp2)) {
+		note = 'iCloud Private Relay is active — your actual network location may differ from what is shown.';
+	} else if (proxy1 || proxy2) {
+		note = 'A VPN or proxy service is active — your actual network location may differ from what is shown.';
+	} else {
+		return;
+	}
+
+	proxyNoticeShown = true;
 	$('#intro_text .intro-status').append(
 		`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${note}</div>`
 	);
@@ -1358,6 +1392,7 @@ function test_secondary_url(default_version) {
 			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
 			reportDataSecondary = result;
 			checkAddressMismatch();
+			checkProxyNotice();
 			if (default_version == 4) reportConnectV6 = 'Supported';
 			else reportConnectV4 = 'Supported';
 		},
@@ -1369,6 +1404,7 @@ function test_secondary_url(default_version) {
 			} else {
 				reportConnectV4 = 'Not detected';
 			}
+			checkProxyNotice();
 		}
 	});
 
