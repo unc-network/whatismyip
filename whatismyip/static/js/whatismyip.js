@@ -7,8 +7,8 @@ function formatIPAddress(ip) {
 	return $('<span>').text(ip).html().replace(/([.:])/g, '$1<wbr>');
 }
 
-var reportDataPrimary = null;
-var reportDataSecondary = null;
+var reportDataIPv4 = null;
+var reportDataIPv6 = null;
 var reportNetworkPurpose = null;
 var reportClockStatus = null;
 var reportConnectV4 = '—';
@@ -141,11 +141,11 @@ function copyAddress(addressSelector) {
 }
 
 function checkAddressMismatch() {
-	if (!reportDataPrimary || !reportDataSecondary) return;
+	if (!reportDataIPv4 || !reportDataIPv6) return;
 
-	if (reportDataPrimary['is_campus'] === reportDataSecondary['is_campus']) return;
+	if (reportDataIPv4['is_campus'] === reportDataIPv6['is_campus']) return;
 
-	var offCampus = reportDataPrimary['is_campus'] ? reportDataSecondary : reportDataPrimary;
+	var offCampus = reportDataIPv4['is_campus'] ? reportDataIPv6 : reportDataIPv4;
 	var isp = (offCampus['iplocation'] && offCampus['iplocation']['isp']) || '';
 	var org = (offCampus['iplocation'] && offCampus['iplocation']['org']) || '';
 	var note;
@@ -166,21 +166,21 @@ function checkAddressMismatch() {
 function checkProxyNotice() {
 	if (proxyNoticeShown) return;
 	// If a mismatch note was already shown, don't add a second sub-line.
-	if (reportDataPrimary && reportDataSecondary &&
-		reportDataPrimary['is_campus'] !== reportDataSecondary['is_campus']) return;
+	if (reportDataIPv4 && reportDataIPv6 &&
+		reportDataIPv4['is_campus'] !== reportDataIPv6['is_campus']) return;
 
 	// Need at least one off-campus result — nothing to warn about if on-campus.
-	var offCampusExists = (reportDataPrimary && !reportDataPrimary['is_campus']) ||
-		(reportDataSecondary && !reportDataSecondary['is_campus']);
+	var offCampusExists = (reportDataIPv4 && !reportDataIPv4['is_campus']) ||
+		(reportDataIPv6 && !reportDataIPv6['is_campus']);
 	if (!offCampusExists) return;
 
 	// Check proxy/iCloud flags from any available result.
-	var isp1 = (reportDataPrimary && reportDataPrimary['iplocation'] && reportDataPrimary['iplocation']['isp']) || '';
-	var isp2 = (reportDataSecondary && reportDataSecondary['iplocation'] && reportDataSecondary['iplocation']['isp']) || '';
-	var org1 = (reportDataPrimary && reportDataPrimary['iplocation'] && reportDataPrimary['iplocation']['org']) || '';
-	var org2 = (reportDataSecondary && reportDataSecondary['iplocation'] && reportDataSecondary['iplocation']['org']) || '';
-	var proxy1 = reportDataPrimary && reportDataPrimary['iplocation'] && reportDataPrimary['iplocation']['proxy'];
-	var proxy2 = reportDataSecondary && reportDataSecondary['iplocation'] && reportDataSecondary['iplocation']['proxy'];
+	var isp1 = (reportDataIPv4 && reportDataIPv4['iplocation'] && reportDataIPv4['iplocation']['isp']) || '';
+	var isp2 = (reportDataIPv6 && reportDataIPv6['iplocation'] && reportDataIPv6['iplocation']['isp']) || '';
+	var org1 = (reportDataIPv4 && reportDataIPv4['iplocation'] && reportDataIPv4['iplocation']['org']) || '';
+	var org2 = (reportDataIPv6 && reportDataIPv6['iplocation'] && reportDataIPv6['iplocation']['org']) || '';
+	var proxy1 = reportDataIPv4 && reportDataIPv4['iplocation'] && reportDataIPv4['iplocation']['proxy'];
+	var proxy2 = reportDataIPv6 && reportDataIPv6['iplocation'] && reportDataIPv6['iplocation']['proxy'];
 
 	var note;
 	if (/icloud|private relay/i.test(isp1) || /icloud|private relay/i.test(isp2) ||
@@ -239,7 +239,7 @@ function set_intro_text(is_campus, network_purpose) {
 }
 
 function downloadReport() {
-	if (!reportDataPrimary) {
+	if (!reportDataIPv4) {
 		alert('Connection data is still loading — please try again in a moment.');
 		return;
 	}
@@ -265,7 +265,7 @@ function downloadReport() {
 		return `<h2>${e(title)}</h2><table><tbody>${content}</tbody></table>`;
 	}
 
-	var r = reportDataPrimary;
+	var r = reportDataIPv4;
 	var primaryIsV6 = r.client_address && r.client_address.includes(':');
 	var primaryLabel = primaryIsV6 ? 'IPv6' : 'IPv4';
 	var secondaryLabel = primaryIsV6 ? 'IPv4' : 'IPv6';
@@ -307,8 +307,8 @@ function downloadReport() {
 	]);
 
 	var secondarySection = '';
-	if (reportDataSecondary) {
-		var r2 = reportDataSecondary;
+	if (reportDataIPv6) {
+		var r2 = reportDataIPv6;
 		var ad2 = r2.address_details || {};
 		var net2 = r2.network || {};
 		var loc2 = r2.iplocation || {};
@@ -401,8 +401,8 @@ function downloadReport() {
 		if (net.dhcp_domain_name) cfgRows.push(rpt('Search Domain', net.dhcp_domain_name));
 		if (net.router_device) cfgRows.push(rpt('Router Device', net.router_device));
 	}
-	if (reportDataSecondary) {
-		var net2b = reportDataSecondary.network || {};
+	if (reportDataIPv6) {
+		var net2b = reportDataIPv6.network || {};
 		var hasV6cfg = net2b.prefixlen || net2b.dhcp_routers || (net2b.dhcp_dns_servers && net2b.dhcp_dns_servers.length) || net2b.dhcp_domain_name || net2b.router_device;
 		if (hasV6cfg) {
 			cfgRows.push('<tr><td colspan="2" style="font-weight:700;background:#edf5fb;padding:4px 8px;">IPv6</td></tr>');
@@ -505,7 +505,7 @@ function test_ipv4_url(default_version) {
 			$('#connect-ipv4').html('<i class="fa-solid fa-circle-check text-success" aria-hidden="true"></i> Supported');
 			//console.log("Host check from " + result["address"]);
 
-			// Seed #intro-main-status unconditionally so renderNATResult can safely append before the IPv6 callback fires.
+			// Always call set_intro_text so #intro-main-status exists in the DOM before renderNATResult tries to append to it.
 			set_intro_text(result['is_campus'], result['network']['purpose']);
 
 			if ( default_version == 4 ) {
@@ -868,7 +868,7 @@ function test_ipv4_url(default_version) {
 			}
 
 			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
-			reportDataPrimary = result;
+			reportDataIPv4 = result;
 			checkAddressMismatch();
 			if (!simulate) checkNATType(result['client_address']);
 			if (default_version == 4) reportConnectV4 = 'Supported';
@@ -913,7 +913,7 @@ function renderNATResult(serverIp, externalIp, networkPurpose) {
 	if (!pathsDiffer) return;
 
 	// Suppress if a proxy/relay is detected — differing IPs are expected relay behavior, not a meaningful NAT.
-	var ipLoc = reportDataPrimary && reportDataPrimary['iplocation'];
+	var ipLoc = reportDataIPv4 && reportDataIPv4['iplocation'];
 	var primaryIsp = (ipLoc && ipLoc['isp']) || '';
 	var primaryOrg = (ipLoc && ipLoc['org']) || '';
 	if (/icloud|private relay/i.test(primaryIsp) || /icloud|private relay/i.test(primaryOrg) || (ipLoc && ipLoc['proxy'])) return;
@@ -1400,7 +1400,7 @@ function test_ipv6_url(default_version) {
 			}
 
 			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
-			reportDataSecondary = result;
+			reportDataIPv6 = result;
 			checkAddressMismatch();
 			checkProxyNotice();
 			if (default_version == 4) reportConnectV6 = 'Supported';

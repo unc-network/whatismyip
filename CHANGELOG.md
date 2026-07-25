@@ -12,6 +12,7 @@ All notable changes to this project will be documented here. This project follow
 ### Code quality
 
 - **`test_ipv4_url` / `test_ipv6_url`** — renamed from `test_primary_url` / `test_secondary_url` to reflect that these functions always test the IPv4 and IPv6 endpoints respectively, regardless of which protocol is the default.
+- **`reportDataIPv4` / `reportDataIPv6`** — renamed from `reportDataPrimary` / `reportDataSecondary` for the same reason; the variables always hold the IPv4 and IPv6 API responses.
 
 ## [1.10.1] - 2026-07-24
 
