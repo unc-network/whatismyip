@@ -147,9 +147,10 @@ function checkAddressMismatch() {
 
 	var offCampus = reportDataPrimary['is_campus'] ? reportDataSecondary : reportDataPrimary;
 	var isp = (offCampus['iplocation'] && offCampus['iplocation']['isp']) || '';
+	var org = (offCampus['iplocation'] && offCampus['iplocation']['org']) || '';
 	var note;
 
-	if (/icloud|private relay/i.test(isp)) {
+	if (/icloud|private relay/i.test(isp) || /icloud|private relay/i.test(org)) {
 		note = 'iCloud Private Relay is routing one of your addresses off-campus.';
 	} else if (offCampus['iplocation'] && offCampus['iplocation']['proxy']) {
 		note = 'A VPN or proxy service is routing one of your addresses off-campus.';
@@ -176,11 +177,14 @@ function checkProxyNotice() {
 	// Check proxy/iCloud flags from any available result.
 	var isp1 = (reportDataPrimary && reportDataPrimary['iplocation'] && reportDataPrimary['iplocation']['isp']) || '';
 	var isp2 = (reportDataSecondary && reportDataSecondary['iplocation'] && reportDataSecondary['iplocation']['isp']) || '';
+	var org1 = (reportDataPrimary && reportDataPrimary['iplocation'] && reportDataPrimary['iplocation']['org']) || '';
+	var org2 = (reportDataSecondary && reportDataSecondary['iplocation'] && reportDataSecondary['iplocation']['org']) || '';
 	var proxy1 = reportDataPrimary && reportDataPrimary['iplocation'] && reportDataPrimary['iplocation']['proxy'];
 	var proxy2 = reportDataSecondary && reportDataSecondary['iplocation'] && reportDataSecondary['iplocation']['proxy'];
 
 	var note;
-	if (/icloud|private relay/i.test(isp1) || /icloud|private relay/i.test(isp2)) {
+	if (/icloud|private relay/i.test(isp1) || /icloud|private relay/i.test(isp2) ||
+		/icloud|private relay/i.test(org1) || /icloud|private relay/i.test(org2)) {
 		note = 'iCloud Private Relay is active — your actual network location may differ from what is shown.';
 	} else if (proxy1 || proxy2) {
 		note = 'A VPN or proxy service is active — your actual network location may differ from what is shown.';
