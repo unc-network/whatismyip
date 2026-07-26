@@ -11,7 +11,14 @@
 <div class="row mt-3 mb-2">
   <div class="col">
     <div class="d-flex align-items-center justify-content-between gap-2">
-      <div id="intro_text" aria-live="polite" aria-atomic="true" data-nosnippet><div class="intro-status text-muted"><i class="fa-solid fa-spinner fa-spin me-2" aria-hidden="true"></i>Testing connection&hellip;</div></div>
+      <div id="intro_text" aria-live="polite" aria-atomic="true" data-nosnippet>
+        <div class="intro-status">
+          <div id="intro-main-status" class="text-muted"><i class="fa-solid fa-spinner fa-spin me-2" aria-hidden="true"></i>Testing connection&hellip;</div>
+          <div id="intro-sub-nat" class="mt-1 small text-muted d-none"></div>
+          <div id="intro-sub-mismatch" class="mt-1 small text-muted d-none"></div>
+          <div id="intro-sub-proxy" class="mt-1 small text-muted d-none"></div>
+        </div>
+      </div>
       <button id="report-btn" class="btn btn-primary nav-report-btn flex-shrink-0" type="button"
               onclick="downloadReport()"
               aria-label="Print connection report (saves as PDF)"

@@ -234,19 +234,14 @@ function set_intro_text(is_campus, network_purpose) {
 			}
 		}
 	}
-	var mainHtml = `<i class="fa-solid ${icon} me-2" aria-hidden="true"></i>${msg}`;
-	if ($('#intro-main-status').length) {
-		// Update only the main line — sub-line slots are pre-declared and already in the DOM.
-		$('#intro-main-status').html(mainHtml);
-	} else {
-		$('#intro_text').html(
-			`<div class="intro-status">` +
-			`<div id="intro-main-status">${mainHtml}</div>` +
-			`<div id="intro-sub-nat" class="mt-1 small text-muted d-none"></div>` +
-			`<div id="intro-sub-mismatch" class="mt-1 small text-muted d-none"></div>` +
-			`<div id="intro-sub-proxy" class="mt-1 small text-muted d-none"></div>` +
-			`</div>`
-		);
+	// Only update if this call has a specific purpose — prevents the non-default protocol
+	// overwriting a VPN/Wireless message with a generic "campus network" when it has no
+	// matching IPAM network (and therefore a null purpose).
+	if (network_purpose || !$('#intro-main-status').data('resolved')) {
+		$('#intro-main-status')
+			.html(`<i class="fa-solid ${icon} me-2" aria-hidden="true"></i>${msg}`)
+			.removeClass('text-muted')
+			.data('resolved', true);
 	}
 }
 
@@ -521,7 +516,6 @@ function test_ipv4_url(default_version) {
 			$('#connect-ipv4').html('<i class="fa-solid fa-circle-check text-success" aria-hidden="true"></i> Supported');
 			//console.log("Host check from " + result["address"]);
 
-			// Always call set_intro_text so #intro-main-status exists in the DOM before renderNATResult tries to append to it.
 			set_intro_text(result['is_campus'], result['network']['purpose']);
 
 			if ( default_version == 4 ) {
