@@ -6,7 +6,7 @@ All notable changes to this project will be documented here. This project follow
 
 ### Fixed
 
-- **Footer link colors broken** — the `a:not(.btn)` body link rule introduced in v1.10.2 has equal specificity to `.main-footer a` but appeared later in the stylesheet, causing it to override the footer's white link color and dark-background hover color. Added `.main-footer a:not(.btn)` and `.main-footer a:not(.btn):hover` overrides after the body link block so footer links correctly restore `--site-chrome-link` and `--site-chrome-text`.
+- **Footer link colors broken** — the `a:not(.btn)` body link rule introduced in v1.10.2 had equal specificity to `.main-footer a`, causing it to override the footer's white link color. Fixed by scoping the body link underline rule to `main a:not(.btn)`, which naturally excludes the footer (a sibling of `<main>`) without any specificity workarounds.
 
 ## [1.10.2] - 2026-07-26
 
