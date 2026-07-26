@@ -461,21 +461,14 @@ html[data-theme="dark"] .btn-primary:focus-visible {
   border-color: var(--unc-bolin-creek);
 }
 
-a:not(.btn) {
+main a:not(.btn) {
   color: var(--site-link);
   text-decoration: underline;
   background-color: transparent;
 }
-a:not(.btn):hover {
+main a:not(.btn):hover {
   color: var(--site-link-hover);
   text-decoration: underline;
-}
-.main-footer a:not(.btn) {
-  color: var(--site-chrome-link);
-  text-decoration: none;
-}
-.main-footer a:not(.btn):hover {
-  color: var(--site-chrome-text);
 }
 
 #copy-notification {

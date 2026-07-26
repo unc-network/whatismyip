@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.10.3] - 2026-07-26
+
+### Fixed
+
+- **Footer link colors broken** — the `a:not(.btn)` body link rule introduced in v1.10.2 has equal specificity to `.main-footer a` but appeared later in the stylesheet, causing it to override the footer's white link color and dark-background hover color. Added `.main-footer a:not(.btn)` and `.main-footer a:not(.btn):hover` overrides after the body link block so footer links correctly restore `--site-chrome-link` and `--site-chrome-text`.
+
 ## [1.10.2] - 2026-07-26
 
 ### Added
