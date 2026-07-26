@@ -404,24 +404,28 @@ function downloadReport() {
 	}
 
 	var cfgRows = [];
-	var hasV4cfg = net.netmask || net.dhcp_routers || (net.dhcp_dns_servers && net.dhcp_dns_servers.length) || net.dhcp_domain_name || net.router_device;
+	var hasV4cfg = net.netmask || net.dhcp_routers || (net.dhcp_dns_servers && net.dhcp_dns_servers.length) || net.dhcp_domain_name || net.purpose || net.vpn_group || net.router_device;
 	if (hasV4cfg) {
 		cfgRows.push('<tr><td colspan="2" style="font-weight:700;background:#edf5fb;padding:4px 8px;">IPv4</td></tr>');
 		if (net.netmask) cfgRows.push(rpt('Subnet Mask', net.netmask));
 		if (net.dhcp_routers) cfgRows.push(rpt('Default Gateway', net.dhcp_routers));
 		if (net.dhcp_dns_servers && net.dhcp_dns_servers.length) cfgRows.push(rpt('DNS Servers', net.dhcp_dns_servers.join(', ')));
 		if (net.dhcp_domain_name) cfgRows.push(rpt('Search Domain', net.dhcp_domain_name));
+		if (net.purpose) cfgRows.push(rpt('Purpose', net.purpose));
+		if (net.vpn_group) cfgRows.push(rpt('VPN Group', net.vpn_group));
 		if (net.router_device) cfgRows.push(rpt('Router Device', net.router_device));
 	}
 	if (reportDataIPv6) {
 		var net2b = reportDataIPv6.network || {};
-		var hasV6cfg = net2b.prefixlen || net2b.dhcp_routers || (net2b.dhcp_dns_servers && net2b.dhcp_dns_servers.length) || net2b.dhcp_domain_name || net2b.router_device;
+		var hasV6cfg = net2b.prefixlen || net2b.dhcp_routers || (net2b.dhcp_dns_servers && net2b.dhcp_dns_servers.length) || net2b.dhcp_domain_name || net2b.purpose || net2b.vpn_group || net2b.router_device;
 		if (hasV6cfg) {
 			cfgRows.push('<tr><td colspan="2" style="font-weight:700;background:#edf5fb;padding:4px 8px;">IPv6</td></tr>');
 			if (net2b.prefixlen) cfgRows.push(rpt('Prefix Length', '/' + net2b.prefixlen));
 			if (net2b.dhcp_routers) cfgRows.push(rpt('Default Gateway', net2b.dhcp_routers));
 			if (net2b.dhcp_dns_servers && net2b.dhcp_dns_servers.length) cfgRows.push(rpt('DNS Servers', net2b.dhcp_dns_servers.join(', ')));
 			if (net2b.dhcp_domain_name) cfgRows.push(rpt('Search Domain', net2b.dhcp_domain_name));
+			if (net2b.purpose) cfgRows.push(rpt('Purpose', net2b.purpose));
+			if (net2b.vpn_group) cfgRows.push(rpt('VPN Group', net2b.vpn_group));
 			if (net2b.router_device) cfgRows.push(rpt('Router Device', net2b.router_device));
 		}
 	}
@@ -856,6 +860,16 @@ function test_ipv4_url(default_version) {
 			if (result['network']['dhcp_domain_name']) {
 				$('#net-config-v4-domain-row').show();
 				$('#net-config-v4-domain').text(result['network']['dhcp_domain_name']);
+				hasV4Config = true;
+			}
+			if (result['network']['purpose']) {
+				$('#net-config-v4-purpose-row').show();
+				$('#net-config-v4-purpose').text(result['network']['purpose']);
+				hasV4Config = true;
+			}
+			if (result['network']['vpn_group']) {
+				$('#net-config-v4-vpn-group-row').show();
+				$('#net-config-v4-vpn-group').text(result['network']['vpn_group']);
 				hasV4Config = true;
 			}
 			if (result['network']['router_device']) {
@@ -1397,6 +1411,16 @@ function test_ipv6_url(default_version) {
 			if (result['network']['dhcp_domain_name']) {
 				$('#net-config-v6-domain-row').show();
 				$('#net-config-v6-domain').text(result['network']['dhcp_domain_name']);
+				hasV6Config = true;
+			}
+			if (result['network']['purpose']) {
+				$('#net-config-v6-purpose-row').show();
+				$('#net-config-v6-purpose').text(result['network']['purpose']);
+				hasV6Config = true;
+			}
+			if (result['network']['vpn_group']) {
+				$('#net-config-v6-vpn-group-row').show();
+				$('#net-config-v6-vpn-group').text(result['network']['vpn_group']);
 				hasV6Config = true;
 			}
 			if (result['network']['router_device']) {
