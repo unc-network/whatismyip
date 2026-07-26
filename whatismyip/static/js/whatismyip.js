@@ -154,15 +154,15 @@ function checkAddressMismatch() {
 
 	if (/icloud|private relay/i.test(isp) || /icloud|private relay/i.test(org)) {
 		note = 'iCloud Private Relay is routing one of your addresses off-campus.';
-	} else if (offCampus['iplocation'] && offCampus['iplocation']['proxy']) {
+	} else if (offCampus['iplocation'] && (offCampus['iplocation']['proxy'] || /cloudflare warp/i.test(org))) {
 		note = 'A VPN or proxy service is routing one of your addresses off-campus.';
 	} else {
 		note = 'Your two addresses are on different networks — one campus, one off-campus.';
 	}
 
-	$('#intro_text .intro-status').append(
-		`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${note}</div>`
-	);
+	$('#intro-sub-mismatch').html(
+		`<i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${note}`
+	).removeClass('d-none');
 }
 
 function checkProxyNotice() {
@@ -185,20 +185,22 @@ function checkProxyNotice() {
 	var proxy1 = reportDataIPv4 && reportDataIPv4['iplocation'] && reportDataIPv4['iplocation']['proxy'];
 	var proxy2 = reportDataIPv6 && reportDataIPv6['iplocation'] && reportDataIPv6['iplocation']['proxy'];
 
+	var isICloud = /icloud|private relay/i.test(isp1) || /icloud|private relay/i.test(isp2) ||
+		/icloud|private relay/i.test(org1) || /icloud|private relay/i.test(org2);
+	var isWarp = /cloudflare warp/i.test(org1) || /cloudflare warp/i.test(org2);
 	var note;
-	if (/icloud|private relay/i.test(isp1) || /icloud|private relay/i.test(isp2) ||
-		/icloud|private relay/i.test(org1) || /icloud|private relay/i.test(org2)) {
+	if (isICloud) {
 		note = 'iCloud Private Relay is active — your actual network location may differ from what is shown.';
-	} else if (proxy1 || proxy2) {
+	} else if (isWarp || proxy1 || proxy2) {
 		note = 'A VPN or proxy service is active — your actual network location may differ from what is shown.';
 	} else {
 		return;
 	}
 
 	proxyNoticeShown = true;
-	$('#intro_text .intro-status').append(
-		`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${note}</div>`
-	);
+	$('#intro-sub-proxy').html(
+		`<i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${note}`
+	).removeClass('d-none');
 }
 
 function showPrimaryLoadError() {
@@ -234,10 +236,17 @@ function set_intro_text(is_campus, network_purpose) {
 	}
 	var mainHtml = `<i class="fa-solid ${icon} me-2" aria-hidden="true"></i>${msg}`;
 	if ($('#intro-main-status').length) {
-		// Update only the main line — preserve any sub-lines appended by renderNATResult.
+		// Update only the main line — sub-line slots are pre-declared and already in the DOM.
 		$('#intro-main-status').html(mainHtml);
 	} else {
-		$('#intro_text').html(`<div class="intro-status"><div id="intro-main-status">${mainHtml}</div></div>`);
+		$('#intro_text').html(
+			`<div class="intro-status">` +
+			`<div id="intro-main-status">${mainHtml}</div>` +
+			`<div id="intro-sub-nat" class="mt-1 small text-muted d-none"></div>` +
+			`<div id="intro-sub-mismatch" class="mt-1 small text-muted d-none"></div>` +
+			`<div id="intro-sub-proxy" class="mt-1 small text-muted d-none"></div>` +
+			`</div>`
+		);
 	}
 }
 
@@ -919,27 +928,32 @@ function renderNATResult(serverIp, externalIp, networkPurpose) {
 	var pathsDiffer = !isV6 && externalIp && externalIp !== serverIp;
 	if (!pathsDiffer) return;
 
-	// Suppress if a proxy/relay is detected — differing IPs are expected relay behavior, not a meaningful NAT.
-	var ipLoc = reportDataIPv4 && reportDataIPv4['iplocation'];
-	var primaryIsp = (ipLoc && ipLoc['isp']) || '';
-	var primaryOrg = (ipLoc && ipLoc['org']) || '';
-	if (/icloud|private relay/i.test(primaryIsp) || /icloud|private relay/i.test(primaryOrg) || (ipLoc && ipLoc['proxy'])) return;
+	// Suppress if a relay/proxy is detected in either protocol result, or if checkProxyNotice already
+	// fired — relay services rotate exit IPs between requests so address differences are not meaningful.
+	if (proxyNoticeShown) return;
+	var ipLoc4 = reportDataIPv4 && reportDataIPv4['iplocation'];
+	var ipLoc6 = reportDataIPv6 && reportDataIPv6['iplocation'];
+	var isp4 = (ipLoc4 && ipLoc4['isp']) || '';
+	var org4 = (ipLoc4 && ipLoc4['org']) || '';
+	var isp6 = (ipLoc6 && ipLoc6['isp']) || '';
+	var org6 = (ipLoc6 && ipLoc6['org']) || '';
+	var relayRe = /icloud|private relay|cloudflare warp/i;
+	if (relayRe.test(isp4) || relayRe.test(org4) || relayRe.test(isp6) || relayRe.test(org6) ||
+	    (ipLoc4 && ipLoc4['proxy']) || (ipLoc6 && ipLoc6['proxy'])) return;
 
 	reportInternetIp = externalIp;
 
+	var natNote;
 	if (networkPurpose === 'VPN') {
-		$('#intro_text .intro-status').append(
-			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Internet traffic bypasses the VPN tunnel and exits via ${externalIp}.</div>`
-		);
+		natNote = `Internet traffic bypasses the VPN tunnel and exits via ${externalIp}.`;
 	} else if (networkPurpose) {
-		$('#intro_text .intro-status').append(
-			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Your internet traffic exits the campus network as ${externalIp}.</div>`
-		);
+		natNote = `Your internet traffic exits the campus network as ${externalIp}.`;
 	} else {
-		$('#intro_text .intro-status').append(
-			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Your internet traffic appears to use a different address (${externalIp}) than your campus connection.</div>`
-		);
+		natNote = `Your internet traffic appears to use a different address (${externalIp}) than your campus connection.`;
 	}
+	$('#intro-sub-nat').html(
+		`<i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${natNote}`
+	).removeClass('d-none');
 }
 
 function checkClockSync(serverTime) {

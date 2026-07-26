@@ -7,7 +7,10 @@ All notable changes to this project will be documented here. This project follow
 ### Fixed
 
 - **iCloud Private Relay / proxy notice for single-stack and dual-stack same-status clients** — previously the iCloud Private Relay and VPN/proxy sub-line only appeared when IPv4 and IPv6 disagreed on campus status (mismatch case). Clients where both protocols go through the same relay (dual-stack) or where only one protocol is available (single-stack) received no notice. `checkProxyNotice()` now fires from all four callback paths (IPv4 success/error, IPv6 success/error) and waits for both protocols to settle (`ipv4Resolved` and `ipv6Resolved` flags) before running, ensuring the full picture is available and eliminating a race condition where the proxy notice and mismatch note could both appear simultaneously when IPv6 responded before IPv4.
-- **NAT sub-line suppressed for relay clients** — when iCloud Private Relay or a proxy is detected, the ipify NAT sub-line is now suppressed. Relay services rotate exit IPs between connections, so the address difference is expected behavior rather than a meaningful NAT finding.
+- **iCloud detected via `org` field** — iCloud Private Relay reports `isp = "Fastly, Inc."` or `"Akamai Technologies"` but `org = "iCloud Private Relay"`. All relay checks now test both the `isp` and `org` fields.
+- **Cloudflare WARP now detected as proxy** — Cloudflare WARP sets `org = "Cloudflare WARP"` but may not set the `proxy` flag. Relay detection now includes `/cloudflare warp/i` in the org check across `checkProxyNotice()`, `checkAddressMismatch()`, and the NAT sub-line suppression in `renderNATResult()`.
+- **NAT sub-line suppressed for relay clients (expanded)** — the NAT suppression in `renderNATResult()` now checks both the IPv4 and IPv6 results (previously only IPv4) and also short-circuits on `proxyNoticeShown`. This prevents the NAT "different address" sub-line from appearing alongside the proxy notice when the relay marker is only visible on one protocol.
+- **Pre-declared sub-line slots** — the three sub-lines (NAT, mismatch, proxy notice) are now pre-declared as hidden `<div>` elements when the intro status container is first created, rather than appended dynamically. Each function populates and shows its assigned slot, making ordering deterministic regardless of callback timing.
 
 ### Code quality
 
