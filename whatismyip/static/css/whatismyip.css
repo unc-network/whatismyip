@@ -461,12 +461,12 @@ html[data-theme="dark"] .btn-primary:focus-visible {
   border-color: var(--unc-bolin-creek);
 }
 
-a {
+a:not(.btn) {
   color: var(--site-link);
   text-decoration: underline;
   background-color: transparent;
 }
-a:hover {
+a:not(.btn):hover {
   color: var(--site-link-hover);
   text-decoration: underline;
 }

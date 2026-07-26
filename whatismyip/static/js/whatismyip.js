@@ -7,8 +7,8 @@ function formatIPAddress(ip) {
 	return $('<span>').text(ip).html().replace(/([.:])/g, '$1<wbr>');
 }
 
-var reportDataPrimary = null;
-var reportDataSecondary = null;
+var reportDataIPv4 = null;
+var reportDataIPv6 = null;
 var reportNetworkPurpose = null;
 var reportClockStatus = null;
 var reportConnectV4 = '—';
@@ -19,6 +19,9 @@ var reportDnsEdnsGeo = null;
 var reportDnsEdnsIp = null;
 var reportDnsFiltering = null;
 var reportInternetIp = null;
+var proxyNoticeShown = false;
+var ipv4Resolved = false;
+var ipv6Resolved = false;
 
 function buildNacDiagram(nac, userDevice) {
 	var es = nac.endSystem || {};
@@ -140,24 +143,64 @@ function copyAddress(addressSelector) {
 }
 
 function checkAddressMismatch() {
-	if (!reportDataPrimary || !reportDataSecondary) return;
-	if (reportDataPrimary['is_campus'] === reportDataSecondary['is_campus']) return;
+	if (!reportDataIPv4 || !reportDataIPv6) return;
 
-	var offCampus = reportDataPrimary['is_campus'] ? reportDataSecondary : reportDataPrimary;
+	if (reportDataIPv4['is_campus'] === reportDataIPv6['is_campus']) return;
+
+	var offCampus = reportDataIPv4['is_campus'] ? reportDataIPv6 : reportDataIPv4;
 	var isp = (offCampus['iplocation'] && offCampus['iplocation']['isp']) || '';
+	var org = (offCampus['iplocation'] && offCampus['iplocation']['org']) || '';
 	var note;
 
-	if (/icloud|private relay/i.test(isp)) {
+	if (/icloud|private relay/i.test(isp) || /icloud|private relay/i.test(org)) {
 		note = 'iCloud Private Relay is routing one of your addresses off-campus.';
-	} else if (offCampus['iplocation'] && offCampus['iplocation']['proxy']) {
+	} else if (offCampus['iplocation'] && (offCampus['iplocation']['proxy'] || /cloudflare warp/i.test(org))) {
 		note = 'A VPN or proxy service is routing one of your addresses off-campus.';
 	} else {
 		note = 'Your two addresses are on different networks — one campus, one off-campus.';
 	}
 
-	$('#intro_text .intro-status').append(
-		`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${note}</div>`
-	);
+	$('#intro-sub-mismatch').html(
+		`<i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${note}`
+	).removeClass('d-none');
+}
+
+function checkProxyNotice() {
+	if (proxyNoticeShown) return;
+	if (!ipv4Resolved || !ipv6Resolved) return;
+	// If a mismatch note was already shown, don't add a second sub-line.
+	if (reportDataIPv4 && reportDataIPv6 &&
+		reportDataIPv4['is_campus'] !== reportDataIPv6['is_campus']) return;
+
+	// Need at least one off-campus result — nothing to warn about if on-campus.
+	var offCampusExists = (reportDataIPv4 && !reportDataIPv4['is_campus']) ||
+		(reportDataIPv6 && !reportDataIPv6['is_campus']);
+	if (!offCampusExists) return;
+
+	// Check proxy/iCloud flags from any available result.
+	var isp1 = (reportDataIPv4 && reportDataIPv4['iplocation'] && reportDataIPv4['iplocation']['isp']) || '';
+	var isp2 = (reportDataIPv6 && reportDataIPv6['iplocation'] && reportDataIPv6['iplocation']['isp']) || '';
+	var org1 = (reportDataIPv4 && reportDataIPv4['iplocation'] && reportDataIPv4['iplocation']['org']) || '';
+	var org2 = (reportDataIPv6 && reportDataIPv6['iplocation'] && reportDataIPv6['iplocation']['org']) || '';
+	var proxy1 = reportDataIPv4 && reportDataIPv4['iplocation'] && reportDataIPv4['iplocation']['proxy'];
+	var proxy2 = reportDataIPv6 && reportDataIPv6['iplocation'] && reportDataIPv6['iplocation']['proxy'];
+
+	var isICloud = /icloud|private relay/i.test(isp1) || /icloud|private relay/i.test(isp2) ||
+		/icloud|private relay/i.test(org1) || /icloud|private relay/i.test(org2);
+	var isWarp = /cloudflare warp/i.test(org1) || /cloudflare warp/i.test(org2);
+	var note;
+	if (isICloud) {
+		note = 'iCloud Private Relay is active — your actual network location may differ from what is shown.';
+	} else if (isWarp || proxy1 || proxy2) {
+		note = 'A VPN or proxy service is active — your actual network location may differ from what is shown.';
+	} else {
+		return;
+	}
+
+	proxyNoticeShown = true;
+	$('#intro-sub-proxy').html(
+		`<i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${note}`
+	).removeClass('d-none');
 }
 
 function showPrimaryLoadError() {
@@ -191,17 +234,19 @@ function set_intro_text(is_campus, network_purpose) {
 			}
 		}
 	}
-	var mainHtml = `<i class="fa-solid ${icon} me-2" aria-hidden="true"></i>${msg}`;
-	if ($('#intro-main-status').length) {
-		// Update only the main line — preserve any sub-lines appended by renderNATResult.
-		$('#intro-main-status').html(mainHtml);
-	} else {
-		$('#intro_text').html(`<div class="intro-status"><div id="intro-main-status">${mainHtml}</div></div>`);
+	// Only update if this call has a specific purpose — prevents the non-default protocol
+	// overwriting a VPN/Wireless message with a generic "campus network" when it has no
+	// matching IPAM network (and therefore a null purpose).
+	if (network_purpose || !$('#intro-main-status').data('resolved')) {
+		$('#intro-main-status')
+			.html(`<i class="fa-solid ${icon} me-2" aria-hidden="true"></i>${msg}`)
+			.removeClass('text-muted')
+			.data('resolved', true);
 	}
 }
 
 function downloadReport() {
-	if (!reportDataPrimary) {
+	if (!reportDataIPv4) {
 		alert('Connection data is still loading — please try again in a moment.');
 		return;
 	}
@@ -227,14 +272,17 @@ function downloadReport() {
 		return `<h2>${e(title)}</h2><table><tbody>${content}</tbody></table>`;
 	}
 
-	var r = reportDataPrimary;
-	var primaryIsV6 = r.client_address && r.client_address.includes(':');
-	var primaryLabel = primaryIsV6 ? 'IPv6' : 'IPv4';
-	var secondaryLabel = primaryIsV6 ? 'IPv4' : 'IPv6';
+	var r4 = reportDataIPv4;
+	var r6 = reportDataIPv6;
+	// Primary = the protocol that loaded the page; secondary = the other one.
+	var rPrimary   = (default_version == 6 && r6) ? r6 : r4;
+	var rSecondary = (default_version == 6) ? r4 : r6;
+	var primaryLabel   = (default_version == 6) ? 'IPv6' : 'IPv4';
+	var secondaryLabel = (default_version == 6) ? 'IPv4' : 'IPv6';
 
 	var statusMsg;
-	if (r.is_campus) {
-		var purpose = r.network && r.network.purpose;
+	if (rPrimary.is_campus) {
+		var purpose = rPrimary.network && rPrimary.network.purpose;
 		if (purpose === 'VPN') statusMsg = 'Connected through the campus VPN';
 		else if (purpose === 'Wireless') statusMsg = 'Connected to the campus wireless network';
 		else statusMsg = 'Connected to the campus network';
@@ -242,17 +290,17 @@ function downloadReport() {
 		statusMsg = 'Connected from off campus over the Internet';
 	}
 
-	var ad = r.address_details || {};
-	var net = r.network || {};
-	var loc = r.iplocation || {};
+	var ad = rPrimary.address_details || {};
+	var net = rPrimary.network || {};
+	var loc = rPrimary.iplocation || {};
 
 	var primaryNames = (ad.names && ad.names.length)
 		? [...new Set(ad.names.map(n => n.toLowerCase()))].join(', ')
-		: (r.ptr || '');
+		: (rPrimary.ptr || '');
 	var primaryFlags = [loc.mobile ? 'Mobile' : null, loc.proxy ? 'Proxy/VPN' : null, loc.hosting ? 'Hosting' : null].filter(Boolean).join(', ');
 
 	var primarySection = section('Primary Address (' + primaryLabel + ')', [
-		rpt('IP Address', r.client_address),
+		rpt('IP Address', rPrimary.client_address),
 		rpt('PTR / Host Names', primaryNames),
 		rpt('Network', net.cidr ? (net.comment ? net.cidr + ' (' + net.comment + ')' : net.cidr) : null),
 		rpt('VLAN', net.vlan_id ? net.vlan_id + ' (' + net.vlan_name + ')' : null),
@@ -269,16 +317,15 @@ function downloadReport() {
 	]);
 
 	var secondarySection = '';
-	if (reportDataSecondary) {
-		var r2 = reportDataSecondary;
-		var ad2 = r2.address_details || {};
-		var net2 = r2.network || {};
-		var loc2 = r2.iplocation || {};
+	if (rSecondary) {
+		var ad2 = rSecondary.address_details || {};
+		var net2 = rSecondary.network || {};
+		var loc2 = rSecondary.iplocation || {};
 		var s2Names = (ad2.names && ad2.names.length)
 			? [...new Set(ad2.names.map(n => n.toLowerCase()))].join(', ')
-			: (r2.ptr || '');
+			: (rSecondary.ptr || '');
 		secondarySection = section('Secondary Address (' + secondaryLabel + ')', [
-			rpt('IP Address', r2.client_address),
+			rpt('IP Address', rSecondary.client_address),
 			rpt('PTR / Host Names', s2Names),
 			rpt('Network', net2.cidr ? (net2.comment ? net2.cidr + ' (' + net2.comment + ')' : net2.cidr) : null),
 			rpt('VLAN', net2.vlan_id ? net2.vlan_id + ' (' + net2.vlan_name + ')' : null),
@@ -307,17 +354,17 @@ function downloadReport() {
 	]);
 
 	var nacRows = [];
-	if (r.nac) {
-		if (r.nac.endSystem) Object.entries(r.nac.endSystem).forEach(([k, v]) => { if (v) nacRows.push(rpt(k, v)); });
-		if (r.nac.endSystemInfo) Object.entries(r.nac.endSystemInfo).forEach(([k, v]) => { if (v) nacRows.push(rpt(k, v)); });
+	if (r4.nac) {
+		if (r4.nac.endSystem) Object.entries(r4.nac.endSystem).forEach(([k, v]) => { if (v) nacRows.push(rpt(k, v)); });
+		if (r4.nac.endSystemInfo) Object.entries(r4.nac.endSystemInfo).forEach(([k, v]) => { if (v) nacRows.push(rpt(k, v)); });
 	}
 	var nacSection = nacRows.length ? section('Campus NAC Details', nacRows) : '';
 
 	var merakiSection = '';
-	if (r.nac && (r.nac.meraki_client || r.nac.meraki_ap || r.nac.meraki_signal)) {
-		var mc = r.nac.meraki_client || {};
-		var ma = r.nac.meraki_ap || {};
-		var ms = r.nac.meraki_signal || {};
+	if (r4.nac && (r4.nac.meraki_client || r4.nac.meraki_ap || r4.nac.meraki_signal)) {
+		var mc = r4.nac.meraki_client || {};
+		var ma = r4.nac.meraki_ap || {};
+		var ms = r4.nac.meraki_signal || {};
 		var rssiText = ms.rssi !== undefined && ms.rssi !== null
 			? ms.rssi + ' dBm (' + (ms.rssi >= -65 ? 'Good' : ms.rssi >= -70 ? 'Fair' : 'Poor') + ')'
 			: null;
@@ -344,8 +391,8 @@ function downloadReport() {
 	}
 
 	var bldgSection = '';
-	if (r.nac && r.nac.nit_building && Object.keys(r.nac.nit_building).length) {
-		var bldg = r.nac.nit_building;
+	if (r4.nac && r4.nac.nit_building && Object.keys(r4.nac.nit_building).length) {
+		var bldg = r4.nac.nit_building;
 		bldgSection = section('Building', [
 			rpt('Name', bldg.official_name || bldg.full_name),
 			rpt('Address', bldg.address),
@@ -354,24 +401,29 @@ function downloadReport() {
 	}
 
 	var cfgRows = [];
-	var hasV4cfg = net.netmask || net.dhcp_routers || (net.dhcp_dns_servers && net.dhcp_dns_servers.length) || net.dhcp_domain_name || net.router_device;
+	var net4 = r4.network || {};
+	var hasV4cfg = net4.netmask || net4.dhcp_routers || (net4.dhcp_dns_servers && net4.dhcp_dns_servers.length) || net4.dhcp_domain_name || net4.purpose || net4.vpn_group || net4.router_device;
 	if (hasV4cfg) {
 		cfgRows.push('<tr><td colspan="2" style="font-weight:700;background:#edf5fb;padding:4px 8px;">IPv4</td></tr>');
-		if (net.netmask) cfgRows.push(rpt('Subnet Mask', net.netmask));
-		if (net.dhcp_routers) cfgRows.push(rpt('Default Gateway', net.dhcp_routers));
-		if (net.dhcp_dns_servers && net.dhcp_dns_servers.length) cfgRows.push(rpt('DNS Servers', net.dhcp_dns_servers.join(', ')));
-		if (net.dhcp_domain_name) cfgRows.push(rpt('Search Domain', net.dhcp_domain_name));
-		if (net.router_device) cfgRows.push(rpt('Router Device', net.router_device));
+		if (net4.netmask) cfgRows.push(rpt('Subnet Mask', net4.netmask));
+		if (net4.dhcp_routers) cfgRows.push(rpt('Default Gateway', net4.dhcp_routers));
+		if (net4.dhcp_dns_servers && net4.dhcp_dns_servers.length) cfgRows.push(rpt('DNS Servers', net4.dhcp_dns_servers.join(', ')));
+		if (net4.dhcp_domain_name) cfgRows.push(rpt('Search Domain', net4.dhcp_domain_name));
+		if (net4.purpose) cfgRows.push(rpt('Purpose', net4.purpose));
+		if (net4.vpn_group) cfgRows.push(rpt('VPN Group', net4.vpn_group));
+		if (net4.router_device) cfgRows.push(rpt('Router Device', net4.router_device));
 	}
-	if (reportDataSecondary) {
-		var net2b = reportDataSecondary.network || {};
-		var hasV6cfg = net2b.prefixlen || net2b.dhcp_routers || (net2b.dhcp_dns_servers && net2b.dhcp_dns_servers.length) || net2b.dhcp_domain_name || net2b.router_device;
+	if (r6) {
+		var net2b = r6.network || {};
+		var hasV6cfg = net2b.prefixlen || net2b.dhcp_routers || (net2b.dhcp_dns_servers && net2b.dhcp_dns_servers.length) || net2b.dhcp_domain_name || net2b.purpose || net2b.vpn_group || net2b.router_device;
 		if (hasV6cfg) {
 			cfgRows.push('<tr><td colspan="2" style="font-weight:700;background:#edf5fb;padding:4px 8px;">IPv6</td></tr>');
 			if (net2b.prefixlen) cfgRows.push(rpt('Prefix Length', '/' + net2b.prefixlen));
 			if (net2b.dhcp_routers) cfgRows.push(rpt('Default Gateway', net2b.dhcp_routers));
 			if (net2b.dhcp_dns_servers && net2b.dhcp_dns_servers.length) cfgRows.push(rpt('DNS Servers', net2b.dhcp_dns_servers.join(', ')));
 			if (net2b.dhcp_domain_name) cfgRows.push(rpt('Search Domain', net2b.dhcp_domain_name));
+			if (net2b.purpose) cfgRows.push(rpt('Purpose', net2b.purpose));
+			if (net2b.vpn_group) cfgRows.push(rpt('VPN Group', net2b.vpn_group));
 			if (net2b.router_device) cfgRows.push(rpt('Router Device', net2b.router_device));
 		}
 	}
@@ -379,7 +431,7 @@ function downloadReport() {
 		? `<h2>Network Configuration</h2><table><tbody>${cfgRows.filter(Boolean).join('')}</tbody></table>`
 		: '';
 
-	var ud = r.user_device || {};
+	var ud = rPrimary.user_device || {};
 	var browser = (ud.browser && ud.browser !== 'Other') ? (ud.browser + (ud.browser_version ? ' ' + ud.browser_version : '')) : null;
 	var os = (ud.os && ud.os !== 'Other') ? (ud.os + (ud.os_version ? ' ' + ud.os_version : '')) : null;
 	var deviceType = ud.is_bot ? 'Bot / Crawler' : ud.is_mobile ? 'Mobile' : ud.is_tablet ? 'Tablet' : ud.is_pc ? 'PC / Desktop' : null;
@@ -444,7 +496,7 @@ ${deviceSection}
 	}
 }
 
-function test_primary_url(default_version) {
+function test_ipv4_url(default_version) {
 	// call the test url and display address information
 	var simulate_mode = $('#connect-test').data('simulate') || '';
 	var simulate = !!simulate_mode;
@@ -467,7 +519,6 @@ function test_primary_url(default_version) {
 			$('#connect-ipv4').html('<i class="fa-solid fa-circle-check text-success" aria-hidden="true"></i> Supported');
 			//console.log("Host check from " + result["address"]);
 
-			// Seed #intro-main-status unconditionally so renderNATResult can safely append before the IPv6 callback fires.
 			set_intro_text(result['is_campus'], result['network']['purpose']);
 
 			if ( default_version == 4 ) {
@@ -808,6 +859,16 @@ function test_primary_url(default_version) {
 				$('#net-config-v4-domain').text(result['network']['dhcp_domain_name']);
 				hasV4Config = true;
 			}
+			if (result['network']['purpose']) {
+				$('#net-config-v4-purpose-row').show();
+				$('#net-config-v4-purpose').text(result['network']['purpose']);
+				hasV4Config = true;
+			}
+			if (result['network']['vpn_group']) {
+				$('#net-config-v4-vpn-group-row').show();
+				$('#net-config-v4-vpn-group').text(result['network']['vpn_group']);
+				hasV4Config = true;
+			}
 			if (result['network']['router_device']) {
 				$('#net-config-v4-router-row').show();
 				$('#net-config-v4-router').text(result['network']['router_device']);
@@ -830,8 +891,10 @@ function test_primary_url(default_version) {
 			}
 
 			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
-			reportDataPrimary = result;
+			reportDataIPv4 = result;
+			ipv4Resolved = true;
 			checkAddressMismatch();
+			checkProxyNotice();
 			if (!simulate) checkNATType(result['client_address']);
 			if (default_version == 4) reportConnectV4 = 'Supported';
 			else reportConnectV6 = 'Supported';
@@ -845,6 +908,8 @@ function test_primary_url(default_version) {
 			} else {
 				reportConnectV6 = 'Not detected';
 			}
+			ipv4Resolved = true;
+			checkProxyNotice();
 		}
 	});
 
@@ -874,21 +939,32 @@ function renderNATResult(serverIp, externalIp, networkPurpose) {
 	var pathsDiffer = !isV6 && externalIp && externalIp !== serverIp;
 	if (!pathsDiffer) return;
 
+	// Suppress if a relay/proxy is detected in either protocol result, or if checkProxyNotice already
+	// fired — relay services rotate exit IPs between requests so address differences are not meaningful.
+	if (proxyNoticeShown) return;
+	var ipLoc4 = reportDataIPv4 && reportDataIPv4['iplocation'];
+	var ipLoc6 = reportDataIPv6 && reportDataIPv6['iplocation'];
+	var isp4 = (ipLoc4 && ipLoc4['isp']) || '';
+	var org4 = (ipLoc4 && ipLoc4['org']) || '';
+	var isp6 = (ipLoc6 && ipLoc6['isp']) || '';
+	var org6 = (ipLoc6 && ipLoc6['org']) || '';
+	var relayRe = /icloud|private relay|cloudflare warp/i;
+	if (relayRe.test(isp4) || relayRe.test(org4) || relayRe.test(isp6) || relayRe.test(org6) ||
+	    (ipLoc4 && ipLoc4['proxy']) || (ipLoc6 && ipLoc6['proxy'])) return;
+
 	reportInternetIp = externalIp;
 
+	var natNote;
 	if (networkPurpose === 'VPN') {
-		$('#intro_text .intro-status').append(
-			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Internet traffic bypasses the VPN tunnel and exits via ${externalIp}.</div>`
-		);
+		natNote = `Internet traffic bypasses the VPN tunnel and exits via ${externalIp}.`;
 	} else if (networkPurpose) {
-		$('#intro_text .intro-status').append(
-			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Your internet traffic exits the campus network as ${externalIp}.</div>`
-		);
+		natNote = `Your internet traffic exits the campus network as ${externalIp}.`;
 	} else {
-		$('#intro_text .intro-status').append(
-			`<div class="mt-1 small text-muted"><i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>Your internet traffic appears to use a different address (${externalIp}) than your campus connection.</div>`
-		);
+		natNote = `Your internet traffic appears to use a different address (${externalIp}) than your campus connection.`;
 	}
+	$('#intro-sub-nat').html(
+		`<i class="fa-solid fa-circle-info text-info me-1" aria-hidden="true"></i>${natNote}`
+	).removeClass('d-none');
 }
 
 function checkClockSync(serverTime) {
@@ -1177,7 +1253,7 @@ function get_dns_info() {
 	}
 }
 
-function test_secondary_url(default_version) {
+function test_ipv6_url(default_version) {
 	// test secondary url
 	var simulate_mode = $('#connect-test').data('simulate') || '';
 	var simulate = !!simulate_mode;
@@ -1334,6 +1410,16 @@ function test_secondary_url(default_version) {
 				$('#net-config-v6-domain').text(result['network']['dhcp_domain_name']);
 				hasV6Config = true;
 			}
+			if (result['network']['purpose']) {
+				$('#net-config-v6-purpose-row').show();
+				$('#net-config-v6-purpose').text(result['network']['purpose']);
+				hasV6Config = true;
+			}
+			if (result['network']['vpn_group']) {
+				$('#net-config-v6-vpn-group-row').show();
+				$('#net-config-v6-vpn-group').text(result['network']['vpn_group']);
+				hasV6Config = true;
+			}
 			if (result['network']['router_device']) {
 				$('#net-config-v6-router-row').show();
 				$('#net-config-v6-router').text(result['network']['router_device']);
@@ -1356,8 +1442,10 @@ function test_secondary_url(default_version) {
 			}
 
 			if (result['network']['purpose']) reportNetworkPurpose = result['network']['purpose'];
-			reportDataSecondary = result;
+			reportDataIPv6 = result;
+			ipv6Resolved = true;
 			checkAddressMismatch();
+			checkProxyNotice();
 			if (default_version == 4) reportConnectV6 = 'Supported';
 			else reportConnectV4 = 'Supported';
 		},
@@ -1369,6 +1457,8 @@ function test_secondary_url(default_version) {
 			} else {
 				reportConnectV4 = 'Not detected';
 			}
+			ipv6Resolved = true;
+			checkProxyNotice();
 		}
 	});
 
@@ -1396,8 +1486,8 @@ $(document).ready(function () {
 		default_version = 4;
 	}
 
-	test_primary_url(default_version);
-	test_secondary_url(default_version);
+	test_ipv4_url(default_version);
+	test_ipv6_url(default_version);
 
 	// if (isLocalhost || is_campus) {
 		// console.log(`Doing extended testing for campus`);

@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.10.2] - 2026-07-26
+
+### Added
+
+- **VPN Group displayed in network config card and report** — the "VPN Group" Infoblox extensible attribute is now collected from the network record and shown in the Network Configuration card and downloadable report alongside Purpose. Appears only when the EA is populated (VPN networks).
+- **Network Purpose displayed in network config card and report** — the "Purpose" EA (e.g. `VPN`, `Wireless`) is now shown as a data row in the Network Configuration card and downloadable report. It was previously used only for logic (main status line wording, NAT sub-line variant) but never surfaced directly to the user.
+
+### Fixed
+
+- **iCloud Private Relay / proxy notice for single-stack and dual-stack same-status clients** — previously the iCloud Private Relay and VPN/proxy sub-line only appeared when IPv4 and IPv6 disagreed on campus status (mismatch case). Clients where both protocols go through the same relay (dual-stack) or where only one protocol is available (single-stack) received no notice. `checkProxyNotice()` now fires from all four callback paths (IPv4 success/error, IPv6 success/error) and waits for both protocols to settle (`ipv4Resolved` and `ipv6Resolved` flags) before running, ensuring the full picture is available and eliminating a race condition where the proxy notice and mismatch note could both appear simultaneously when IPv6 responded before IPv4.
+- **iCloud detected via `org` field** — iCloud Private Relay reports `isp = "Fastly, Inc."` or `"Akamai Technologies"` but `org = "iCloud Private Relay"`. All relay checks now test both the `isp` and `org` fields.
+- **Cloudflare WARP now detected as proxy** — Cloudflare WARP sets `org = "Cloudflare WARP"` but may not set the `proxy` flag. Relay detection now includes `/cloudflare warp/i` in the org check across `checkProxyNotice()`, `checkAddressMismatch()`, and the NAT sub-line suppression in `renderNATResult()`.
+- **NAT sub-line suppressed for relay clients (expanded)** — the NAT suppression in `renderNATResult()` now checks both the IPv4 and IPv6 results (previously only IPv4) and also short-circuits on `proxyNoticeShown`. This prevents the NAT "different address" sub-line from appearing alongside the proxy notice when the relay marker is only visible on one protocol.
+- **Main status line not showing VPN when IPv4 has no IPAM match** — when the IPv6 protocol matches a VPN network in IPAM but the IPv4 address has no matching network (null purpose), the IPv4 `set_intro_text()` call was overwriting the VPN message with "connected to campus network." The update path now skips if the element has already been resolved with a specific purpose.
+- **Print report primary/secondary address labeled by default protocol** — the report always labeled IPv4 as "Primary Address" and IPv6 as "Secondary Address" regardless of which protocol loaded the page. "Primary" is now the protocol that connected the user (`default_version`), and NAC, Meraki, and building detail sections continue to read from the IPv4 endpoint (the only source for those details).
+- **VPN install button underlined** — the accessibility body-link underline rule added in v1.10.1 (`a { text-decoration: underline }`) was overriding Bootstrap's button reset on anchor elements styled as `.btn`. The rule is now scoped to `a:not(.btn)` so button-styled anchors are not underlined.
+
+### Code quality
+
+- **`test_ipv4_url` / `test_ipv6_url`** — renamed from `test_primary_url` / `test_secondary_url` to reflect that these functions always test the IPv4 and IPv6 endpoints respectively, regardless of which protocol is the default.
+- **`reportDataIPv4` / `reportDataIPv6`** — renamed from `reportDataPrimary` / `reportDataSecondary` for the same reason; the variables always hold the IPv4 and IPv6 API responses.
+- **Sub-line slots moved to initial HTML** — `#intro-main-status` and the three sub-line slots (`#intro-sub-nat`, `#intro-sub-mismatch`, `#intro-sub-proxy`) are now declared directly in `home.html` with the loading spinner as the initial content. `set_intro_text()` is now a pure update with no DOM-creation responsibility, and the sub-line slots are available in the DOM from page load rather than created on first AJAX response.
+- **`rPrimary` / `rSecondary` in `downloadReport()`** — renamed from single-letter `r` / `r2` for clarity. `r4` and `r6` are retained as explicit protocol-keyed references for sections that must always read from a specific endpoint.
+
 ## [1.10.1] - 2026-07-24
 
 ### Changed

@@ -550,6 +550,7 @@ def hostinfo() -> Response:
         "contact_dept": None,
         "cost_center": None,
         "purpose": None,
+        "vpn_group": None,
         "router_device": None,
         "dhcp_servers": [],
         "dhcp_routers": None,
@@ -587,6 +588,9 @@ def hostinfo() -> Response:
         )
         net_details["purpose"] = (
             network.get("extattrs", {}).get("Purpose", {}).get("value", None)
+        )
+        net_details["vpn_group"] = (
+            network.get("extattrs", {}).get("VPN Group", {}).get("value", None)
         )
         net_details["router_device"] = (
             network.get("extattrs", {}).get("Router Device", {}).get("value", None)
