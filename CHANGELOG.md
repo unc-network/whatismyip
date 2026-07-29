@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.10.4] - 2026-07-29
+
+### Fixed
+
+- **Home: IP address not announced by screen reader** — the IP address copy cards used `aria-label` to describe the copy action, which replaced the element's accessible name and hid the actual IP address from screen readers. Changed both cards to `aria-labelledby` (pointing to the address `<h2>`) so the IP is announced as the element name, with a visually-hidden copy hint added as `aria-describedby`.
+- **FAQ: accordion heading hierarchy incorrect** — accordion item headings were marked as `<h2>`, the same level as the section labels ("What you see", "Campus network", etc.), producing a flat heading tree under the page's `<h1>`. Changed all 13 accordion headers to `<h3>` to reflect the correct H1 → H2 (section) → H3 (question) hierarchy.
+- **Speed Test: Ookla widget trademark text insufficient contrast** — the Ookla Speedtest Custom embed rendered its trademark attribution line in Carolina Blue (#4b9cd3), which fails WCAG AA for small text against white (~2.8:1). Updated the widget accent color to #0077b6 (~4.9:1) via the Speedtest Custom configuration dashboard.
+
 ## [1.10.3] - 2026-07-26
 
 ### Fixed
