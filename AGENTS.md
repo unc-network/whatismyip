@@ -63,7 +63,7 @@ All institution-specific settings live in `data/config.toml`. The app reads this
 - **Body link underlines:** `main a:not(.btn)` — scoped to `<main>` so the footer (a sibling of `<main>`) and navbar are naturally excluded with no override rules needed.
 - **Footer links:** `.main-footer a` and `.main-footer a:hover` — standalone block, no conflict with the body rule.
 - **Theming:** All colors are CSS custom properties defined in `:root` (light) and `[data-theme="dark"]` / `@media (prefers-color-scheme: dark)` (dark). Never hardcode color values in component rules — always use a `var(--token)`.
-- **WCAG 2.2 AA:** Accessibility fixes through v1.10.4 have been submitted for a second-pass review; the review is still in progress, and the site should not be described as certified or as having completed the review. When adding new UI, verify contrast ratios before committing. Carolina Blue (#4b9cd3) fails on white for body text — use `#2C5080` (light mode) or the dark-mode token instead.
+- **WCAG 2.2 AA:** The site received formal accessibility approval for v1.10.4 in TeamDynamix ticket 427971. Sherose Badruddin confirmed the changes and stated that the site is WCAG 2.2 AA compliant. When adding new UI, verify contrast ratios before committing. Carolina Blue (#4b9cd3) fails on white for body text — use `#2C5080` (light mode) or the dark-mode token instead.
 
 ---
 
@@ -109,7 +109,7 @@ Read `docs/js-execution-flow.md` for the full walkthrough. Critical non-obvious 
 
 ## Accessibility Requirements (WCAG 2.2 AA)
 
-The second pass of accessibility fixes has been submitted to Sherose Badruddin at the UNC Digital Accessibility Office. Her review is not yet complete. Patterns to preserve while that review continues:
+Sherose Badruddin at the UNC Digital Accessibility Office formally approved the accessibility changes for v1.10.4 in TeamDynamix ticket 427971, confirming that the site is WCAG 2.2 AA compliant. Patterns to preserve:
 
 - **IP address cards:** Use `aria-labelledby` pointing to the address `<h2>`, not `aria-label`. The IP must be the element's accessible name so screen readers announce it.
 - **Heading hierarchy:** FAQ page is H1 → H2 (section labels) → H3 (accordion items). Do not add H2 elements inside accordion items.
