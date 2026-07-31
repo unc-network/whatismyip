@@ -4,6 +4,10 @@ All notable changes to this project will be documented here. This project follow
 
 ## [1.10.4] - 2026-07-29
 
+### Accessibility
+
+- **Formal WCAG 2.2 AA approval** — Sherose Badruddin of the UNC Digital Accessibility Office confirmed the remediation changes and resolved TeamDynamix ticket 427971 on 2026-07-29, stating that the website is now WCAG 2.2 AA compliant.
+
 ### Fixed
 
 - **Home: IP address not announced by screen reader** — the IP address copy cards used `aria-label` to describe the copy action, which replaced the element's accessible name and hid the actual IP address from screen readers. Changed both cards to `aria-labelledby` (pointing to the address `<h2>`) so the IP is announced as the element name, with a visually-hidden copy hint added as `aria-describedby`.
