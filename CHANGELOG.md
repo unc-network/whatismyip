@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.10.5] - 2026-07-31
+
+### Documentation
+
+- **Project guidance for AI coding assistants** — added `AGENTS.md` with the application architecture, configuration conventions, frontend concurrency patterns, accessibility requirements, and release practices needed to work safely in the repository.
+- **AI-use disclosure** — added `AI.md` documenting the project's human-led use of AI-assisted development.
+- **Frontend architecture references** — added `docs/js-execution-flow.md` and `docs/intro-message-matrix.md` to document the dual-stack JavaScript execution flow, shared callback state, and possible introductory status messages.
+
 ## [1.10.4] - 2026-07-29
 
 ### Accessibility
