@@ -101,6 +101,62 @@ def _query_resolver(
     return result
 
 
+def _dns_name_key(value: object) -> str:
+    """Return a comparison key for an absolute or relative DNS name."""
+    return str(value).strip().rstrip(".").casefold()
+
+
+def _ordered_record_keys(
+    record_details: dict[tuple[str, str, str], dict[str, str]],
+) -> list[tuple[str, str, str]]:
+    """Order CNAME paths from their first alias through terminal records."""
+    records_by_owner: dict[str, list[tuple[str, str, str]]] = {}
+    cname_owners: set[str] = set()
+    cname_targets: set[str] = set()
+    for key, details in record_details.items():
+        owner = _dns_name_key(details["name"])
+        records_by_owner.setdefault(owner, []).append(key)
+        if details["type"] == "CNAME":
+            cname_owners.add(owner)
+            cname_targets.add(_dns_name_key(details["data"]))
+
+    ordered: list[tuple[str, str, str]] = []
+    visited: set[tuple[str, str, str]] = set()
+
+    def walk(owner: str, path: set[str]) -> None:
+        if owner in path:
+            return
+        next_path = path | {owner}
+        owned = sorted(
+            records_by_owner.get(owner, []), key=lambda item: (item[1], item[2])
+        )
+        aliases = [key for key in owned if record_details[key]["type"] == "CNAME"]
+        terminal = [key for key in owned if record_details[key]["type"] != "CNAME"]
+        for key in aliases:
+            if key in visited:
+                continue
+            visited.add(key)
+            ordered.append(key)
+            walk(_dns_name_key(record_details[key]["data"]), next_path)
+        for key in terminal:
+            if key not in visited:
+                visited.add(key)
+                ordered.append(key)
+
+    roots = sorted(cname_owners - cname_targets)
+    for owner in roots:
+        walk(owner, set())
+    for owner in sorted(cname_owners):
+        walk(owner, set())
+
+    ordered.extend(
+        key
+        for key in sorted(record_details, key=lambda item: (item[1], item[0], item[2]))
+        if key not in visited
+    )
+    return ordered
+
+
 def _answer_records(
     response: dns.message.Message,
 ) -> tuple[list[dict[str, Any]], bool]:
@@ -171,7 +227,7 @@ def compare_answers(results: list[dict[str, Any]]) -> dict[str, Any]:
     internal = keyed_results.get("internal", {})
     public = keyed_results.get("public", {})
     rows = []
-    for key in sorted(record_details, key=lambda item: (item[1], item[0], item[2])):
+    for key in _ordered_record_keys(record_details):
         details = record_details[key]
         in_internal = key in internal
         in_public = key in public

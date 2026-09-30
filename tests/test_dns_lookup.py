@@ -4,7 +4,11 @@ import dns.message
 import dns.rcode
 import dns.rrset
 
-from whatismyip.dns_lookup import _answer_records, _query_resolver, compare_answers
+from whatismyip.dns_lookup import (
+    _answer_records,
+    _query_resolver,
+    compare_answers,
+)
 
 TARGET = {"id": "public", "label": "Internet DNS", "address": "8.8.8.8"}
 
@@ -82,6 +86,34 @@ def test_answer_records_are_capped():
 
     assert len(records) == 100
     assert truncated is True
+
+
+def test_compare_answers_orders_cname_chain_before_terminal_record():
+    answers = [
+        {"name": "edge.example.net.", "type": "A", "ttl": 30, "data": "192.0.2.10"},
+        {
+            "name": "service.example.net.",
+            "type": "CNAME",
+            "ttl": 120,
+            "data": "edge.example.net.",
+        },
+        {
+            "name": "www.example.edu.",
+            "type": "CNAME",
+            "ttl": 300,
+            "data": "service.example.net.",
+        },
+    ]
+
+    comparison = compare_answers(
+        [{"id": "public", "status": "success", "rcode": "NOERROR", "answers": answers}]
+    )
+
+    assert [(row["type"], row["name"], row["data"]) for row in comparison["rows"]] == [
+        ("CNAME", "www.example.edu.", "service.example.net."),
+        ("CNAME", "service.example.net.", "edge.example.net."),
+        ("A", "edge.example.net.", "192.0.2.10"),
+    ]
 
 
 def test_compare_answers_aligns_records_and_ignores_ttl_differences():

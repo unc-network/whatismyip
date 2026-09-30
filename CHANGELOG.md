@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.11.1] - 2026-09-30
+
+### Added
+
+- **CNAME chain ordering** — DNS answers now follow discovered aliases from the first CNAME through each intermediate name to the final address or record.
+
+### Changed
+
+- **Human-readable DNS TTLs** — remaining cache lifetimes are displayed as seconds, minutes, hours, or days as appropriate, with the exact number of seconds available on hover.
+
 ## [1.11.0] - 2026-09-30
 
 ### Added

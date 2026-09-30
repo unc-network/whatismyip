@@ -340,6 +340,10 @@ html[data-theme="dark"] .text-muted {
   color: var(--site-text);
 }
 
+.dns-ttl {
+  cursor: help;
+}
+
 .metrics-series-label {
   color: var(--site-muted-text);
 }
