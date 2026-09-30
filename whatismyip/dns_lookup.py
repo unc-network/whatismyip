@@ -55,7 +55,6 @@ def _query_resolver(
         "latency_ms": None,
         "negative_ttl": None,
         "answers": [],
-        "cname_chains": [],
         "answers_truncated": False,
         "error": None,
     }
@@ -99,7 +98,6 @@ def _query_resolver(
         result["status"] = "error"
         result["error"] = "The DNS query failed."
 
-    result["cname_chains"] = _build_cname_chains(name, result["answers"])
     return result
 
 
@@ -108,82 +106,55 @@ def _dns_name_key(value: object) -> str:
     return str(value).strip().rstrip(".").casefold()
 
 
-def _build_cname_chains(
-    query_name: str, answers: list[dict[str, Any]]
-) -> list[dict[str, Any]]:
-    """Order CNAME records from each alias through its terminal answer."""
-    aliases: dict[str, dict[str, Any]] = {}
-    records_by_owner: dict[str, list[dict[str, Any]]] = {}
-    display_names: dict[str, str] = {}
+def _ordered_record_keys(
+    record_details: dict[tuple[str, str, str], dict[str, str]],
+) -> list[tuple[str, str, str]]:
+    """Order CNAME paths from their first alias through terminal records."""
+    records_by_owner: dict[str, list[tuple[str, str, str]]] = {}
+    cname_owners: set[str] = set()
+    cname_targets: set[str] = set()
+    for key, details in record_details.items():
+        owner = _dns_name_key(details["name"])
+        records_by_owner.setdefault(owner, []).append(key)
+        if details["type"] == "CNAME":
+            cname_owners.add(owner)
+            cname_targets.add(_dns_name_key(details["data"]))
 
-    for answer in answers:
-        owner_key = _dns_name_key(answer.get("name", ""))
-        if not owner_key:
-            continue
-        display_names.setdefault(owner_key, str(answer["name"]))
-        if answer.get("type") == "CNAME":
-            target_key = _dns_name_key(answer.get("data", ""))
-            if target_key and owner_key not in aliases:
-                aliases[owner_key] = answer
-                display_names.setdefault(target_key, str(answer["data"]))
-        else:
-            records_by_owner.setdefault(owner_key, []).append(answer)
+    ordered: list[tuple[str, str, str]] = []
+    visited: set[tuple[str, str, str]] = set()
 
-    if not aliases:
-        return []
+    def walk(owner: str, path: set[str]) -> None:
+        if owner in path:
+            return
+        next_path = path | {owner}
+        owned = sorted(
+            records_by_owner.get(owner, []), key=lambda item: (item[1], item[2])
+        )
+        aliases = [key for key in owned if record_details[key]["type"] == "CNAME"]
+        terminal = [key for key in owned if record_details[key]["type"] != "CNAME"]
+        for key in aliases:
+            if key in visited:
+                continue
+            visited.add(key)
+            ordered.append(key)
+            walk(_dns_name_key(record_details[key]["data"]), next_path)
+        for key in terminal:
+            if key not in visited:
+                visited.add(key)
+                ordered.append(key)
 
-    target_keys = {
-        _dns_name_key(answer["data"])
-        for answer in aliases.values()
-        if _dns_name_key(answer.get("data", ""))
-    }
-    query_key = _dns_name_key(query_name)
-    starts = []
-    if query_key in aliases:
-        starts.append(query_key)
-    starts.extend(sorted(set(aliases) - target_keys - set(starts)))
-    starts.extend(sorted(set(aliases) - set(starts)))
+    roots = sorted(cname_owners - cname_targets)
+    for owner in roots:
+        walk(owner, set())
+    for owner in sorted(cname_owners):
+        walk(owner, set())
 
-    chains = []
-    used_owners: set[str] = set()
-    for start in starts:
-        if start in used_owners:
-            continue
-        current = start
-        seen: set[str] = set()
-        steps = []
-        while current in aliases and current not in seen:
-            seen.add(current)
-            used_owners.add(current)
-            answer = aliases[current]
-            target_key = _dns_name_key(answer["data"])
-            steps.append(
-                {
-                    "name": display_names[current],
-                    "target": display_names.get(target_key, str(answer["data"])),
-                    "ttl": answer["ttl"],
-                }
-            )
-            current = target_key
-
-        if steps:
-            chains.append(
-                {
-                    "steps": steps,
-                    "terminal_name": display_names.get(current, steps[-1]["target"]),
-                    "terminal_records": [
-                        {
-                            "type": answer["type"],
-                            "data": answer["data"],
-                            "ttl": answer["ttl"],
-                        }
-                        for answer in records_by_owner.get(current, [])
-                    ],
-                    "loop_detected": current in seen,
-                }
-            )
-
-    return chains
+    ordered.extend(
+        key
+        for key in sorted(record_details, key=lambda item: (item[1], item[0], item[2]))
+        if key not in visited
+    )
+    return ordered
 
 
 def _answer_records(
@@ -256,7 +227,7 @@ def compare_answers(results: list[dict[str, Any]]) -> dict[str, Any]:
     internal = keyed_results.get("internal", {})
     public = keyed_results.get("public", {})
     rows = []
-    for key in sorted(record_details, key=lambda item: (item[1], item[0], item[2])):
+    for key in _ordered_record_keys(record_details):
         details = record_details[key]
         in_internal = key in internal
         in_public = key in public

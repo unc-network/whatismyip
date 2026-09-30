@@ -80,13 +80,6 @@
   </div>
   <p class="text-muted small mt-2 mb-0"><i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>TTLs are the remaining cache lifetimes reported by each recursive resolver, so they may differ even when the answers match.</p>
 
-  <div id="dns-cname-section" class="card shadow mt-3" hidden>
-    <div class="card-body">
-      <h3 class="h5 card-title"><i class="fa-solid fa-link text-primary me-2" aria-hidden="true"></i>How CNAME aliases connect</h3>
-      <p class="small text-muted">A CNAME makes one name an alias for another. DNS follows each alias in order until it reaches the final record. Every alias has its own TTL and may be cached for a different length of time.</p>
-      <div id="dns-cname-chains" class="row g-3"></div>
-    </div>
-  </div>
 </section>
 {% endblock %}
 
@@ -102,8 +95,6 @@
   var status = document.getElementById('dns-status');
   var resultsSection = document.getElementById('dns-results');
   var resolverResults = document.getElementById('dns-resolver-results');
-  var cnameSection = document.getElementById('dns-cname-section');
-  var cnameChains = document.getElementById('dns-cname-chains');
   var answerRows = document.getElementById('dns-answer-rows');
   var queryLabel = document.getElementById('dns-query-label');
   var endpoint = {{ url_for('api.dns_lookup') | tojson }};
@@ -174,52 +165,9 @@
     return '<span class="conn-badge-warning">Internet only</span>';
   }
 
-  function renderCnameChain(chain) {
-    var items = chain.steps.map(function (step, index) {
-      return '<li class="dns-cname-node">' +
-        '<div class="dns-cname-step-label">Alias ' + (index + 1) + '</div>' +
-        '<code class="dns-cname-name">' + escapeHtml(step.name) + '</code>' +
-        '<div class="dns-cname-connector"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i> ' +
-        '<span>CNAME points to the next name</span><span class="text-nowrap">TTL ' + ttl(step.ttl) + '</span></div>' +
-        '</li>';
-    });
-    var terminalRecords = chain.terminal_records || [];
-    var terminalDetails = terminalRecords.length
-      ? terminalRecords.map(function (record) {
-          return '<div class="dns-cname-terminal-record"><span class="dns-record-type">' +
-            escapeHtml(record.type) + '</span><code class="dns-answer-data">' +
-            escapeHtml(record.data) + '</code><span class="small text-muted text-nowrap">TTL ' +
-            ttl(record.ttl) + '</span></div>';
-        }).join('')
-      : '<div class="small text-muted mt-1">The resolver did not include a final address or record in this response.</div>';
-    items.push('<li class="dns-cname-node dns-cname-terminal">' +
-      '<div class="dns-cname-step-label">' + (chain.loop_detected ? 'Alias loop detected' : 'Destination') + '</div>' +
-      '<code class="dns-cname-name">' + escapeHtml(chain.terminal_name) + '</code>' + terminalDetails + '</li>');
-    return '<ol class="dns-cname-list mb-0">' + items.join('') + '</ol>';
-  }
-
-  function renderCnameChains(results) {
-    var withChains = results.filter(function (result) {
-      return result.cname_chains && result.cname_chains.length;
-    });
-    if (!withChains.length) {
-      cnameChains.innerHTML = '';
-      cnameSection.hidden = true;
-      return;
-    }
-    var columnClass = withChains.length > 1 ? 'col-md-6' : 'col-12';
-    cnameChains.innerHTML = withChains.map(function (result) {
-      return '<div class="' + columnClass + '"><div class="dns-cname-resolver h-100">' +
-        '<h4 class="h6 mb-3">' + escapeHtml(result.label) + '</h4>' +
-        result.cname_chains.map(renderCnameChain).join('') + '</div></div>';
-    }).join('');
-    cnameSection.hidden = false;
-  }
-
   function render(data) {
     queryLabel.textContent = data.query.type + ' ' + data.query.name;
     resolverResults.innerHTML = data.results.map(renderResolver).join('');
-    renderCnameChains(data.results);
 
     if (!data.internal_included) {
       resolverResults.insertAdjacentHTML('afterbegin',

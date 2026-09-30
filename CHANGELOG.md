@@ -6,7 +6,7 @@ All notable changes to this project will be documented here. This project follow
 
 ### Added
 
-- **CNAME chain explainer** — discovered aliases are displayed in resolution order for each resolver, with a plain-language explanation, per-hop TTLs, and the final address or record when present.
+- **CNAME chain ordering** — DNS answers now follow discovered aliases from the first CNAME through each intermediate name to the final address or record.
 
 ### Changed
 

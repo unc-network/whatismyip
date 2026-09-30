@@ -6,7 +6,6 @@ import dns.rrset
 
 from whatismyip.dns_lookup import (
     _answer_records,
-    _build_cname_chains,
     _query_resolver,
     compare_answers,
 )
@@ -89,14 +88,9 @@ def test_answer_records_are_capped():
     assert truncated is True
 
 
-def test_build_cname_chains_orders_aliases_and_terminal_records():
+def test_compare_answers_orders_cname_chain_before_terminal_record():
     answers = [
-        {
-            "name": "edge.example.net.",
-            "type": "A",
-            "ttl": 30,
-            "data": "192.0.2.10",
-        },
+        {"name": "edge.example.net.", "type": "A", "ttl": 30, "data": "192.0.2.10"},
         {
             "name": "service.example.net.",
             "type": "CNAME",
@@ -111,26 +105,14 @@ def test_build_cname_chains_orders_aliases_and_terminal_records():
         },
     ]
 
-    chains = _build_cname_chains("WWW.Example.EDU.", answers)
+    comparison = compare_answers(
+        [{"id": "public", "status": "success", "rcode": "NOERROR", "answers": answers}]
+    )
 
-    assert chains == [
-        {
-            "steps": [
-                {
-                    "name": "www.example.edu.",
-                    "target": "service.example.net.",
-                    "ttl": 300,
-                },
-                {
-                    "name": "service.example.net.",
-                    "target": "edge.example.net.",
-                    "ttl": 120,
-                },
-            ],
-            "terminal_name": "edge.example.net.",
-            "terminal_records": [{"type": "A", "data": "192.0.2.10", "ttl": 30}],
-            "loop_detected": False,
-        }
+    assert [(row["type"], row["name"], row["data"]) for row in comparison["rows"]] == [
+        ("CNAME", "www.example.edu.", "service.example.net."),
+        ("CNAME", "service.example.net.", "edge.example.net."),
+        ("A", "edge.example.net.", "192.0.2.10"),
     ]
 
 
