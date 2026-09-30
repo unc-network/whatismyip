@@ -47,18 +47,26 @@ def test_query_resolver_returns_negative_cache_ttl(monkeypatch):
     assert result["negative_ttl"] == 120
 
 
-def test_query_resolver_hides_internal_exception_details(monkeypatch, caplog):
+def test_query_resolver_hides_internal_exception_details(monkeypatch):
+    logged_warnings = []
+
     def fail_query(*args, **kwargs):
         raise OSError("private network detail")
 
+    def capture_warning(message, *args, **kwargs):
+        logged_warnings.append((message, args, kwargs))
+
     monkeypatch.setattr("whatismyip.dns_lookup.dns.query.udp", fail_query)
+    monkeypatch.setattr("whatismyip.dns_lookup._LOGGER.warning", capture_warning)
 
     result = _query_resolver("example.com.", "A", TARGET, 3.0)
 
     assert result["status"] == "error"
     assert result["error"] == "The DNS query failed."
     assert "private network detail" not in result["error"]
-    assert "private network detail" in caplog.text
+    assert len(logged_warnings) == 1
+    assert "private network detail" in str(logged_warnings[0][1][1])
+    assert logged_warnings[0][2]["exc_info"] is True
 
 
 def test_answer_records_are_capped():
