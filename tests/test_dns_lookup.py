@@ -4,7 +4,12 @@ import dns.message
 import dns.rcode
 import dns.rrset
 
-from whatismyip.dns_lookup import _answer_records, _query_resolver, compare_answers
+from whatismyip.dns_lookup import (
+    _answer_records,
+    _build_cname_chains,
+    _query_resolver,
+    compare_answers,
+)
 
 TARGET = {"id": "public", "label": "Internet DNS", "address": "8.8.8.8"}
 
@@ -82,6 +87,51 @@ def test_answer_records_are_capped():
 
     assert len(records) == 100
     assert truncated is True
+
+
+def test_build_cname_chains_orders_aliases_and_terminal_records():
+    answers = [
+        {
+            "name": "edge.example.net.",
+            "type": "A",
+            "ttl": 30,
+            "data": "192.0.2.10",
+        },
+        {
+            "name": "service.example.net.",
+            "type": "CNAME",
+            "ttl": 120,
+            "data": "edge.example.net.",
+        },
+        {
+            "name": "www.example.edu.",
+            "type": "CNAME",
+            "ttl": 300,
+            "data": "service.example.net.",
+        },
+    ]
+
+    chains = _build_cname_chains("WWW.Example.EDU.", answers)
+
+    assert chains == [
+        {
+            "steps": [
+                {
+                    "name": "www.example.edu.",
+                    "target": "service.example.net.",
+                    "ttl": 300,
+                },
+                {
+                    "name": "service.example.net.",
+                    "target": "edge.example.net.",
+                    "ttl": 120,
+                },
+            ],
+            "terminal_name": "edge.example.net.",
+            "terminal_records": [{"type": "A", "data": "192.0.2.10", "ttl": 30}],
+            "loop_detected": False,
+        }
+    ]
 
 
 def test_compare_answers_aligns_records_and_ignores_ttl_differences():

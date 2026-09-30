@@ -340,6 +340,84 @@ html[data-theme="dark"] .text-muted {
   color: var(--site-text);
 }
 
+.dns-cname-resolver {
+  padding: 1rem;
+  border: 1px solid var(--site-border);
+  border-radius: 0.5rem;
+  background-color: var(--site-subtle-bg);
+}
+
+.dns-cname-list {
+  padding: 0;
+  list-style: none;
+}
+
+.dns-cname-node {
+  position: relative;
+  padding: 0 0 1.25rem 1.5rem;
+}
+
+.dns-cname-node::before {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.3rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 2px solid var(--site-link);
+  border-radius: 50%;
+  background-color: var(--site-surface);
+  content: "";
+}
+
+.dns-cname-node:not(:last-child)::after {
+  position: absolute;
+  top: 0.95rem;
+  bottom: 0;
+  left: 0.6rem;
+  border-left: 2px solid var(--site-border);
+  content: "";
+}
+
+.dns-cname-terminal {
+  padding-bottom: 0;
+}
+
+.dns-cname-terminal::before {
+  background-color: var(--site-link);
+}
+
+.dns-cname-step-label {
+  color: var(--site-muted-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dns-cname-name {
+  display: block;
+  color: var(--site-text);
+  overflow-wrap: anywhere;
+}
+
+.dns-cname-connector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+  margin-top: 0.4rem;
+  color: var(--site-muted-text);
+  font-size: 0.75rem;
+}
+
+.dns-cname-terminal-record {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+  margin-top: 0.45rem;
+}
+
 .metrics-series-label {
   color: var(--site-muted-text);
 }

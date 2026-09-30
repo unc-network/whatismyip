@@ -49,6 +49,7 @@ def test_dns_lookup_page_renders_when_enabled(app, client):
     response = client.get("/dns-lookup")
     assert response.status_code == 200
     assert b"Answer comparison" in response.data
+    assert b"How CNAME aliases connect" in response.data
     assert b"DNS Lookup" in response.data
 
 

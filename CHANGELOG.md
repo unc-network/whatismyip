@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.11.1] - 2026-09-30
+
+### Added
+
+- **CNAME chain explainer** — discovered aliases are displayed in resolution order for each resolver, with a plain-language explanation, per-hop TTLs, and the final address or record when present.
+
 ## [1.11.0] - 2026-09-30
 
 ### Added
