@@ -183,6 +183,18 @@ lon = 0.0
 # URL blocked by your DNS security filtering service (leave empty to disable the test)
 security_filter_test_url = ""
 
+# Optional /dns-lookup comparison page
+lookup_enabled = true
+page_campus_only = false
+internal_results_campus_only = true
+internal_resolver = "192.0.2.53"
+public_resolver = "8.8.8.8"
+query_timeout_seconds = 3.0
+queries_per_minute = 30
+global_queries_per_minute = 300
+max_concurrent_lookups = 4
+allowed_record_types = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "PTR"]
+
 [map]
 # "leaflet" uses OpenStreetMap tiles — free, no API key required (default)
 # "google"  uses the Google Maps JavaScript API — requires FLASK_GOOGLE_MAPS_API_KEY
@@ -200,6 +212,18 @@ networks = [
 The `[site]` block provides the ISP name and geolocation used when a visitor's IP is a private or campus address that the public geolocation API cannot resolve.
 
 Networks are parsed into `ipaddress.ip_network` objects at startup — changes require a restart.
+
+The optional DNS lookup page sends queries from the application server directly
+to the configured internal and public resolvers. By default the page can be
+opened by anyone, but internal split-horizon answers are returned only to
+clients whose address matches `[campus].networks`. Set `page_campus_only = true`
+to restrict the whole page. Resolver addresses are configuration-only and
+cannot be supplied by visitors.
+
+The application rejects request bodies larger than 16 KiB, applies both
+per-client and process-wide query limits, and permits at most four DNS lookups
+to execute concurrently per process. DNS answer output is capped at 100 records
+and 64 KiB of record data; the page reports when an answer was truncated.
 
 ### DNS security filtering test
 

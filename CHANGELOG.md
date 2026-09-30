@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.11.0] - 2026-09-30
+
+### Added
+
+- **DNS lookup comparison page** — added `/dns-lookup`, which queries configured campus and public recursive resolvers concurrently and presents their records in one comparison table with remaining TTLs, response status, and query latency.
+- **Split-horizon access controls** — internal DNS answers are campus-only by default, enforced by `/api/dns-lookup`; the page can remain public or be restricted entirely through `data/config.toml`.
+- **Negative caching diagnostics** — NXDOMAIN and empty responses include the RFC 2308 negative-cache TTL derived from the authority SOA record when available.
+- **DNS lookup safeguards** — resolver addresses and allowed record types are configuration-controlled, query input is validated, requests have bounded timeouts, TCP fallback is supported for truncated UDP responses, and per-client rate limiting is applied.
+- **DNS resource bounds** — added a 16 KiB request limit, process-wide query rate and concurrency limits, a reusable bounded worker pool, and explicit DNS answer record/data caps with a visible truncation notice.
+- **DNS lookup usage metrics** — DNS comparison executions are counted without retaining queried names and displayed in Site Statistics with campus/off-campus usage and matching, different, public-only, or incomplete outcomes.
+
+### Changed
+
+- **Navigation and sitemap** — added the DNS Lookup page to the primary navigation when enabled and to the public sitemap.
+
+### Fixed
+
+- **DNS lookup form alignment** — aligned the domain field, record-type selector, and Query button from their label rows and normalized their heights so the help text and MDB control defaults no longer create visibly uneven controls.
+- **DNS error disclosure** — detailed resolver and socket failures are now logged server-side while clients receive a generic error message.
+
 ## [1.10.5] - 2026-07-31
 
 ### Documentation

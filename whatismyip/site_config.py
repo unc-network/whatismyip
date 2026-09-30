@@ -59,6 +59,45 @@ def load_site_config(app: Flask) -> None:
                 "DNS security filter test URL not configured — test disabled."
             )
 
+        dns_section = site_cfg.get("dns", {})
+        app.config["DNS_LOOKUP_ENABLED"] = bool(
+            dns_section.get("lookup_enabled", False)
+        )
+        app.config["DNS_LOOKUP_PAGE_CAMPUS_ONLY"] = bool(
+            dns_section.get("page_campus_only", False)
+        )
+        app.config["DNS_LOOKUP_INTERNAL_CAMPUS_ONLY"] = bool(
+            dns_section.get("internal_results_campus_only", True)
+        )
+        app.config["DNS_LOOKUP_INTERNAL_RESOLVER"] = _parse_resolver_address(
+            app, dns_section.get("internal_resolver", ""), "internal"
+        )
+        app.config["DNS_LOOKUP_PUBLIC_RESOLVER"] = _parse_resolver_address(
+            app, dns_section.get("public_resolver", "8.8.8.8"), "public"
+        )
+        allowed_types = dns_section.get(
+            "allowed_record_types",
+            ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "PTR"],
+        )
+        valid_types = {"A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "PTR"}
+        app.config["DNS_LOOKUP_ALLOWED_TYPES"] = [
+            str(value).upper()
+            for value in allowed_types
+            if str(value).upper() in valid_types
+        ] or ["A", "AAAA"]
+        app.config["DNS_LOOKUP_TIMEOUT"] = _bounded_float(
+            dns_section.get("query_timeout_seconds", 3.0), 3.0, 0.25, 10.0
+        )
+        app.config["DNS_LOOKUP_RATE_LIMIT"] = _bounded_int(
+            dns_section.get("queries_per_minute", 30), 30, 1, 300
+        )
+        app.config["DNS_LOOKUP_GLOBAL_RATE_LIMIT"] = _bounded_int(
+            dns_section.get("global_queries_per_minute", 300), 300, 1, 3000
+        )
+        app.config["DNS_LOOKUP_MAX_CONCURRENT"] = _bounded_int(
+            dns_section.get("max_concurrent_lookups", 4), 4, 1, 4
+        )
+
         map_provider = site_cfg.get("map", {}).get("provider", "leaflet")
         if map_provider not in ("google", "leaflet"):
             app.logger.warning(
@@ -133,6 +172,35 @@ def _parse_campus_networks(
     return networks
 
 
+def _parse_resolver_address(app: Flask, value: object, label: str) -> str:
+    address = str(value).strip()
+    if not address:
+        return ""
+    try:
+        return str(ipaddress.ip_address(address))
+    except ValueError:
+        app.logger.warning(
+            f"Ignoring invalid {label} DNS resolver address: {address!r}"
+        )
+        return ""
+
+
+def _bounded_float(
+    value: object, default: float, minimum: float, maximum: float
+) -> float:
+    try:
+        return max(minimum, min(maximum, float(value)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _bounded_int(value: object, default: int, minimum: int, maximum: int) -> int:
+    try:
+        return max(minimum, min(maximum, int(value)))
+    except (TypeError, ValueError):
+        return default
+
+
 def _write_default_config() -> None:
     """Seed SITE_CONFIG_PATH from data/config.toml.example on first deploy."""
     example = os.path.join(
@@ -151,6 +219,25 @@ def _write_default_config() -> None:
 def _apply_defaults(app: Flask) -> None:
     app.config["CAMPUS_NETWORKS"] = []
     app.config["DNS_SECURITY_TEST_URL"] = ""
+    app.config["DNS_LOOKUP_ENABLED"] = False
+    app.config["DNS_LOOKUP_PAGE_CAMPUS_ONLY"] = False
+    app.config["DNS_LOOKUP_INTERNAL_CAMPUS_ONLY"] = True
+    app.config["DNS_LOOKUP_INTERNAL_RESOLVER"] = ""
+    app.config["DNS_LOOKUP_PUBLIC_RESOLVER"] = "8.8.8.8"
+    app.config["DNS_LOOKUP_ALLOWED_TYPES"] = [
+        "A",
+        "AAAA",
+        "CNAME",
+        "MX",
+        "TXT",
+        "NS",
+        "SOA",
+        "PTR",
+    ]
+    app.config["DNS_LOOKUP_TIMEOUT"] = 3.0
+    app.config["DNS_LOOKUP_RATE_LIMIT"] = 30
+    app.config["DNS_LOOKUP_GLOBAL_RATE_LIMIT"] = 300
+    app.config["DNS_LOOKUP_MAX_CONCURRENT"] = 4
     app.config["MAP_PROVIDER"] = "leaflet"
     app.config["SITE_NAME"] = ""
     app.config["SITE_CITY"] = ""

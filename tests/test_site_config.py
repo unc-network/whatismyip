@@ -113,3 +113,39 @@ def test_load_site_config_falls_back_on_invalid_toml(tmp_path):
             sc.SITE_CONFIG_PATH = original
 
     assert app.config["CAMPUS_NETWORKS"] == []
+
+
+def test_load_site_config_applies_dns_lookup_settings(tmp_path):
+    cfg = tmp_path / "config.toml"
+    cfg.write_text("""[campus]
+networks = []
+[dns]
+lookup_enabled = true
+internal_resolver = "172.22.255.100"
+public_resolver = "8.8.8.8"
+allowed_record_types = ["A", "TXT", "ANY"]
+query_timeout_seconds = 25
+queries_per_minute = 0
+global_queries_per_minute = 5000
+max_concurrent_lookups = 20
+""")
+    from whatismyip.site_config import load_site_config
+
+    app = create_app({"TESTING": True, "METRICS_DB_PATH": str(tmp_path / "m.sqlite3")})
+    with app.app_context():
+        import whatismyip.site_config as sc
+
+        original = sc.SITE_CONFIG_PATH
+        sc.SITE_CONFIG_PATH = str(cfg)
+        try:
+            load_site_config(app)
+        finally:
+            sc.SITE_CONFIG_PATH = original
+
+    assert app.config["DNS_LOOKUP_ENABLED"] is True
+    assert app.config["DNS_LOOKUP_INTERNAL_RESOLVER"] == "172.22.255.100"
+    assert app.config["DNS_LOOKUP_ALLOWED_TYPES"] == ["A", "TXT"]
+    assert app.config["DNS_LOOKUP_TIMEOUT"] == 10.0
+    assert app.config["DNS_LOOKUP_RATE_LIMIT"] == 1
+    assert app.config["DNS_LOOKUP_GLOBAL_RATE_LIMIT"] == 3000
+    assert app.config["DNS_LOOKUP_MAX_CONCURRENT"] == 4

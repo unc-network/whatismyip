@@ -312,6 +312,34 @@ html[data-theme="dark"] .text-muted {
   font-weight: 700;
 }
 
+.dns-comparison-table th,
+.dns-comparison-table td {
+  vertical-align: middle;
+}
+
+#dns-lookup-form .form-control,
+#dns-lookup-form .form-select,
+#dns-lookup-form .btn {
+  height: 40px;
+}
+
+.dns-record-type {
+  display: inline-block;
+  min-width: 3.5rem;
+  color: var(--site-muted-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.dns-answer-data,
+.dns-resolver-address {
+  overflow-wrap: anywhere;
+}
+
+.dns-answer-data {
+  color: var(--site-text);
+}
+
 .metrics-series-label {
   color: var(--site-muted-text);
 }

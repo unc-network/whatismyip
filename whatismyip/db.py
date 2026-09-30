@@ -59,7 +59,8 @@ def ensure_metrics_store() -> None:
                 dns_ip TEXT,
                 dns_geo TEXT,
                 edns_ip TEXT,
-                edns_geo TEXT
+                edns_geo TEXT,
+                dns_lookup_outcome TEXT
             )
             """)
 
@@ -83,6 +84,7 @@ def ensure_metrics_store() -> None:
             ("dns_geo", "TEXT"),
             ("edns_ip", "TEXT"),
             ("edns_geo", "TEXT"),
+            ("dns_lookup_outcome", "TEXT"),
         ]:
             if col not in columns:
                 conn.execute(
@@ -148,6 +150,7 @@ def log_metrics_event(
     dns_geo: str | None = None,
     edns_ip: str | None = None,
     edns_geo: str | None = None,
+    dns_lookup_outcome: str | None = None,
 ) -> None:
     """Store a single aggregate metrics event without persisting raw IP addresses."""
     try:
@@ -175,8 +178,9 @@ def log_metrics_event(
                     dns_ip,
                     dns_geo,
                     edns_ip,
-                    edns_geo
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    edns_geo,
+                    dns_lookup_outcome
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     datetime.now(timezone.utc).isoformat(),
@@ -199,6 +203,7 @@ def log_metrics_event(
                     dns_geo,
                     edns_ip,
                     edns_geo,
+                    dns_lookup_outcome,
                 ),
             )
     except Exception as error:  # pragma: no cover - metrics must not break diagnostics
@@ -468,6 +473,55 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
             )
         )
 
+        total_dns_lookups = conn.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM metrics_events
+            WHERE event_type = ? AND created_at >= ?
+            """,
+            ("dns_lookup", cutoff),
+        ).fetchone()["total"]
+
+        dns_lookup_origin_breakdown = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT CASE is_campus
+                         WHEN 1 THEN 'On campus'
+                         WHEN 0 THEN 'Off campus'
+                         ELSE 'Unknown'
+                       END AS label,
+                       COUNT(*) AS count
+                FROM metrics_events
+                WHERE event_type = ? AND created_at >= ?
+                GROUP BY is_campus
+                ORDER BY count DESC
+                """,
+                ("dns_lookup", cutoff),
+            )
+        )
+
+        dns_lookup_outcome_breakdown = _with_percentages(
+            _count_by_query(
+                conn,
+                """
+                SELECT CASE dns_lookup_outcome
+                         WHEN 'matching'    THEN 'Matching answers'
+                         WHEN 'different'   THEN 'Different answers'
+                         WHEN 'public_only' THEN 'Public view only'
+                         WHEN 'incomplete'  THEN 'Incomplete or unavailable'
+                         ELSE 'Unknown'
+                       END AS label,
+                       COUNT(*) AS count
+                FROM metrics_events
+                WHERE event_type = ? AND created_at >= ?
+                GROUP BY dns_lookup_outcome
+                ORDER BY count DESC
+                """,
+                ("dns_lookup", cutoff),
+            )
+        )
+
         page_view_breakdown = _with_percentages(
             _count_by_query(
                 conn,
@@ -499,6 +553,9 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
         "purpose_breakdown": purpose_breakdown,
         "dns_filtering_breakdown": dns_filtering_breakdown,
         "dns_geo_breakdown": dns_geo_breakdown,
+        "total_dns_lookups": total_dns_lookups,
+        "dns_lookup_origin_breakdown": dns_lookup_origin_breakdown,
+        "dns_lookup_outcome_breakdown": dns_lookup_outcome_breakdown,
         "page_view_breakdown": page_view_breakdown,
         "daily_page_views_series": daily_page_views_series,
     }

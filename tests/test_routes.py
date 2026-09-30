@@ -33,6 +33,9 @@ def _metrics_stub():
         "purpose_breakdown": [],
         "dns_filtering_breakdown": [],
         "dns_geo_breakdown": [],
+        "total_dns_lookups": 0,
+        "dns_lookup_origin_breakdown": [],
+        "dns_lookup_outcome_breakdown": [],
     }
 
 
@@ -47,6 +50,7 @@ def test_metrics_route_is_public_when_no_auth_configured(app, client, monkeypatc
 
     assert response.status_code == 200
     assert b"Site Statistics" in response.data
+    assert b"DNS comparison lookups" in response.data
 
 
 def test_metrics_route_requires_auth_when_configured(app, client, monkeypatch):
@@ -71,6 +75,7 @@ def test_sitemap_includes_core_pages(client):
     assert b"whatismyip.unc.edu/about" in response.data
     assert b"whatismyip.unc.edu/metrics" in response.data
     assert b"whatismyip.unc.edu/connectivity" in response.data
+    assert b"whatismyip.unc.edu/dns-lookup" in response.data
 
 
 @pytest.mark.parametrize(
@@ -249,3 +254,241 @@ def test_hostinfo_external_failures_degrade_gracefully(client, monkeypatch):
     response = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
     assert response.status_code == 200
     assert response.get_json()["client_address"] == "10.0.0.1"
+
+
+# --- /api/dns-lookup tests ---
+
+
+def _dns_response_for_targets(name, record_type, targets, timeout):
+    return [
+        {
+            "id": target["id"],
+            "label": target["label"],
+            "address": target["address"],
+            "status": "success",
+            "rcode": "NOERROR",
+            "latency_ms": 4,
+            "negative_ttl": None,
+            "answers": [
+                {
+                    "name": name,
+                    "type": record_type,
+                    "ttl": 300,
+                    "data": "192.0.2.10",
+                }
+            ],
+            "error": None,
+        }
+        for target in targets
+    ]
+
+
+def test_dns_lookup_off_campus_queries_only_public(app, client, monkeypatch):
+    metric_events = []
+    app.config.update(
+        DNS_LOOKUP_ENABLED=True,
+        DNS_LOOKUP_INTERNAL_RESOLVER="172.22.255.100",
+        DNS_LOOKUP_PUBLIC_RESOLVER="8.8.8.8",
+        DNS_LOOKUP_INTERNAL_CAMPUS_ONLY=True,
+        DNS_LOOKUP_RATE_LIMIT=300,
+    )
+    monkeypatch.setattr("whatismyip.routes.api.is_campus_ip", lambda address: False)
+    monkeypatch.setattr(
+        "whatismyip.routes.api.query_resolvers", _dns_response_for_targets
+    )
+    monkeypatch.setattr(
+        "whatismyip.routes.api.log_metrics_event",
+        lambda event_type, **values: metric_events.append((event_type, values)),
+    )
+
+    response = client.post("/api/dns-lookup", json={"name": "Example.COM", "type": "A"})
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert response.cache_control.no_store is True
+    assert data["internal_included"] is False
+    assert [result["id"] for result in data["results"]] == ["public"]
+    assert data["query"] == {"name": "example.com.", "type": "A"}
+    assert metric_events == [
+        (
+            "dns_lookup",
+            {"is_campus": False, "dns_lookup_outcome": "public_only"},
+        )
+    ]
+
+
+def test_dns_lookup_on_campus_compares_internal_and_public(app, client, monkeypatch):
+    metric_events = []
+    app.config.update(
+        DNS_LOOKUP_ENABLED=True,
+        DNS_LOOKUP_INTERNAL_RESOLVER="172.22.255.100",
+        DNS_LOOKUP_PUBLIC_RESOLVER="8.8.8.8",
+        DNS_LOOKUP_INTERNAL_CAMPUS_ONLY=True,
+        DNS_LOOKUP_RATE_LIMIT=300,
+    )
+    monkeypatch.setattr("whatismyip.routes.api.is_campus_ip", lambda address: True)
+    monkeypatch.setattr(
+        "whatismyip.routes.api.query_resolvers", _dns_response_for_targets
+    )
+    monkeypatch.setattr(
+        "whatismyip.routes.api.log_metrics_event",
+        lambda event_type, **values: metric_events.append((event_type, values)),
+    )
+
+    response = client.post("/api/dns-lookup", json={"name": "example.com", "type": "A"})
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["internal_included"] is True
+    assert [result["id"] for result in data["results"]] == ["internal", "public"]
+    assert data["comparison"]["same_answers"] is True
+    assert data["comparison"]["rows"][0]["internal_ttl"] == 300
+    assert data["comparison"]["rows"][0]["public_ttl"] == 300
+    assert metric_events == [
+        (
+            "dns_lookup",
+            {"is_campus": True, "dns_lookup_outcome": "matching"},
+        )
+    ]
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {},
+        {"name": "bad name", "type": "A"},
+        {"name": "example.com", "type": "ANY"},
+        {"name": "example.com", "type": "PTR"},
+    ],
+)
+def test_dns_lookup_rejects_invalid_queries(app, client, payload):
+    app.config["DNS_LOOKUP_ENABLED"] = True
+    app.config["DNS_LOOKUP_RATE_LIMIT"] = 300
+    response = client.post("/api/dns-lookup", json=payload)
+    assert response.status_code == 400
+    assert response.cache_control.no_store is True
+
+
+def test_dns_lookup_api_returns_404_when_disabled(app, client):
+    app.config["DNS_LOOKUP_ENABLED"] = False
+    assert (
+        client.post("/api/dns-lookup", json={"name": "example.com"}).status_code == 404
+    )
+
+
+def test_dns_lookup_rate_limits_each_client(app, client, monkeypatch):
+    import whatismyip.routes.api as api_routes
+
+    api_routes._dns_rate_windows.clear()
+    api_routes._dns_global_window.clear()
+    app.config.update(
+        DNS_LOOKUP_ENABLED=True,
+        DNS_LOOKUP_INTERNAL_RESOLVER="",
+        DNS_LOOKUP_PUBLIC_RESOLVER="8.8.8.8",
+        DNS_LOOKUP_RATE_LIMIT=1,
+    )
+    monkeypatch.setattr(
+        "whatismyip.routes.api.query_resolvers", _dns_response_for_targets
+    )
+
+    first = client.post("/api/dns-lookup", json={"name": "example.com", "type": "A"})
+    second = client.post("/api/dns-lookup", json={"name": "example.com", "type": "A"})
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.headers["Retry-After"] == "60"
+    api_routes._dns_rate_windows.clear()
+    api_routes._dns_global_window.clear()
+
+
+def test_dns_lookup_rejects_non_json_without_consuming_quota(app, client, monkeypatch):
+    import whatismyip.routes.api as api_routes
+
+    api_routes._dns_rate_windows.clear()
+    api_routes._dns_global_window.clear()
+    app.config.update(
+        DNS_LOOKUP_ENABLED=True,
+        DNS_LOOKUP_INTERNAL_RESOLVER="",
+        DNS_LOOKUP_PUBLIC_RESOLVER="8.8.8.8",
+        DNS_LOOKUP_RATE_LIMIT=1,
+        DNS_LOOKUP_GLOBAL_RATE_LIMIT=10,
+    )
+    monkeypatch.setattr(
+        "whatismyip.routes.api.query_resolvers", _dns_response_for_targets
+    )
+
+    rejected = client.post(
+        "/api/dns-lookup",
+        data="name=example.com",
+        content_type="application/x-www-form-urlencoded",
+    )
+    valid = client.post("/api/dns-lookup", json={"name": "example.com", "type": "A"})
+
+    assert rejected.status_code == 415
+    assert valid.status_code == 200
+    api_routes._dns_rate_windows.clear()
+    api_routes._dns_global_window.clear()
+
+
+def test_dns_lookup_rejects_oversized_json(app, client):
+    app.config["DNS_LOOKUP_ENABLED"] = True
+    app.config["MAX_CONTENT_LENGTH"] = 128
+
+    response = client.post("/api/dns-lookup", json={"name": "a" * 1000, "type": "A"})
+
+    assert response.status_code == 413
+    assert response.get_json()["error"] == "The DNS query request is too large."
+
+
+def test_dns_lookup_applies_global_rate_limit(app, client, monkeypatch):
+    import whatismyip.routes.api as api_routes
+
+    api_routes._dns_rate_windows.clear()
+    api_routes._dns_global_window.clear()
+    app.config.update(
+        DNS_LOOKUP_ENABLED=True,
+        DNS_LOOKUP_INTERNAL_RESOLVER="",
+        DNS_LOOKUP_PUBLIC_RESOLVER="8.8.8.8",
+        DNS_LOOKUP_RATE_LIMIT=10,
+        DNS_LOOKUP_GLOBAL_RATE_LIMIT=1,
+    )
+    monkeypatch.setattr(
+        "whatismyip.routes.api.query_resolvers", _dns_response_for_targets
+    )
+
+    first = client.post(
+        "/api/dns-lookup",
+        json={"name": "example.com", "type": "A"},
+        environ_base={"REMOTE_ADDR": "192.0.2.1"},
+    )
+    second = client.post(
+        "/api/dns-lookup",
+        json={"name": "example.com", "type": "A"},
+        environ_base={"REMOTE_ADDR": "192.0.2.2"},
+    )
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    api_routes._dns_rate_windows.clear()
+    api_routes._dns_global_window.clear()
+
+
+def test_dns_lookup_rejects_when_all_query_slots_are_busy(app, client, monkeypatch):
+    import whatismyip.routes.api as api_routes
+
+    api_routes._dns_rate_windows.clear()
+    api_routes._dns_global_window.clear()
+    app.config.update(
+        DNS_LOOKUP_ENABLED=True,
+        DNS_LOOKUP_INTERNAL_RESOLVER="",
+        DNS_LOOKUP_PUBLIC_RESOLVER="8.8.8.8",
+        DNS_LOOKUP_RATE_LIMIT=10,
+        DNS_LOOKUP_GLOBAL_RATE_LIMIT=10,
+        DNS_LOOKUP_MAX_CONCURRENT=1,
+    )
+    monkeypatch.setattr(api_routes, "_dns_inflight", 1)
+
+    response = client.post("/api/dns-lookup", json={"name": "example.com", "type": "A"})
+
+    assert response.status_code == 503
+    assert response.headers["Retry-After"] == "2"

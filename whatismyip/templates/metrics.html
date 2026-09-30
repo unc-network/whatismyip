@@ -421,6 +421,50 @@
   <div class="col-lg-6">
     <div class="card shadow h-100">
       <div class="card-body">
+        <div class="metrics-stat-label"><i class="fa-solid fa-magnifying-glass me-1" aria-hidden="true"></i>DNS comparison lookups</div>
+        <div class="metrics-stat-number">{{ '{:,}'.format(metrics.total_dns_lookups) }}</div>
+        <div class="metrics-stat-secondary">executed in the last {{ metrics.window_days }} days</div>
+        {% if metrics.dns_lookup_origin_breakdown %}
+          <div class="table-responsive mt-3">
+            <table class="table table-sm align-middle mb-0">
+              <thead><tr><th>Origin</th><th class="text-end">Lookups</th><th class="text-end">Share</th></tr></thead>
+              <tbody>
+                {% for row in metrics.dns_lookup_origin_breakdown %}
+                <tr><td>{{ row.label }}</td><td class="text-end">{{ row.count }}</td><td class="text-end">{{ row.percentage }}%</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow h-100">
+      <div class="card-body">
+        <h3 class="h5 card-title"><i class="fa-solid fa-code-compare text-primary me-2" aria-hidden="true"></i>DNS comparison outcomes</h3>
+        {% if metrics.dns_lookup_outcome_breakdown %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead><tr><th>Outcome</th><th class="text-end">Lookups</th><th class="text-end">Share</th></tr></thead>
+              <tbody>
+                {% for row in metrics.dns_lookup_outcome_breakdown %}
+                <tr><td>{{ row.label }}</td><td class="text-end">{{ row.count }}</td><td class="text-end">{{ row.percentage }}%</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="mb-0 text-muted">No DNS comparison data recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow h-100">
+      <div class="card-body">
         <h3 class="h5 card-title"><i class="fa-solid fa-shield-halved text-primary me-2" aria-hidden="true"></i>Campus DNS Security <small class="text-muted fw-normal" style="font-size:0.75em;">when configured</small></h3>
         {% if metrics.dns_filtering_breakdown %}
           <div style="position:relative;height:180px;" class="d-flex justify-content-center">

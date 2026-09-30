@@ -27,6 +27,7 @@ def client(app):
         ("/faq/", "/faq"),
         ("/speedtest/", "/speedtest"),
         ("/connectivity/", "/connectivity"),
+        ("/dns-lookup/", "/dns-lookup"),
     ],
 )
 def test_trailing_slash_redirects(client, path, location):
@@ -41,6 +42,26 @@ def test_trailing_slash_redirects(client, path, location):
 def test_connectivity_page_renders(client):
     response = client.get("/connectivity")
     assert response.status_code == 200
+
+
+def test_dns_lookup_page_renders_when_enabled(app, client):
+    app.config["DNS_LOOKUP_ENABLED"] = True
+    response = client.get("/dns-lookup")
+    assert response.status_code == 200
+    assert b"Answer comparison" in response.data
+    assert b"DNS Lookup" in response.data
+
+
+def test_dns_lookup_page_returns_404_when_disabled(app, client):
+    app.config["DNS_LOOKUP_ENABLED"] = False
+    assert client.get("/dns-lookup").status_code == 404
+
+
+def test_dns_lookup_page_can_be_restricted_to_campus(app, client, monkeypatch):
+    app.config["DNS_LOOKUP_ENABLED"] = True
+    app.config["DNS_LOOKUP_PAGE_CAMPUS_ONLY"] = True
+    monkeypatch.setattr("whatismyip.routes.pages.is_campus_ip", lambda address: False)
+    assert client.get("/dns-lookup").status_code == 403
 
 
 # --- Static file serving ---

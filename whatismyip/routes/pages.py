@@ -13,6 +13,7 @@ from flask import (
 )
 
 from whatismyip.db import log_page_view
+from whatismyip.utils import get_client_address, is_campus_ip
 
 bp = Blueprint("pages", __name__)
 
@@ -88,6 +89,41 @@ def connectivity() -> Response:
 @bp.route("/connectivity/")
 def connectivity_redirect() -> Response:
     return redirect("/connectivity", code=308)
+
+
+@bp.route("/dns-lookup")
+def dns_lookup() -> Response:
+    """Display the DNS resolver comparison page."""
+    if not current_app.config.get("DNS_LOOKUP_ENABLED", False):
+        abort(404)
+
+    client_address = get_client_address(
+        request.remote_addr, request.environ.get("HTTP_X_FORWARDED_FOR")
+    )
+    if current_app.config.get(
+        "DNS_LOOKUP_PAGE_CAMPUS_ONLY", False
+    ) and not is_campus_ip(client_address or ""):
+        abort(403)
+
+    log_page_view("DNS Lookup")
+    resp = make_response(
+        render_template(
+            "dns_lookup.html",
+            record_types=current_app.config.get("DNS_LOOKUP_ALLOWED_TYPES", []),
+        )
+    )
+    if current_app.config.get("DNS_LOOKUP_PAGE_CAMPUS_ONLY", False):
+        resp.cache_control.no_store = True
+        resp.cache_control.private = True
+    else:
+        resp.cache_control.public = True
+        resp.cache_control.max_age = 300
+    return resp
+
+
+@bp.route("/dns-lookup/")
+def dns_lookup_redirect() -> Response:
+    return redirect("/dns-lookup", code=308)
 
 
 @bp.route("/favicon.ico")
