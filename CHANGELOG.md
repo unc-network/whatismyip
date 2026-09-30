@@ -11,6 +11,7 @@ All notable changes to this project will be documented here. This project follow
 - **Negative caching diagnostics** — NXDOMAIN and empty responses include the RFC 2308 negative-cache TTL derived from the authority SOA record when available.
 - **DNS lookup safeguards** — resolver addresses and allowed record types are configuration-controlled, query input is validated, requests have bounded timeouts, TCP fallback is supported for truncated UDP responses, and per-client rate limiting is applied.
 - **DNS resource bounds** — added a 16 KiB request limit, process-wide query rate and concurrency limits, a reusable bounded worker pool, and explicit DNS answer record/data caps with a visible truncation notice.
+- **DNS lookup usage metrics** — DNS comparison executions are counted without retaining queried names and displayed in Site Statistics with campus/off-campus usage and matching, different, public-only, or incomplete outcomes.
 
 ### Changed
 

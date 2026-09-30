@@ -85,6 +85,26 @@ def test_log_metrics_event_dns_result(app):
     assert row["dns_geo"] == "US"
 
 
+def test_log_metrics_event_dns_lookup(app):
+    with app.app_context():
+        log_metrics_event(
+            "dns_lookup",
+            is_campus=True,
+            dns_lookup_outcome="different",
+        )
+        db_path = app.config["METRICS_DB_PATH"]
+
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM metrics_events WHERE event_type = 'dns_lookup'"
+        ).fetchone()
+
+    assert row is not None
+    assert row["is_campus"] == 1
+    assert row["dns_lookup_outcome"] == "different"
+
+
 def test_log_metrics_event_does_not_raise_on_bad_db(app, monkeypatch):
     monkeypatch.setitem(app.config, "METRICS_DB_PATH", "/no/such/dir/metrics.sqlite3")
     with app.app_context():
@@ -113,6 +133,9 @@ def test_get_metrics_dashboard_returns_expected_keys(app):
         "purpose_breakdown",
         "dns_filtering_breakdown",
         "dns_geo_breakdown",
+        "total_dns_lookups",
+        "dns_lookup_origin_breakdown",
+        "dns_lookup_outcome_breakdown",
     }
     assert expected <= data.keys()
 
@@ -122,6 +145,10 @@ def test_get_metrics_dashboard_counts_events(app):
         log_metrics_event("hostinfo", is_campus=True)
         log_metrics_event("hostinfo", is_campus=True)
         log_metrics_event("hostinfo", is_campus=False)
+        log_metrics_event("dns_lookup", is_campus=True, dns_lookup_outcome="matching")
+        log_metrics_event(
+            "dns_lookup", is_campus=False, dns_lookup_outcome="public_only"
+        )
         # clear cache so dashboard re-queries
         import whatismyip.db as db_module
 
@@ -132,6 +159,16 @@ def test_get_metrics_dashboard_counts_events(app):
     assert data["total_hostinfo"] == 3
     assert data["total_campus"] == 2
     assert data["total_remote"] == 1
+    assert data["total_dns_lookups"] == 2
+    assert {
+        row["label"]: row["count"] for row in data["dns_lookup_origin_breakdown"]
+    } == {
+        "On campus": 1,
+        "Off campus": 1,
+    }
+    assert {
+        row["label"]: row["count"] for row in data["dns_lookup_outcome_breakdown"]
+    } == {"Matching answers": 1, "Public view only": 1}
 
 
 def test_get_metrics_dashboard_uses_cache(app):

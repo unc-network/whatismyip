@@ -937,12 +937,26 @@ def dns_lookup() -> Response:
         )
     finally:
         _release_dns_slot()
+    comparison = compare_answers(results)
+    if not internal_allowed:
+        outcome = "public_only"
+    elif not comparison["comparable"]:
+        outcome = "incomplete"
+    elif comparison["same_answers"]:
+        outcome = "matching"
+    else:
+        outcome = "different"
+    log_metrics_event(
+        "dns_lookup",
+        is_campus=on_campus,
+        dns_lookup_outcome=outcome,
+    )
     return _dns_json(
         {
             "query": {"name": name, "type": record_type},
             "on_campus": on_campus,
             "internal_included": internal_allowed,
             "results": results,
-            "comparison": compare_answers(results),
+            "comparison": comparison,
         }
     )

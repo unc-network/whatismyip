@@ -33,6 +33,9 @@ def _metrics_stub():
         "purpose_breakdown": [],
         "dns_filtering_breakdown": [],
         "dns_geo_breakdown": [],
+        "total_dns_lookups": 0,
+        "dns_lookup_origin_breakdown": [],
+        "dns_lookup_outcome_breakdown": [],
     }
 
 
@@ -47,6 +50,7 @@ def test_metrics_route_is_public_when_no_auth_configured(app, client, monkeypatc
 
     assert response.status_code == 200
     assert b"Site Statistics" in response.data
+    assert b"DNS comparison lookups" in response.data
 
 
 def test_metrics_route_requires_auth_when_configured(app, client, monkeypatch):
@@ -280,6 +284,7 @@ def _dns_response_for_targets(name, record_type, targets, timeout):
 
 
 def test_dns_lookup_off_campus_queries_only_public(app, client, monkeypatch):
+    metric_events = []
     app.config.update(
         DNS_LOOKUP_ENABLED=True,
         DNS_LOOKUP_INTERNAL_RESOLVER="172.22.255.100",
@@ -291,6 +296,10 @@ def test_dns_lookup_off_campus_queries_only_public(app, client, monkeypatch):
     monkeypatch.setattr(
         "whatismyip.routes.api.query_resolvers", _dns_response_for_targets
     )
+    monkeypatch.setattr(
+        "whatismyip.routes.api.log_metrics_event",
+        lambda event_type, **values: metric_events.append((event_type, values)),
+    )
 
     response = client.post("/api/dns-lookup", json={"name": "Example.COM", "type": "A"})
     data = response.get_json()
@@ -300,9 +309,16 @@ def test_dns_lookup_off_campus_queries_only_public(app, client, monkeypatch):
     assert data["internal_included"] is False
     assert [result["id"] for result in data["results"]] == ["public"]
     assert data["query"] == {"name": "example.com.", "type": "A"}
+    assert metric_events == [
+        (
+            "dns_lookup",
+            {"is_campus": False, "dns_lookup_outcome": "public_only"},
+        )
+    ]
 
 
 def test_dns_lookup_on_campus_compares_internal_and_public(app, client, monkeypatch):
+    metric_events = []
     app.config.update(
         DNS_LOOKUP_ENABLED=True,
         DNS_LOOKUP_INTERNAL_RESOLVER="172.22.255.100",
@@ -314,6 +330,10 @@ def test_dns_lookup_on_campus_compares_internal_and_public(app, client, monkeypa
     monkeypatch.setattr(
         "whatismyip.routes.api.query_resolvers", _dns_response_for_targets
     )
+    monkeypatch.setattr(
+        "whatismyip.routes.api.log_metrics_event",
+        lambda event_type, **values: metric_events.append((event_type, values)),
+    )
 
     response = client.post("/api/dns-lookup", json={"name": "example.com", "type": "A"})
     data = response.get_json()
@@ -324,6 +344,12 @@ def test_dns_lookup_on_campus_compares_internal_and_public(app, client, monkeypa
     assert data["comparison"]["same_answers"] is True
     assert data["comparison"]["rows"][0]["internal_ttl"] == 300
     assert data["comparison"]["rows"][0]["public_ttl"] == 300
+    assert metric_events == [
+        (
+            "dns_lookup",
+            {"is_campus": True, "dns_lookup_outcome": "matching"},
+        )
+    ]
 
 
 @pytest.mark.parametrize(
