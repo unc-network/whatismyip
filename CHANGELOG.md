@@ -8,6 +8,10 @@ All notable changes to this project will be documented here. This project follow
 
 - **CNAME chain explainer** — discovered aliases are displayed in resolution order for each resolver, with a plain-language explanation, per-hop TTLs, and the final address or record when present.
 
+### Changed
+
+- **Human-readable DNS TTLs** — remaining cache lifetimes are displayed as seconds, minutes, hours, or days as appropriate, with the exact number of seconds available on hover.
+
 ## [1.11.0] - 2026-09-30
 
 ### Added

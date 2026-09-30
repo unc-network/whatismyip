@@ -340,6 +340,10 @@ html[data-theme="dark"] .text-muted {
   color: var(--site-text);
 }
 
+.dns-ttl {
+  cursor: help;
+}
+
 .dns-cname-resolver {
   padding: 1rem;
   border: 1px solid var(--site-border);

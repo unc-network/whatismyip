@@ -12,7 +12,7 @@
 <div class="row mt-3 mb-3">
   <div class="col">
     <h1 class="site-page-heading">DNS Lookup</h1>
-    <p class="site-page-subheading">Compare the campus DNS view with the public Internet view. TTL values show approximately how many seconds remain before each resolver refreshes its cached answer.</p>
+    <p class="site-page-subheading">Compare the campus DNS view with the public Internet view. TTL values show approximately how long each resolver may keep an answer cached before refreshing it.</p>
   </div>
 </div>
 
@@ -60,14 +60,6 @@
 
   <div id="dns-resolver-results" class="row g-3 mb-3"></div>
 
-  <div id="dns-cname-section" class="card shadow mb-3" hidden>
-    <div class="card-body">
-      <h3 class="h5 card-title"><i class="fa-solid fa-link text-primary me-2" aria-hidden="true"></i>How CNAME aliases connect</h3>
-      <p class="small text-muted">A CNAME makes one name an alias for another. DNS follows each alias in order until it reaches the final record. Every alias has its own TTL and may be cached for a different length of time.</p>
-      <div id="dns-cname-chains" class="row g-3"></div>
-    </div>
-  </div>
-
   <div class="card shadow">
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -87,6 +79,14 @@
     </div>
   </div>
   <p class="text-muted small mt-2 mb-0"><i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>TTLs are the remaining cache lifetimes reported by each recursive resolver, so they may differ even when the answers match.</p>
+
+  <div id="dns-cname-section" class="card shadow mt-3" hidden>
+    <div class="card-body">
+      <h3 class="h5 card-title"><i class="fa-solid fa-link text-primary me-2" aria-hidden="true"></i>How CNAME aliases connect</h3>
+      <p class="small text-muted">A CNAME makes one name an alias for another. DNS follows each alias in order until it reaches the final record. Every alias has its own TTL and may be cached for a different length of time.</p>
+      <div id="dns-cname-chains" class="row g-3"></div>
+    </div>
+  </div>
 </section>
 {% endblock %}
 
@@ -115,7 +115,29 @@
   }
 
   function ttl(value) {
-    return value === null || typeof value === 'undefined' ? '—' : escapeHtml(value) + 's';
+    if (value === null || typeof value === 'undefined') return '—';
+    var totalSeconds = Math.max(0, Math.floor(Number(value)));
+    if (!Number.isFinite(totalSeconds)) return '—';
+
+    var remaining = totalSeconds;
+    var units = [
+      ['day', 86400],
+      ['hour', 3600],
+      ['minute', 60],
+      ['second', 1]
+    ];
+    var parts = [];
+    units.forEach(function (unit) {
+      var amount = Math.floor(remaining / unit[1]);
+      if (amount && parts.length < 2) {
+        parts.push(amount + ' ' + unit[0] + (amount === 1 ? '' : 's'));
+      }
+      remaining %= unit[1];
+    });
+    if (!parts.length) parts.push('0 seconds');
+
+    var exact = totalSeconds + ' second' + (totalSeconds === 1 ? '' : 's');
+    return '<span class="dns-ttl" title="' + exact + '">' + parts.join(' ') + '</span>';
   }
 
   function resolverStatus(result) {
