@@ -2,7 +2,7 @@
 
 ## Code structure
 
-The application uses a Flask blueprint structure. `whatismyip/__init__.py` contains the `create_app()` factory; routes are split across `whatismyip/routes/` (`main.py` for the home page, `api.py` for `/hostinfo` and `/dns-result`, `pages.py` for static pages and error handlers, `metrics.py` for the dashboard). External API calls are organized by integration: `infoblox.py` (IPAM), `extreme.py` (XMC/NAC), `meraki.py` (Meraki Dashboard), and `utils.py` (geolocation, building lookup, shared helpers). Metrics storage lives in `whatismyip/db.py` and site config loading in `whatismyip/site_config.py`.
+The application uses a Flask blueprint structure. `whatismyip/__init__.py` contains the `create_app()` factory; routes are split across `whatismyip/routes/` (`main.py` for the home page, `api.py` for `/hostinfo`, `/dns-result`, and `/api/dns-lookup`, `pages.py` for static pages and error handlers, `metrics.py` for the dashboard). External API calls are organized by integration: `infoblox.py` (IPAM), `extreme.py` (XMC/NAC), `meraki.py` (Meraki Dashboard), `dns_lookup.py` (direct resolver queries and answer comparison), and `utils.py` (geolocation, building lookup, shared helpers). Metrics storage lives in `whatismyip/db.py` and site config loading in `whatismyip/site_config.py`.
 
 ## Detection flow
 

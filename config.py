@@ -51,6 +51,10 @@ class Config:  # pylint: disable=too-few-public-methods
     METRICS_TIME_WINDOW_DAYS = 30
     METRICS_RETENTION_DAYS = 90  # rows older than this are pruned on startup
 
+    # Request bodies are small JSON status/lookup documents. Keep an explicit
+    # ceiling so public POST endpoints cannot buffer arbitrarily large bodies.
+    MAX_CONTENT_LENGTH = 16 * 1024
+
     # Browser cache lifetime for static assets (CSS, JS, images) in seconds
     SEND_FILE_MAX_AGE_DEFAULT = 86400  # 1 day
 

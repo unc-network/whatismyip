@@ -45,6 +45,24 @@ indexnow_key = ""
 #   Cloudflare Gateway: "https://malware.testcategory.com/"
 security_filter_test_url = ""
 
+# Optional DNS answer comparison page. The application server sends ordinary
+# UDP/TCP DNS queries directly to these fixed resolvers; visitors cannot choose
+# a resolver. Leave disabled until the internal resolver is configured and
+# reachable from the application.
+lookup_enabled = false
+page_campus_only = false
+internal_results_campus_only = true
+internal_resolver = ""
+public_resolver = "8.8.8.8"
+query_timeout_seconds = 3.0
+# Per-client and process-wide accepted-query limits. Add ingress-level limits
+# as well when running multiple application processes or replicas.
+queries_per_minute = 30
+global_queries_per_minute = 300
+# Each lookup can use two executor threads, one per configured resolver.
+max_concurrent_lookups = 4
+allowed_record_types = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "PTR"]
+
 [map]
 
 # Map provider for displaying IP and campus building locations.

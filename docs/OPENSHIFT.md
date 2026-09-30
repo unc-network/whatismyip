@@ -182,9 +182,24 @@ networks = [
 # URL your DNS filtering service blocks — leave empty to disable the check
 security_filter_test_url = ""
 
+# Optional server-side DNS comparison page
+lookup_enabled = false
+page_campus_only = false
+internal_results_campus_only = true
+internal_resolver = "192.0.2.53"
+public_resolver = "8.8.8.8"
+queries_per_minute = 30
+global_queries_per_minute = 300
+max_concurrent_lookups = 4
+
 [map]
 provider = "leaflet"    # free OpenStreetMap; use "google" with FLASK_GOOGLE_MAPS_API_KEY
 ```
+
+The DNS rate and concurrency limits are enforced independently in each
+application process. If the deployment is expanded to multiple workers or
+replicas, apply a corresponding aggregate limit at the OpenShift ingress or
+institutional web application firewall.
 
 ---
 

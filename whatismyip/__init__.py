@@ -10,7 +10,7 @@ from flask_cors import CORS
 from whatismyip.db import _DEFAULT_METRICS_DB_PATH
 from whatismyip.site_config import load_site_config
 
-__version__ = "1.10.5"
+__version__ = "1.11.0"
 
 _APP_ROOT = os.path.join(os.path.dirname(__file__), "..")
 load_dotenv(os.path.join(_APP_ROOT, ".env"))
@@ -51,6 +51,7 @@ def create_app(test_config: dict | None = None) -> Flask:
             ipv4_url=app.config["IPV4_SERVER_URL"],
             ipv6_url=app.config["IPV6_SERVER_URL"],
             bing_verification_token=app.config.get("BING_VERIFICATION_TOKEN", ""),
+            dns_lookup_enabled=app.config.get("DNS_LOOKUP_ENABLED", False),
             app_version=__version__,
         )
 

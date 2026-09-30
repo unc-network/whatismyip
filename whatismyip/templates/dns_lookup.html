@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}DNS Lookup — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block meta_description %}Compare campus split-horizon DNS answers with the public Internet DNS view, including remaining cache TTLs.{% endblock %}
+{% block og_title %}DNS Lookup — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block og_description %}Compare campus and public DNS answers, response status, latency, and remaining cache TTLs.{% endblock %}
+{% block og_url %}{{ site_url }}/dns-lookup{% endblock %}
+{% block twitter_title %}DNS Lookup — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
+{% block twitter_description %}Compare campus and public DNS answers, response status, latency, and remaining cache TTLs.{% endblock %}
+
+{% block content %}
+<div class="row mt-3 mb-3">
+  <div class="col">
+    <h1 class="site-page-heading">DNS Lookup</h1>
+    <p class="site-page-subheading">Compare the campus DNS view with the public Internet view. TTL values show approximately how many seconds remain before each resolver refreshes its cached answer.</p>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-lg-8">
+    <div class="card shadow">
+      <div class="card-body">
+        <form id="dns-lookup-form">
+          <div class="row g-3 align-items-start">
+            <div class="col-md-7">
+              <label for="dns-name" class="form-label fw-semibold">Domain name or IP address</label>
+              <input type="text" class="form-control" id="dns-name" name="name"
+                     placeholder="example.unc.edu" autocomplete="off" spellcheck="false"
+                     maxlength="253" required aria-describedby="dns-name-help">
+              <div id="dns-name-help" class="form-text">For PTR lookups, enter an IPv4 or IPv6 address.</div>
+            </div>
+            <div class="col-sm-5 col-md-3">
+              <label for="dns-type" class="form-label fw-semibold">Record type</label>
+              <select class="form-select" id="dns-type" name="type">
+                {% for record_type in record_types %}
+                <option value="{{ record_type }}">{{ record_type }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-sm-7 col-md-2 d-grid">
+              <span class="form-label fw-semibold invisible" aria-hidden="true">Action</span>
+              <button class="btn btn-primary" id="dns-submit" type="submit">
+                <i class="fa-solid fa-magnifying-glass me-1" aria-hidden="true"></i>Query
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dns-status" class="mb-3" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<section id="dns-results" class="mb-5" aria-labelledby="dns-results-heading" hidden>
+  <div class="d-flex align-items-baseline justify-content-between flex-wrap gap-2 mb-2">
+    <h2 id="dns-results-heading" class="h4 mb-0">Answer comparison</h2>
+    <span id="dns-query-label" class="text-muted small"></span>
+  </div>
+
+  <div id="dns-resolver-results" class="row g-3 mb-3"></div>
+
+  <div class="card shadow">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table mb-0 dns-comparison-table">
+          <caption class="visually-hidden">DNS records and remaining TTL values from campus and Internet resolvers</caption>
+          <thead>
+            <tr>
+              <th scope="col">DNS answer</th>
+              <th scope="col" class="text-nowrap">Campus DNS TTL</th>
+              <th scope="col" class="text-nowrap">Internet DNS TTL</th>
+              <th scope="col">Comparison</th>
+            </tr>
+          </thead>
+          <tbody id="dns-answer-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <p class="text-muted small mt-2 mb-0"><i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>TTLs are the remaining cache lifetimes reported by each recursive resolver, so they may differ even when the answers match.</p>
+</section>
+{% endblock %}
+
+{% block javascript %}
+<script>
+(function () {
+  'use strict';
+
+  var form = document.getElementById('dns-lookup-form');
+  var nameInput = document.getElementById('dns-name');
+  var typeInput = document.getElementById('dns-type');
+  var button = document.getElementById('dns-submit');
+  var status = document.getElementById('dns-status');
+  var resultsSection = document.getElementById('dns-results');
+  var resolverResults = document.getElementById('dns-resolver-results');
+  var answerRows = document.getElementById('dns-answer-rows');
+  var queryLabel = document.getElementById('dns-query-label');
+  var endpoint = {{ url_for('api.dns_lookup') | tojson }};
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
+  function ttl(value) {
+    return value === null || typeof value === 'undefined' ? '—' : escapeHtml(value) + 's';
+  }
+
+  function resolverStatus(result) {
+    var labels = {
+      success: ['conn-badge-success', 'Answered'],
+      no_answer: ['conn-badge-warning', 'No records'],
+      nxdomain: ['conn-badge-warning', 'NXDOMAIN'],
+      timeout: ['conn-badge-danger', 'Timed out'],
+      dns_error: ['conn-badge-danger', result.rcode || 'DNS error'],
+      error: ['conn-badge-danger', 'Query failed']
+    };
+    return labels[result.status] || labels.error;
+  }
+
+  function renderResolver(result) {
+    var state = resolverStatus(result);
+    var details = [];
+    if (result.latency_ms !== null) details.push(escapeHtml(result.latency_ms) + ' ms');
+    if (result.negative_ttl !== null) details.push('negative cache TTL ' + ttl(result.negative_ttl));
+    if (result.answers_truncated) details.push('answer display truncated');
+    if (result.error) details.push(escapeHtml(result.error));
+    return '<div class="col-md-6"><div class="card h-100"><div class="card-body py-3">' +
+      '<div class="d-flex justify-content-between align-items-start gap-2">' +
+      '<h3 class="h6 mb-1">' + escapeHtml(result.label) + '</h3>' +
+      '<span class="' + state[0] + '">' + escapeHtml(state[1]) + '</span></div>' +
+      '<div class="small text-muted dns-resolver-address">' + escapeHtml(result.address) + '</div>' +
+      (details.length ? '<div class="small mt-2">' + details.join(' · ') + '</div>' : '') +
+      '</div></div></div>';
+  }
+
+  function comparisonLabel(value) {
+    if (value === 'both') return '<span class="conn-badge-success">Same answer</span>';
+    if (value === 'internal_only') return '<span class="conn-badge-warning">Campus only</span>';
+    return '<span class="conn-badge-warning">Internet only</span>';
+  }
+
+  function render(data) {
+    queryLabel.textContent = data.query.type + ' ' + data.query.name;
+    resolverResults.innerHTML = data.results.map(renderResolver).join('');
+
+    if (!data.internal_included) {
+      resolverResults.insertAdjacentHTML('afterbegin',
+        '<div class="col-md-6"><div class="card h-100"><div class="card-body py-3">' +
+        '<div class="d-flex justify-content-between align-items-start gap-2">' +
+        '<h3 class="h6 mb-1">Campus DNS</h3><span class="conn-badge-warning">Campus access required</span></div>' +
+        '<p class="small text-muted mb-0 mt-2">Connect from the campus network or VPN to include the internal DNS view.</p>' +
+        '</div></div></div>');
+    }
+
+    var rows = data.comparison.rows;
+    if (rows.length) {
+      answerRows.innerHTML = rows.map(function (row) {
+        return '<tr><td><span class="dns-record-type">' + escapeHtml(row.type) + '</span> ' +
+          '<code class="dns-answer-data">' + escapeHtml(row.data) + '</code>' +
+          '<div class="small text-muted">' + escapeHtml(row.name) + '</div></td>' +
+          '<td class="text-nowrap">' + ttl(row.internal_ttl) + '</td>' +
+          '<td class="text-nowrap">' + ttl(row.public_ttl) + '</td>' +
+          '<td>' + comparisonLabel(row.comparison) + '</td></tr>';
+      }).join('');
+    } else {
+      var messages = data.results.map(function (result) {
+        if (result.status === 'nxdomain') {
+          return escapeHtml(result.label) + ': name does not exist' +
+            (result.negative_ttl !== null ? ' (negative cache TTL ' + ttl(result.negative_ttl) + ')' : '');
+        }
+        if (result.status === 'no_answer') return escapeHtml(result.label) + ': no records of this type';
+        return escapeHtml(result.label) + ': ' + escapeHtml(result.error || result.rcode || 'no answer');
+      });
+      answerRows.innerHTML = '<tr><td colspan="4" class="text-muted py-3">' + messages.join('<br>') + '</td></tr>';
+    }
+
+    if (data.comparison.answers_truncated) {
+      status.innerHTML = '<span class="conn-badge-warning"><i class="fa-solid fa-triangle-exclamation me-1" aria-hidden="true"></i>Answer output was truncated, so the comparison may be incomplete.</span>';
+    } else if (data.comparison.comparable) {
+      status.innerHTML = data.comparison.same_answers
+        ? '<span class="conn-badge-success"><i class="fa-solid fa-circle-check me-1" aria-hidden="true"></i>The campus and Internet answers match.</span>'
+        : '<span class="conn-badge-warning"><i class="fa-solid fa-code-compare me-1" aria-hidden="true"></i>The campus and Internet answers differ.</span>';
+    } else if (!data.internal_included) {
+      status.innerHTML = '<span class="text-muted">Showing the Internet DNS view. Campus DNS results are available on the campus network or VPN.</span>';
+    } else {
+      status.innerHTML = '<span class="conn-badge-warning"><i class="fa-solid fa-triangle-exclamation me-1" aria-hidden="true"></i>A complete comparison is unavailable because one or more resolver queries failed.</span>';
+    }
+    resultsSection.hidden = false;
+  }
+
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    button.disabled = true;
+    form.setAttribute('aria-busy', 'true');
+    resultsSection.hidden = true;
+    status.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1" aria-hidden="true"></i>Querying DNS resolvers…';
+
+    try {
+      var response = await fetch(endpoint, {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ name: nameInput.value, type: typeInput.value })
+      });
+      var data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'The DNS query failed.');
+      render(data);
+    } catch (error) {
+      status.innerHTML = '<div class="alert alert-danger mb-0" role="alert">' + escapeHtml(error.message) + '</div>';
+    } finally {
+      button.disabled = false;
+      form.removeAttribute('aria-busy');
+    }
+  });
+}());
+</script>
+{% endblock %}

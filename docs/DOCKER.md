@@ -161,7 +161,7 @@ networks = [
 ]
 ```
 
-### `[dns]` — security filter test
+### `[dns]` — security filter and lookup tools
 
 If your campus uses DNS-based security filtering (Cisco Umbrella, Akamai ETP, Cloudflare Gateway, etc.), set the test URL here. The tool will check whether filtering is active for each visitor.
 
@@ -172,9 +172,23 @@ security_filter_test_url = "https://www.akamaietpphishingtest.com/"
 # Other examples:
 # security_filter_test_url = "https://internetbadguys.com/"         # Cisco Umbrella
 # security_filter_test_url = "https://malware.testcategory.com/"    # Cloudflare Gateway
+
+# Optional server-side split-horizon comparison page
+lookup_enabled = false
+page_campus_only = false
+internal_results_campus_only = true
+internal_resolver = "192.0.2.53"
+public_resolver = "8.8.8.8"
+queries_per_minute = 30
+global_queries_per_minute = 300
+max_concurrent_lookups = 4
 ```
 
-Leave the value as `""` to disable this test.
+The application container must be able to reach both resolvers on UDP and TCP
+port 53. Internal answers remain limited to clients matching
+`[campus].networks` unless `internal_results_campus_only` is disabled.
+
+Leave `security_filter_test_url` as `""` to disable the security filtering test.
 
 ### `[map]` — map provider
 

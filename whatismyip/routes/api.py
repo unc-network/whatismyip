@@ -2,9 +2,11 @@
 
 import ipaddress
 import os
+import threading
 import time
 
 import dns.exception
+import dns.name
 from dns import resolver, reversename
 from flask import (
     Blueprint,
@@ -16,8 +18,10 @@ from flask import (
     request,
 )
 from user_agents import parse
+from werkzeug.exceptions import RequestEntityTooLarge
 
 from whatismyip.db import log_metrics_event
+from whatismyip.dns_lookup import compare_answers, query_resolvers
 from whatismyip.infoblox import get_address_objects, get_network
 from whatismyip.utils import (
     get_client_address,
@@ -27,6 +31,12 @@ from whatismyip.utils import (
 )
 
 bp = Blueprint("api", __name__)
+
+_dns_rate_lock = threading.Lock()
+_dns_rate_windows: dict[str, list[float]] = {}
+_dns_global_window: list[float] = []
+_dns_inflight = 0
+_DNS_RATE_MAX_CLIENTS = 4096
 
 _SIMULATE_HOSTINFO = {
     4: {
@@ -749,3 +759,190 @@ def dns_result() -> Response:
         edns_geo=_clamp(data.get("edns_geo"), 200),
     )
     return jsonify({"ok": True})
+
+
+def _dns_json(payload: dict, status: int = 200) -> Response:
+    response = make_response(jsonify(payload), status)
+    response.cache_control.no_store = True
+    response.cache_control.private = True
+    return response
+
+
+def _dns_client_address() -> str:
+    return (
+        get_client_address(
+            request.remote_addr, request.environ.get("HTTP_X_FORWARDED_FOR")
+        )
+        or ""
+    )
+
+
+def _dns_rate_limited(client_address: str) -> bool:
+    global _dns_global_window
+
+    now = time.monotonic()
+    cutoff = now - 60
+    client_limit = current_app.config.get("DNS_LOOKUP_RATE_LIMIT", 30)
+    global_limit = current_app.config.get("DNS_LOOKUP_GLOBAL_RATE_LIMIT", 300)
+    try:
+        key = str(ipaddress.ip_address(client_address))
+    except ValueError:
+        key = "unknown"
+
+    with _dns_rate_lock:
+        _dns_global_window = [stamp for stamp in _dns_global_window if stamp > cutoff]
+        if len(_dns_global_window) >= global_limit:
+            return True
+
+        if (
+            key not in _dns_rate_windows
+            and len(_dns_rate_windows) >= _DNS_RATE_MAX_CLIENTS - 1
+        ):
+            stale = [
+                address
+                for address, stamps in _dns_rate_windows.items()
+                if not stamps or stamps[-1] <= cutoff
+            ]
+            for address in stale:
+                _dns_rate_windows.pop(address, None)
+            if len(_dns_rate_windows) >= _DNS_RATE_MAX_CLIENTS - 1:
+                key = "overflow"
+
+        recent = [stamp for stamp in _dns_rate_windows.get(key, []) if stamp > cutoff]
+        if len(recent) >= client_limit:
+            _dns_rate_windows[key] = recent
+            return True
+        recent.append(now)
+        _dns_rate_windows[key] = recent
+        _dns_global_window.append(now)
+        return False
+
+
+def _acquire_dns_slot() -> bool:
+    global _dns_inflight
+
+    with _dns_rate_lock:
+        maximum = current_app.config.get("DNS_LOOKUP_MAX_CONCURRENT", 4)
+        if _dns_inflight >= maximum:
+            return False
+        _dns_inflight += 1
+        return True
+
+
+def _release_dns_slot() -> None:
+    global _dns_inflight
+
+    with _dns_rate_lock:
+        _dns_inflight = max(0, _dns_inflight - 1)
+
+
+def _normalize_dns_query(raw_name: object, raw_type: object) -> tuple[str, str]:
+    record_type = str(raw_type or "A").upper().strip()
+    allowed_types = current_app.config.get("DNS_LOOKUP_ALLOWED_TYPES", [])
+    if record_type not in allowed_types:
+        raise ValueError("Select a supported DNS record type.")
+
+    candidate = str(raw_name or "").strip()
+    if not candidate or len(candidate) > 253:
+        raise ValueError("Enter a valid domain name or IP address.")
+    if any(character.isspace() or ord(character) < 32 for character in candidate):
+        raise ValueError("Enter a valid domain name or IP address.")
+
+    if record_type == "PTR":
+        try:
+            return reversename.from_address(candidate).to_text(), record_type
+        except (dns.exception.DNSException, ValueError) as exc:
+            raise ValueError(
+                "PTR lookups require a valid IPv4 or IPv6 address."
+            ) from exc
+
+    try:
+        query_name = dns.name.from_unicode(candidate.rstrip(".")).canonicalize()
+        if query_name == dns.name.root or len(query_name.to_wire()) > 255:
+            raise ValueError
+        return query_name.to_text(), record_type
+    except (dns.exception.DNSException, UnicodeError, ValueError) as exc:
+        raise ValueError("Enter a valid domain name.") from exc
+
+
+@bp.route("/api/dns-lookup", methods=["POST"])
+def dns_lookup() -> Response:
+    """Compare a DNS answer from configured internal and public resolvers."""
+    if not current_app.config.get("DNS_LOOKUP_ENABLED", False):
+        abort(404)
+
+    client_address = _dns_client_address()
+    on_campus = is_campus_ip(client_address)
+    if current_app.config.get("DNS_LOOKUP_PAGE_CAMPUS_ONLY", False) and not on_campus:
+        return _dns_json({"error": "DNS lookup is available only on campus."}, 403)
+
+    if not request.is_json:
+        return _dns_json({"error": "Send a JSON request body."}, 415)
+    try:
+        data = request.get_json(silent=True)
+    except RequestEntityTooLarge:
+        return _dns_json({"error": "The DNS query request is too large."}, 413)
+    if not isinstance(data, dict):
+        return _dns_json({"error": "Send a JSON request body."}, 400)
+    try:
+        name, record_type = _normalize_dns_query(data.get("name"), data.get("type"))
+    except ValueError as exc:
+        return _dns_json({"error": str(exc)}, 400)
+
+    if _dns_rate_limited(client_address):
+        response = _dns_json(
+            {"error": "Too many DNS queries. Please wait a minute and try again."},
+            429,
+        )
+        response.headers["Retry-After"] = "60"
+        return response
+
+    internal_address = current_app.config.get("DNS_LOOKUP_INTERNAL_RESOLVER", "")
+    public_address = current_app.config.get("DNS_LOOKUP_PUBLIC_RESOLVER", "")
+    internal_allowed = bool(internal_address) and (
+        on_campus or not current_app.config.get("DNS_LOOKUP_INTERNAL_CAMPUS_ONLY", True)
+    )
+    targets = []
+    if internal_allowed:
+        targets.append(
+            {
+                "id": "internal",
+                "label": "Campus DNS",
+                "address": internal_address,
+            }
+        )
+    if public_address:
+        targets.append(
+            {
+                "id": "public",
+                "label": "Internet DNS",
+                "address": public_address,
+            }
+        )
+    if not targets:
+        return _dns_json({"error": "No DNS resolvers are configured."}, 503)
+
+    if not _acquire_dns_slot():
+        response = _dns_json(
+            {"error": "DNS lookup is busy. Please try again shortly."}, 503
+        )
+        response.headers["Retry-After"] = "2"
+        return response
+    try:
+        results = query_resolvers(
+            name,
+            record_type,
+            targets,
+            current_app.config.get("DNS_LOOKUP_TIMEOUT", 3.0),
+        )
+    finally:
+        _release_dns_slot()
+    return _dns_json(
+        {
+            "query": {"name": name, "type": record_type},
+            "on_campus": on_campus,
+            "internal_included": internal_allowed,
+            "results": results,
+            "comparison": compare_answers(results),
+        }
+    )

@@ -170,6 +170,13 @@
 								   href="{{ site_url }}/connectivity"
 								   {% if request.path == '/connectivity' %}aria-current="page"{% endif %}>Connectivity</a>
 							</li>
+							{% if dns_lookup_enabled %}
+							<li class="nav-item">
+								<a class="nav-link small py-1{% if request.path == '/dns-lookup' %} active fw-semibold{% endif %}"
+								   href="{{ site_url }}/dns-lookup"
+								   {% if request.path == '/dns-lookup' %}aria-current="page"{% endif %}>DNS Lookup</a>
+							</li>
+							{% endif %}
 							<li class="nav-item">
 								<a class="nav-link small py-1{% if request.path == '/faq' %} active fw-semibold{% endif %}"
 								   href="{{ site_url }}/faq"
