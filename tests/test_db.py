@@ -145,6 +145,13 @@ def test_get_metrics_dashboard_counts_events(app):
         log_metrics_event("hostinfo", is_campus=True)
         log_metrics_event("hostinfo", is_campus=True)
         log_metrics_event("hostinfo", is_campus=False)
+        log_metrics_event(
+            "dns_result", is_campus=True, dns_filtering="active", dns_geo="US"
+        )
+        log_metrics_event(
+            "dns_result", is_campus=False, dns_filtering="inactive", dns_geo="US"
+        )
+        log_metrics_event("dns_result", dns_filtering="inconclusive", dns_geo="US")
         log_metrics_event("dns_lookup", is_campus=True, dns_lookup_outcome="matching")
         log_metrics_event(
             "dns_lookup", is_campus=False, dns_lookup_outcome="public_only"
@@ -160,6 +167,9 @@ def test_get_metrics_dashboard_counts_events(app):
     assert data["total_hostinfo"] == 3
     assert data["total_campus"] == 2
     assert data["total_remote"] == 1
+    assert data["dns_filtering_breakdown"] == [
+        {"label": "Active", "count": 1, "percentage": 100.0}
+    ]
     assert data["total_dns_lookups"] == 3
     assert {
         row["label"]: row["count"] for row in data["dns_lookup_origin_breakdown"]

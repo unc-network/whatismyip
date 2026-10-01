@@ -450,7 +450,8 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                        END AS label,
                        COUNT(*) AS count
                 FROM metrics_events
-                WHERE event_type = ? AND dns_filtering IS NOT NULL AND created_at >= ?
+                WHERE event_type = ? AND is_campus = 1
+                      AND dns_filtering IS NOT NULL AND created_at >= ?
                 GROUP BY dns_filtering
                 ORDER BY count DESC
                 """,

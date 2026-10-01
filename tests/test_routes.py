@@ -1,3 +1,5 @@
+import sqlite3
+
 import dns.exception
 import pytest
 
@@ -64,6 +66,26 @@ def test_metrics_route_requires_auth_when_configured(app, client, monkeypatch):
 
     authed = client.get("/metrics", headers={"Authorization": "Basic YWRtaW46c2VjcmV0"})
     assert authed.status_code == 200
+
+
+def test_dns_result_records_server_derived_campus_status(app, client, monkeypatch):
+    monkeypatch.setattr(
+        "whatismyip.routes.api.is_campus_ip",
+        lambda address: address == "192.0.2.10",
+    )
+
+    response = client.post(
+        "/dns-result",
+        json={"filtering": "active"},
+        headers={"X-Forwarded-For": "192.0.2.10, 172.22.1.10"},
+    )
+
+    assert response.status_code == 200
+    with sqlite3.connect(app.config["METRICS_DB_PATH"]) as conn:
+        row = conn.execute(
+            "SELECT is_campus FROM metrics_events WHERE event_type = 'dns_result'"
+        ).fetchone()
+    assert row == (1,)
 
 
 def test_sitemap_includes_core_pages(client):
