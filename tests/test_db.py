@@ -149,6 +149,7 @@ def test_get_metrics_dashboard_counts_events(app):
         log_metrics_event(
             "dns_lookup", is_campus=False, dns_lookup_outcome="public_only"
         )
+        log_metrics_event("dns_lookup", is_campus=True, dns_lookup_outcome="different")
         # clear cache so dashboard re-queries
         import whatismyip.db as db_module
 
@@ -159,16 +160,20 @@ def test_get_metrics_dashboard_counts_events(app):
     assert data["total_hostinfo"] == 3
     assert data["total_campus"] == 2
     assert data["total_remote"] == 1
-    assert data["total_dns_lookups"] == 2
+    assert data["total_dns_lookups"] == 3
     assert {
         row["label"]: row["count"] for row in data["dns_lookup_origin_breakdown"]
     } == {
-        "On campus": 1,
+        "On campus": 2,
         "Off campus": 1,
     }
     assert {
         row["label"]: row["count"] for row in data["dns_lookup_outcome_breakdown"]
-    } == {"Matching answers": 1, "Public view only": 1}
+    } == {
+        "Different answers": 1,
+        "Matching answers": 1,
+        "Public view only": 1,
+    }
 
 
 def test_get_metrics_dashboard_uses_cache(app):
