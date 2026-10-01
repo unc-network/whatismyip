@@ -31,11 +31,14 @@
             </div>
             <div class="col-sm-5 col-md-3">
               <label for="dns-type" class="form-label fw-semibold">Record type</label>
-              <select class="form-select" id="dns-type" name="type">
-                {% for record_type in record_types %}
-                <option value="{{ record_type }}">{{ record_type }}</option>
-                {% endfor %}
-              </select>
+              <div class="dns-select-wrap">
+                <select class="form-select" id="dns-type" name="type">
+                  {% for record_type in record_types %}
+                  <option value="{{ record_type }}">{{ record_type }}</option>
+                  {% endfor %}
+                </select>
+                <i class="fa-solid fa-chevron-down dns-select-icon" aria-hidden="true"></i>
+              </div>
             </div>
             <div class="col-sm-7 col-md-2 d-grid">
               <span class="form-label fw-semibold invisible" aria-hidden="true">Action</span>
