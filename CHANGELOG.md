@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.11.2] - 2026-10-01
+
+### Fixed
+
+- **DNS lookup dark-mode form contrast** — the query labels, help text, text field, record selector, placeholder, select arrow, Query button, autofill, and focus states now use accessible shared theme colors in both light and dark modes.
+
 ## [1.11.1] - 2026-09-30
 
 ### Added

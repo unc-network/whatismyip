@@ -323,6 +323,126 @@ html[data-theme="dark"] .text-muted {
   height: 40px;
 }
 
+/* Keep MDB form defaults aligned with the shared light/dark site palette. */
+#dns-lookup-form .form-label {
+  color: var(--site-text);
+}
+
+#dns-lookup-form .form-text {
+  color: var(--site-muted-text);
+}
+
+#dns-lookup-form .form-control,
+#dns-lookup-form .form-select {
+  color: var(--site-text);
+  background-color: var(--site-bg);
+  border-color: var(--site-border);
+}
+
+#dns-lookup-form .form-control::placeholder {
+  color: var(--site-muted-text);
+  opacity: 1;
+}
+
+#dns-lookup-form .form-control:hover,
+#dns-lookup-form .form-select:hover {
+  border-color: var(--site-link);
+}
+
+#dns-lookup-form .form-control:focus,
+#dns-lookup-form .form-select:focus {
+  color: var(--site-text);
+  background-color: var(--site-bg);
+  border-color: var(--site-link);
+  box-shadow: none;
+}
+
+#dns-lookup-form .form-control:focus-visible,
+#dns-lookup-form .form-select:focus-visible {
+  outline: 3px solid var(--site-link);
+  outline-offset: 2px;
+}
+
+#dns-lookup-form .form-control:-webkit-autofill,
+#dns-lookup-form .form-control:-webkit-autofill:hover,
+#dns-lookup-form .form-control:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--site-text);
+  box-shadow: 0 0 0 1000px var(--site-bg) inset;
+}
+
+.dns-select-wrap {
+  position: relative;
+}
+
+#dns-lookup-form .dns-select-wrap .form-select {
+  padding-right: 2.5rem;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: none;
+}
+
+.dns-select-icon {
+  position: absolute;
+  top: 50%;
+  right: 0.85rem;
+  color: var(--site-muted-text);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+#dns-lookup-form .form-select:focus + .dns-select-icon {
+  color: var(--site-link);
+}
+
+/* The DNS card uses the same Bolin Creek surface as primary buttons in dark mode. */
+#dns-submit,
+#dns-submit:disabled {
+  color: var(--unc-white);
+  background-color: var(--unc-bolin-creek);
+  border-color: var(--unc-bolin-creek);
+}
+
+#dns-submit:disabled {
+  opacity: 1;
+}
+
+#dns-submit:not(:disabled):not(.disabled):hover,
+#dns-submit:not(:disabled):not(.disabled):active,
+#dns-submit:not(:disabled):not(.disabled).active {
+  color: var(--unc-white);
+  background-color: var(--unc-navy);
+  border-color: var(--unc-navy);
+  filter: none;
+}
+
+#dns-submit:focus,
+#dns-submit:focus-visible {
+  outline: 3px solid var(--unc-navy);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] #dns-submit,
+html[data-theme="dark"] #dns-submit:disabled {
+  color: var(--unc-navy);
+  background-color: var(--unc-carolina-blue);
+  border-color: var(--unc-carolina-blue);
+}
+
+html[data-theme="dark"] #dns-submit:not(:disabled):not(.disabled):hover,
+html[data-theme="dark"] #dns-submit:not(:disabled):not(.disabled):active,
+html[data-theme="dark"] #dns-submit:not(:disabled):not(.disabled).active {
+  color: var(--unc-navy);
+  background-color: var(--unc-fordham-fountain);
+  border-color: var(--unc-fordham-fountain);
+  filter: none;
+}
+
+html[data-theme="dark"] #dns-submit:focus,
+html[data-theme="dark"] #dns-submit:focus-visible {
+  outline-color: var(--unc-white);
+}
+
 .dns-record-type {
   display: inline-block;
   min-width: 3.5rem;
