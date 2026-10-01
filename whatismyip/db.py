@@ -450,7 +450,8 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
                        END AS label,
                        COUNT(*) AS count
                 FROM metrics_events
-                WHERE event_type = ? AND dns_filtering IS NOT NULL AND created_at >= ?
+                WHERE event_type = ? AND is_campus = 1
+                      AND dns_filtering IS NOT NULL AND created_at >= ?
                 GROUP BY dns_filtering
                 ORDER BY count DESC
                 """,
@@ -473,53 +474,49 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
             )
         )
 
-        total_dns_lookups = conn.execute(
+        # Build all DNS lookup cards from one scan of the in-memory snapshot.
+        dns_lookup_groups = _count_by_query(
+            conn,
             """
-            SELECT COUNT(*) AS total
+            SELECT is_campus, dns_lookup_outcome, COUNT(*) AS count
             FROM metrics_events
             WHERE event_type = ? AND created_at >= ?
+            GROUP BY is_campus, dns_lookup_outcome
             """,
             ("dns_lookup", cutoff),
-        ).fetchone()["total"]
+        )
+        total_dns_lookups = sum(row["count"] for row in dns_lookup_groups)
+
+        origin_labels = {1: "On campus", 0: "Off campus"}
+        outcome_labels = {
+            "matching": "Matching answers",
+            "different": "Different answers",
+            "public_only": "Public view only",
+            "incomplete": "Incomplete or unavailable",
+        }
+        origin_counts: dict[str, int] = {}
+        outcome_counts: dict[str, int] = {}
+        for row in dns_lookup_groups:
+            origin = origin_labels.get(row["is_campus"], "Unknown")
+            outcome = outcome_labels.get(row["dns_lookup_outcome"], "Unknown")
+            origin_counts[origin] = origin_counts.get(origin, 0) + row["count"]
+            outcome_counts[outcome] = outcome_counts.get(outcome, 0) + row["count"]
 
         dns_lookup_origin_breakdown = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT CASE is_campus
-                         WHEN 1 THEN 'On campus'
-                         WHEN 0 THEN 'Off campus'
-                         ELSE 'Unknown'
-                       END AS label,
-                       COUNT(*) AS count
-                FROM metrics_events
-                WHERE event_type = ? AND created_at >= ?
-                GROUP BY is_campus
-                ORDER BY count DESC
-                """,
-                ("dns_lookup", cutoff),
-            )
+            [
+                {"label": label, "count": count}
+                for label, count in sorted(
+                    origin_counts.items(), key=lambda item: (-item[1], item[0])
+                )
+            ]
         )
-
         dns_lookup_outcome_breakdown = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT CASE dns_lookup_outcome
-                         WHEN 'matching'    THEN 'Matching answers'
-                         WHEN 'different'   THEN 'Different answers'
-                         WHEN 'public_only' THEN 'Public view only'
-                         WHEN 'incomplete'  THEN 'Incomplete or unavailable'
-                         ELSE 'Unknown'
-                       END AS label,
-                       COUNT(*) AS count
-                FROM metrics_events
-                WHERE event_type = ? AND created_at >= ?
-                GROUP BY dns_lookup_outcome
-                ORDER BY count DESC
-                """,
-                ("dns_lookup", cutoff),
-            )
+            [
+                {"label": label, "count": count}
+                for label, count in sorted(
+                    outcome_counts.items(), key=lambda item: (-item[1], item[0])
+                )
+            ]
         )
 
         page_view_breakdown = _with_percentages(

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.11.4] - 2026-10-01
+
+### Changed
+
+- **DNS statistics aggregation** — the three DNS lookup summary calculations now share one query against the existing in-memory metrics snapshot and continue to use the established dashboard cache.
+- **Campus DNS Security statistics** — DNS security results now record campus status using the existing trusted client-address logic, and the dashboard excludes off-campus and historical unclassified results from this campus-specific chart.
+
 ## [1.11.3] - 2026-10-01
 
 ### Added

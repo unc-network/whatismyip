@@ -752,6 +752,7 @@ def dns_result() -> Response:
 
     log_metrics_event(
         "dns_result",
+        is_campus=is_campus_ip(_dns_client_address()),
         dns_filtering=filtering,
         dns_ip=_clamp(data.get("dns_ip"), 64),
         dns_geo=_clamp(data.get("dns_geo"), 200),
