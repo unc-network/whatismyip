@@ -443,6 +443,46 @@ html[data-theme="dark"] #dns-submit:focus-visible {
   outline-color: var(--unc-white);
 }
 
+.dns-share-button {
+  color: var(--unc-white);
+  background-color: var(--unc-bolin-creek);
+  border: 1px solid var(--unc-bolin-creek);
+}
+
+.dns-share-button:hover,
+.dns-share-button:active {
+  color: var(--unc-white);
+  background-color: var(--unc-navy);
+  border-color: var(--unc-navy);
+}
+
+.dns-share-button:focus,
+.dns-share-button:focus-visible {
+  color: var(--unc-white);
+  outline: 3px solid var(--unc-navy);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .dns-share-button {
+  color: var(--unc-navy);
+  background-color: var(--unc-carolina-blue);
+  border-color: var(--unc-carolina-blue);
+}
+
+html[data-theme="dark"] .dns-share-button:hover,
+html[data-theme="dark"] .dns-share-button:active {
+  color: var(--unc-navy);
+  background-color: var(--unc-fordham-fountain);
+  border-color: var(--unc-fordham-fountain);
+}
+
+html[data-theme="dark"] .dns-share-button:focus,
+html[data-theme="dark"] .dns-share-button:focus-visible {
+  color: var(--unc-navy);
+  outline-color: var(--unc-white);
+}
+
 .dns-record-type {
   display: inline-block;
   min-width: 3.5rem;

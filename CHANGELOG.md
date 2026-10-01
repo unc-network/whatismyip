@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.11.3] - 2026-10-01
+
+### Added
+
+- **Shareable DNS lookups** — completed queries now offer a high-contrast Get link button that copies a URL containing the DNS name and record type; opening the link runs a fresh lookup using the recipient's available campus or Internet DNS view.
+
 ## [1.11.2] - 2026-10-01
 
 ### Fixed
