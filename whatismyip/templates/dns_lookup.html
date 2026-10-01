@@ -58,8 +58,14 @@
 <section id="dns-results" class="mb-5" aria-labelledby="dns-results-heading" hidden>
   <div class="d-flex align-items-baseline justify-content-between flex-wrap gap-2 mb-2">
     <h2 id="dns-results-heading" class="h4 mb-0">Answer comparison</h2>
-    <span id="dns-query-label" class="text-muted small"></span>
+    <div class="d-flex align-items-center flex-wrap gap-2">
+      <span id="dns-query-label" class="text-muted small"></span>
+      <button class="btn btn-sm dns-share-button" id="dns-share" type="button" hidden>
+        <i class="fa-solid fa-link me-1" aria-hidden="true"></i><span id="dns-share-label">Get link</span>
+      </button>
+    </div>
   </div>
+  <span id="dns-share-status" class="visually-hidden" role="status" aria-live="polite"></span>
 
   <div id="dns-resolver-results" class="row g-3 mb-3"></div>
 
@@ -100,7 +106,12 @@
   var resolverResults = document.getElementById('dns-resolver-results');
   var answerRows = document.getElementById('dns-answer-rows');
   var queryLabel = document.getElementById('dns-query-label');
+  var shareButton = document.getElementById('dns-share');
+  var shareLabel = document.getElementById('dns-share-label');
+  var shareStatus = document.getElementById('dns-share-status');
   var endpoint = {{ url_for('api.dns_lookup') | tojson }};
+  var shareUrl = '';
+  var shareResetTimer;
 
   function escapeHtml(value) {
     return String(value)
@@ -170,6 +181,12 @@
 
   function render(data) {
     queryLabel.textContent = data.query.type + ' ' + data.query.name;
+    var url = new URL(window.location.pathname, window.location.origin);
+    url.searchParams.set('name', nameInput.value.trim());
+    url.searchParams.set('type', data.query.type);
+    shareUrl = url.toString();
+    window.history.replaceState({}, '', url.pathname + url.search);
+    shareButton.hidden = false;
     resolverResults.innerHTML = data.results.map(renderResolver).join('');
 
     if (!data.internal_included) {
@@ -217,6 +234,32 @@
     resultsSection.hidden = false;
   }
 
+  function setShareFeedback(message, buttonText) {
+    window.clearTimeout(shareResetTimer);
+    shareStatus.textContent = message;
+    shareLabel.textContent = buttonText;
+    shareResetTimer = window.setTimeout(function () {
+      shareLabel.textContent = 'Get link';
+    }, 1800);
+  }
+
+  shareButton.addEventListener('click', function () {
+    if (!shareUrl) return;
+
+    if (!navigator.clipboard || !window.isSecureContext) {
+      setShareFeedback('Unable to copy the DNS lookup link. Copy the address from the browser address bar instead.', 'Copy failed');
+      return;
+    }
+
+    navigator.clipboard.writeText(shareUrl)
+      .then(function () {
+        setShareFeedback('DNS lookup link copied to the clipboard.', 'Link copied');
+      })
+      .catch(function () {
+        setShareFeedback('Unable to copy the DNS lookup link. Copy the address from the browser address bar instead.', 'Copy failed');
+      });
+  });
+
   form.addEventListener('submit', async function (event) {
     event.preventDefault();
     button.disabled = true;
@@ -241,6 +284,18 @@
       form.removeAttribute('aria-busy');
     }
   });
+
+  var sharedParams = new URLSearchParams(window.location.search);
+  var sharedName = sharedParams.get('name');
+  var sharedType = (sharedParams.get('type') || typeInput.value).toUpperCase();
+  var typeAllowed = Array.prototype.some.call(typeInput.options, function (option) {
+    return option.value === sharedType;
+  });
+  if (sharedName && sharedName.length <= nameInput.maxLength && typeAllowed) {
+    nameInput.value = sharedName;
+    typeInput.value = sharedType;
+    form.requestSubmit();
+  }
 }());
 </script>
 {% endblock %}

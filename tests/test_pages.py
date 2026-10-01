@@ -50,6 +50,8 @@ def test_dns_lookup_page_renders_when_enabled(app, client):
     assert response.status_code == 200
     assert b"Answer comparison" in response.data
     assert b"dns-select-icon" in response.data
+    assert b'id="dns-share"' in response.data
+    assert b"URLSearchParams" in response.data
     assert b"DNS Lookup" in response.data
 
 
