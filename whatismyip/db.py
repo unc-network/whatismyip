@@ -4,7 +4,7 @@ import os
 import sqlite3
 import threading
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from datetime import time as dt_time
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -50,16 +50,18 @@ def ensure_metrics_store() -> None:
     global _schema_initialized_for
     path = _db_path()
     if _schema_initialized_for == path:
+        schedule_daily_maintenance()
         return
     with _schema_lock:
         if _schema_initialized_for == path:  # another thread finished while we waited
             return
         _init_metrics_store(path)
         _schema_initialized_for = path
+    schedule_daily_maintenance()
 
 
 def _init_metrics_store(path: str) -> None:
-    """Create the schema, migrate indexes, and apply retention. Caller holds the lock."""
+    """Create the schema and migrate indexes. Caller holds the lock."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with sqlite3.connect(path, timeout=_SCHEMA_LOCK_TIMEOUT) as conn:
         conn.execute("""
@@ -127,6 +129,28 @@ def _init_metrics_store(path: str) -> None:
             "CREATE INDEX IF NOT EXISTS idx_page_views_created_at ON page_views(created_at)"
         )
 
+        # Pre-aggregated per-day counts. The dashboard sums these instead of
+        # re-scanning the raw events on every cold build, which is the difference
+        # between reading a few thousand rows and a few hundred thousand.
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS metrics_daily (
+                day TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                dim TEXT NOT NULL,
+                val TEXT NOT NULL,
+                n INTEGER NOT NULL,
+                PRIMARY KEY (day, event_type, dim, val)
+            ) WITHOUT ROWID
+        """)
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_metrics_daily_dim ON metrics_daily(dim, day)"
+        )
+        # A day is listed here once it has been rolled up, including days with no
+        # traffic at all — otherwise an empty day would be retried forever.
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS metrics_daily_done (day TEXT PRIMARY KEY)"
+        )
+
         # Every dashboard query filters on event_type plus a created_at window, so one
         # composite index serves all of them, most as covering scans. The older
         # single-column indexes were never chosen by the planner — it fell back to a
@@ -176,16 +200,6 @@ def _init_metrics_store(path: str) -> None:
                 "Metrics index migration complete in %.1fs",
                 time.monotonic() - started,
             )
-
-    retention_days = current_app.config.get("METRICS_RETENTION_DAYS", 90)
-    retention_cutoff = (
-        datetime.now(timezone.utc) - timedelta(days=retention_days)
-    ).isoformat()
-    with sqlite3.connect(path, timeout=_SCHEMA_LOCK_TIMEOUT) as conn:
-        conn.execute(
-            "DELETE FROM metrics_events WHERE created_at < ?", (retention_cutoff,)
-        )
-        conn.execute("DELETE FROM page_views WHERE created_at < ?", (retention_cutoff,))
 
 
 def log_metrics_event(
@@ -281,6 +295,200 @@ def log_page_view(page: str) -> None:
         current_app.logger.warning("Page view logging skipped: %s", error)
 
 
+# Each entry is (event_type, dim, SQL expression for the bucket value, extra WHERE).
+# The expressions normalise exactly as the dashboard used to at read time, so a
+# rolled-up value and a live one are always spelled the same way and can be summed
+# together. Raw column values are stored where the dashboard applies its own
+# labelling later, so relabelling never requires rebuilding history.
+_ROLLUP_SPECS: list[tuple[str, str, str, str]] = [
+    ("hostinfo", "is_campus", "COALESCE(CAST(is_campus AS TEXT), 'null')", ""),
+    ("hostinfo", "ip_version", "COALESCE(CAST(ip_version AS TEXT), 'Unknown')", ""),
+    ("hostinfo", "isp", "COALESCE(NULLIF(TRIM(isp), ''), 'Unknown')", ""),
+    ("hostinfo", "org", "COALESCE(NULLIF(TRIM(org), ''), 'Unknown')", ""),
+    ("hostinfo", "country", "COALESCE(NULLIF(TRIM(country), ''), 'Unknown')", ""),
+    (
+        "hostinfo",
+        "purpose",
+        "COALESCE(NULLIF(TRIM(network_purpose), ''), 'Unknown')",
+        "AND is_campus = 1",
+    ),
+    (
+        "dns_result",
+        "dns_filtering",
+        "dns_filtering",
+        "AND is_campus = 1 AND dns_filtering IS NOT NULL",
+    ),
+    (
+        "dns_result",
+        "dns_geo",
+        "COALESCE(NULLIF(TRIM(dns_geo), ''), 'Unknown')",
+        "AND dns_geo IS NOT NULL",
+    ),
+    ("dns_lookup", "lookup_origin", "COALESCE(CAST(is_campus AS TEXT), 'null')", ""),
+    ("dns_lookup", "lookup_outcome", "COALESCE(dns_lookup_outcome, 'null')", ""),
+]
+
+# Days rolled up per catch-up pass. Bounds how long one pass can run when a fresh
+# deployment has months of history to fold in; later passes finish the rest.
+_ROLLUP_MAX_DAYS_PER_PASS = 7
+
+_rollup_lock = threading.Lock()
+_rollup_thread_running = False
+# How often the pending-day check may touch the database. The check itself is a
+# single indexed read, but it sits on the write path for every recorded event, so
+# it is gated rather than run per request.
+_MAINTENANCE_CHECK_INTERVAL = 900.0
+_last_maintenance_check = 0.0
+
+
+def _day_bounds_utc(day: str) -> tuple[str, str]:
+    """Return the UTC ISO bounds [start, end) of one local calendar day."""
+    start = datetime.combine(
+        date.fromisoformat(day), dt_time.min, tzinfo=METRICS_TIMEZONE
+    )
+    return (
+        start.astimezone(timezone.utc).isoformat(),
+        (start + timedelta(days=1)).astimezone(timezone.utc).isoformat(),
+    )
+
+
+def _rollup_one_day(conn: sqlite3.Connection, day: str) -> None:
+    """Fold one complete local day of raw rows into metrics_daily."""
+    start_utc, end_utc = _day_bounds_utc(day)
+    conn.execute("DELETE FROM metrics_daily WHERE day = ?", (day,))
+    for event_type, dim, expr, extra in _ROLLUP_SPECS:
+        conn.execute(
+            f"""
+            INSERT INTO metrics_daily (day, event_type, dim, val, n)
+            SELECT ?, ?, ?, {expr}, COUNT(*)
+            FROM metrics_events
+            WHERE event_type = ? AND created_at >= ? AND created_at < ? {extra}
+            GROUP BY {expr}
+            """,
+            (day, event_type, dim, event_type, start_utc, end_utc),
+        )
+    conn.execute(
+        """
+        INSERT INTO metrics_daily (day, event_type, dim, val, n)
+        SELECT ?, 'page_view', 'page', page, COUNT(*)
+        FROM page_views
+        WHERE created_at >= ? AND created_at < ?
+        GROUP BY page
+        """,
+        (day, start_utc, end_utc),
+    )
+    conn.execute("INSERT OR REPLACE INTO metrics_daily_done (day) VALUES (?)", (day,))
+
+
+def _pending_rollup_days(conn: sqlite3.Connection, retention_days: int) -> list[str]:
+    """Complete local days inside retention that have not been rolled up yet."""
+    today = datetime.now(METRICS_TIMEZONE).date()
+    oldest = today - timedelta(days=retention_days)
+    last_done = conn.execute("SELECT MAX(day) FROM metrics_daily_done").fetchone()[0]
+    start = (
+        max(oldest, date.fromisoformat(last_done) + timedelta(days=1))
+        if last_done
+        else oldest
+    )
+    end = today - timedelta(days=1)  # yesterday: the newest complete day
+    days = []
+    current = start
+    while current <= end and len(days) < _ROLLUP_MAX_DAYS_PER_PASS:
+        days.append(current.isoformat())
+        current += timedelta(days=1)
+    return days
+
+
+def run_daily_maintenance() -> int:
+    """Roll up every outstanding complete day, then drop data past retention.
+
+    Rolling up a day touches only that day's rows — roughly a fortieth of what the
+    dashboard used to scan — so this stays cheap even on a CPU-constrained pod. It
+    catches up fully rather than a batch at a time: the caller is a background
+    thread, so nothing waits on it, and leaving a backlog half-done would mean the
+    dashboard keeps falling back to live queries for the missing days. Days with no
+    traffic cost almost nothing, which matters on a fresh deployment where the whole
+    retention window is outstanding.
+
+    Retention lives here rather than at startup because these containers run for
+    weeks at a time, and a prune that only happens on boot never happens.
+    """
+    path = _db_path()
+    retention_days = current_app.config.get("METRICS_RETENTION_DAYS", 90)
+    rolled = 0
+    with sqlite3.connect(path, timeout=_SCHEMA_LOCK_TIMEOUT) as conn:
+        while True:
+            pending = _pending_rollup_days(conn, retention_days)
+            if not pending:
+                break
+            for day in pending:
+                _rollup_one_day(conn, day)
+                rolled += 1
+            conn.commit()  # bound each transaction to one batch
+        cutoff_day = (
+            datetime.now(METRICS_TIMEZONE).date() - timedelta(days=retention_days)
+        ).isoformat()
+        cutoff_utc = _day_bounds_utc(cutoff_day)[0]
+        conn.execute("DELETE FROM metrics_events WHERE created_at < ?", (cutoff_utc,))
+        conn.execute("DELETE FROM page_views WHERE created_at < ?", (cutoff_utc,))
+        conn.execute("DELETE FROM metrics_daily WHERE day < ?", (cutoff_day,))
+        conn.execute("DELETE FROM metrics_daily_done WHERE day < ?", (cutoff_day,))
+    return rolled
+
+
+def _maintenance_due() -> bool:
+    """True when at least one complete day is still missing from the rollups."""
+    try:
+        with sqlite3.connect(f"file:{_db_path()}?mode=ro", uri=True) as conn:
+            retention_days = current_app.config.get("METRICS_RETENTION_DAYS", 90)
+            return bool(_pending_rollup_days(conn, retention_days))
+    except Exception:
+        return False
+
+
+def schedule_daily_maintenance() -> None:
+    """Start a one-shot thread to catch the rollups up, if work is pending.
+
+    Deliberately not a resident daemon: it is spawned only when a day is actually
+    missing, does the work, and exits. Requests never wait on it, so no visitor
+    pays for the rollup the way one would if this ran inline.
+    """
+    global _rollup_thread_running, _last_maintenance_check
+    now = time.monotonic()
+    with _rollup_lock:
+        if _rollup_thread_running:
+            return
+        if now - _last_maintenance_check < _MAINTENANCE_CHECK_INTERVAL:
+            return
+        _last_maintenance_check = now
+        if not _maintenance_due():
+            return
+        _rollup_thread_running = True
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+
+    def _worker() -> None:
+        global _rollup_thread_running
+        try:
+            with app.app_context():
+                started = time.monotonic()
+                rolled = run_daily_maintenance()
+                if rolled:
+                    app.logger.info(
+                        "Metrics rollup: %d day(s) in %.1fs",
+                        rolled,
+                        time.monotonic() - started,
+                    )
+        except (
+            Exception
+        ) as error:  # pragma: no cover - maintenance must not break the app
+            app.logger.warning("Metrics rollup skipped: %s", error)
+        finally:
+            with _rollup_lock:
+                _rollup_thread_running = False
+
+    threading.Thread(target=_worker, name="metrics-rollup", daemon=True).start()
+
+
 def _local_day(utc_hour: str) -> str:
     """Convert a 'YYYY-MM-DDTHH' UTC bucket key to a local-timezone date string."""
     return (
@@ -309,6 +517,70 @@ def _with_percentages(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return result
 
 
+def _merge_counts(
+    conn: sqlite3.Connection,
+    dim: str,
+    event_type: str,
+    rollup_from: str,
+    rollup_to: str | None,
+    live_from: str | None,
+) -> dict[str, int]:
+    """Counts per bucket value for one dimension, from rollups plus live rows.
+
+    Rolled-up days and not-yet-rolled days are summed together, so the figures are
+    the same whether or not the rollup has caught up. The live half covers today
+    always, and any backlog while a fresh deployment folds in its history.
+    """
+    counts: dict[str, int] = {}
+    if rollup_to is not None and rollup_to >= rollup_from:
+        for val, n in conn.execute(
+            """
+            SELECT val, SUM(n) FROM metrics_daily
+            WHERE dim = ? AND event_type = ? AND day >= ? AND day <= ?
+            GROUP BY val
+            """,
+            (dim, event_type, rollup_from, rollup_to),
+        ):
+            counts[val] = counts.get(val, 0) + n
+    if live_from is not None:
+        expr, extra = next(
+            (e, x) for et, d, e, x in _ROLLUP_SPECS if d == dim and et == event_type
+        )
+        for val, n in conn.execute(
+            f"""
+            SELECT {expr}, COUNT(*) FROM metrics_events
+            WHERE event_type = ? AND created_at >= ? {extra}
+            GROUP BY {expr}
+            """,
+            (event_type, live_from),
+        ):
+            counts[val] = counts.get(val, 0) + n
+    return counts
+
+
+def _ranked(
+    counts: dict[str, int],
+    labels: dict[str, str] | None = None,
+    limit: int | None = None,
+    merge_into: dict[str, str] | None = None,
+) -> list[dict[str, Any]]:
+    """Order buckets by count then name, relabel, and attach percentages."""
+    if merge_into:
+        folded: dict[str, int] = {}
+        for val, n in counts.items():
+            folded[merge_into.get(val, val)] = (
+                folded.get(merge_into.get(val, val), 0) + n
+            )
+        counts = folded
+    rows = [
+        {"label": labels.get(val, val) if labels else val, "count": n}
+        for val, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    ]
+    if limit is not None:
+        rows = rows[:limit]
+    return _with_percentages(rows)
+
+
 def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
     """Build the metrics summary data for the admin dashboard."""
     if _metrics_cache["data"] is not None and (
@@ -319,284 +591,167 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
     if days is None:
         days = current_app.config["METRICS_TIME_WINDOW_DAYS"]
 
-    now_local = datetime.now(METRICS_TIMEZONE)
-    today = now_local.date()
+    today = datetime.now(METRICS_TIMEZONE).date()
     last_full_day = today - timedelta(days=1)
     first_day = last_full_day - timedelta(days=days - 1)
-    cutoff = (
-        datetime.combine(first_day, dt_time.min, tzinfo=METRICS_TIMEZONE)
-        .astimezone(timezone.utc)
-        .isoformat()
-    )
+    cutoff = _day_bounds_utc(first_day.isoformat())[0]
 
-    # Query the file directly, read-only. An earlier revision snapshotted the whole
-    # database into :memory: to collapse PVC round-trips, but that cost is linear in
-    # total file size rather than in the window being shown: at 367 MB it read every
-    # byte and peaked near 500 MB RSS per worker to render one page, and it held a
-    # shared lock across the copy, stalling concurrent metrics writes.
-    # idx_metrics_events_type_created lets each query touch only its slice instead.
     conn = sqlite3.connect(
         f"file:{_db_path()}?mode=ro", uri=True, timeout=_DASHBOARD_LOCK_TIMEOUT
     )
     conn.row_factory = sqlite3.Row
 
     try:
-        totals_row = conn.execute(
-            """
-            SELECT
-                COUNT(*) AS total,
-                SUM(CASE WHEN is_campus = 1 THEN 1 ELSE 0 END) AS campus,
-                SUM(CASE WHEN is_campus = 0 THEN 1 ELSE 0 END) AS remote
-            FROM metrics_events
-            WHERE event_type = ? AND created_at >= ?
-            """,
-            ("hostinfo", cutoff),
-        ).fetchone()
-        total_hostinfo = totals_row["total"]
-        total_campus = totals_row["campus"]
-        total_remote = totals_row["remote"]
+        # Split the window: whole days that are already rolled up are read from
+        # metrics_daily, everything after that — today, plus any backlog — is read
+        # from the raw events. When nothing is rolled up yet this degrades to the
+        # original all-live behaviour rather than reporting short.
+        last_done = conn.execute(
+            "SELECT MAX(day) FROM metrics_daily_done WHERE day >= ?",
+            (first_day.isoformat(),),
+        ).fetchone()[0]
+        rollup_from = first_day.isoformat()
+        rollup_to = min(last_done, last_full_day.isoformat()) if last_done else None
+        if rollup_to is not None:
+            live_from = _day_bounds_utc(
+                (date.fromisoformat(rollup_to) + timedelta(days=1)).isoformat()
+            )[0]
+        else:
+            live_from = cutoff
 
-        # Bucket by UTC hour in SQL, then convert at most 24 * days buckets to local
-        # dates in Python. US DST transitions land on whole hours, so this is exactly
-        # as accurate as converting every row, at a fraction of the Python work.
-        daily_lookup_v4: dict[str, int] = {}
-        daily_lookup_v6: dict[str, int] = {}
-        for row in conn.execute(
+        def counts(dim: str, event_type: str = "hostinfo") -> dict[str, int]:
+            return _merge_counts(
+                conn, dim, event_type, rollup_from, rollup_to, live_from
+            )
+
+        campus_counts = counts("is_campus")
+        total_hostinfo = sum(campus_counts.values())
+        total_campus = campus_counts.get("1", 0)
+        total_remote = campus_counts.get("0", 0)
+
+        # Per-day series: rolled days come straight out of metrics_daily; the live
+        # remainder is bucketed by UTC hour and converted, since DST transitions
+        # fall on whole hours.
+        daily_v4: dict[str, int] = {}
+        daily_v6: dict[str, int] = {}
+        if rollup_to is not None:
+            for day, val, n in conn.execute(
+                """
+                SELECT day, val, SUM(n) FROM metrics_daily
+                WHERE dim = 'ip_version' AND event_type = 'hostinfo'
+                      AND day >= ? AND day <= ?
+                GROUP BY day, val
+                """,
+                (rollup_from, rollup_to),
+            ):
+                target = daily_v6 if val == "6" else daily_v4
+                target[day] = target.get(day, 0) + n
+        for hour, version, n in conn.execute(
             """
-            SELECT substr(created_at, 1, 13) AS hour,
-                   CASE WHEN ip_version = 6 THEN 6 ELSE 4 END AS version,
-                   COUNT(*) AS count
+            SELECT substr(created_at, 1, 13),
+                   CASE WHEN ip_version = 6 THEN 6 ELSE 4 END,
+                   COUNT(*)
             FROM metrics_events
-            WHERE event_type = ? AND created_at >= ?
-            GROUP BY hour, version
+            WHERE event_type = 'hostinfo' AND created_at >= ?
+            GROUP BY 1, 2
             """,
-            ("hostinfo", cutoff),
-        ).fetchall():
-            day = _local_day(row["hour"])
-            bucket = daily_lookup_v6 if row["version"] == 6 else daily_lookup_v4
-            bucket[day] = bucket.get(day, 0) + row["count"]
+            (live_from,),
+        ):
+            day = _local_day(hour)
+            target = daily_v6 if version == 6 else daily_v4
+            target[day] = target.get(day, 0) + n
 
         daily_series = []
         for offset in range(days):
             day = (last_full_day - timedelta(days=days - 1 - offset)).isoformat()
-            v4 = daily_lookup_v4.get(day, 0)
-            v6 = daily_lookup_v6.get(day, 0)
+            v4 = daily_v4.get(day, 0)
+            v6 = daily_v6.get(day, 0)
             daily_series.append({"day": day, "count": v4 + v6, "v4": v4, "v6": v6})
         daily_max = max((row["count"] for row in daily_series), default=0) or 1
 
-        daily_page_view_lookup: dict[str, int] = {}
-        for row in conn.execute(
-            """
-            SELECT substr(created_at, 1, 13) AS hour, COUNT(*) AS count
-            FROM page_views
-            WHERE created_at >= ?
-            GROUP BY hour
-            """,
-            (cutoff,),
-        ).fetchall():
-            day = _local_day(row["hour"])
-            daily_page_view_lookup[day] = (
-                daily_page_view_lookup.get(day, 0) + row["count"]
-            )
+        daily_page_views: dict[str, int] = {}
+        if rollup_to is not None:
+            for day, n in conn.execute(
+                """
+                SELECT day, SUM(n) FROM metrics_daily
+                WHERE dim = 'page' AND event_type = 'page_view'
+                      AND day >= ? AND day <= ?
+                GROUP BY day
+                """,
+                (rollup_from, rollup_to),
+            ):
+                daily_page_views[day] = daily_page_views.get(day, 0) + n
+        for hour, n in conn.execute(
+            "SELECT substr(created_at, 1, 13), COUNT(*) FROM page_views "
+            "WHERE created_at >= ? GROUP BY 1",
+            (live_from,),
+        ):
+            day = _local_day(hour)
+            daily_page_views[day] = daily_page_views.get(day, 0) + n
 
         daily_page_views_series = [
             {
                 "day": (last_full_day - timedelta(days=days - 1 - offset)).isoformat(),
-                "count": daily_page_view_lookup.get(
+                "count": daily_page_views.get(
                     (last_full_day - timedelta(days=days - 1 - offset)).isoformat(), 0
                 ),
             }
             for offset in range(days)
         ]
 
-        ip_versions = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT COALESCE(CAST(ip_version AS TEXT), 'Unknown') AS label, COUNT(*) AS count
-                FROM metrics_events
-                WHERE event_type = ? AND created_at >= ?
-                GROUP BY label
-                ORDER BY count DESC
-                """,
-                ("hostinfo", cutoff),
-            )
-        )
-        for row in ip_versions:
-            if row["label"] == "4":
-                row["label"] = "IPv4"
-            elif row["label"] == "6":
-                row["label"] = "IPv6"
-
-        isp_breakdown = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT COALESCE(NULLIF(TRIM(isp), ''), 'Unknown') AS label, COUNT(*) AS count
-                FROM metrics_events
-                WHERE event_type = ? AND created_at >= ?
-                GROUP BY label
-                ORDER BY count DESC
-                LIMIT 10
-                """,
-                ("hostinfo", cutoff),
-            )
+        ip_versions = _ranked(counts("ip_version"), labels={"4": "IPv4", "6": "IPv6"})
+        isp_breakdown = _ranked(counts("isp"), limit=10)
+        org_breakdown = _ranked(counts("org"), limit=10)
+        country_breakdown = _ranked(counts("country"), limit=10)
+        purpose_breakdown = _ranked(counts("purpose"), limit=10)
+        campus_breakdown = _ranked(
+            campus_counts,
+            labels={"1": "Campus", "0": "Off campus"},
+            merge_into={"null": "0"},
         )
 
-        org_breakdown = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT COALESCE(NULLIF(TRIM(org), ''), 'Unknown') AS label, COUNT(*) AS count
-                FROM metrics_events
-                WHERE event_type = ? AND created_at >= ?
-                GROUP BY label
-                ORDER BY count DESC
-                LIMIT 10
-                """,
-                ("hostinfo", cutoff),
-            )
+        dns_filtering_breakdown = _ranked(
+            counts("dns_filtering", "dns_result"),
+            labels={
+                "active": "Active",
+                "inactive": "Inactive",
+                "inconclusive": "Unable to verify",
+            },
+        )
+        dns_geo_breakdown = _ranked(counts("dns_geo", "dns_result"), limit=8)
+
+        origin_counts = counts("lookup_origin", "dns_lookup")
+        outcome_counts = counts("lookup_outcome", "dns_lookup")
+        total_dns_lookups = sum(origin_counts.values())
+        dns_lookup_origin_breakdown = _ranked(
+            origin_counts,
+            labels={"1": "On campus", "0": "Off campus", "null": "Unknown"},
+        )
+        dns_lookup_outcome_breakdown = _ranked(
+            outcome_counts,
+            labels={
+                "matching": "Matching answers",
+                "different": "Different answers",
+                "public_only": "Public view only",
+                "incomplete": "Incomplete or unavailable",
+                "null": "Unknown",
+            },
         )
 
-        country_breakdown = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT COALESCE(NULLIF(TRIM(country), ''), 'Unknown') AS label, COUNT(*) AS count
-                FROM metrics_events
-                WHERE event_type = ? AND created_at >= ?
-                GROUP BY label
-                ORDER BY count DESC
-                LIMIT 10
-                """,
-                ("hostinfo", cutoff),
-            )
-        )
-
-        campus_breakdown = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT CASE WHEN is_campus = 1 THEN 'Campus' ELSE 'Off campus' END AS label,
-                       COUNT(*) AS count
-                FROM metrics_events
-                WHERE event_type = ? AND created_at >= ?
-                GROUP BY label
-                ORDER BY count DESC
-                """,
-                ("hostinfo", cutoff),
-            )
-        )
-
-        purpose_breakdown = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT COALESCE(NULLIF(TRIM(network_purpose), ''), 'Unknown') AS label, COUNT(*) AS count
-                FROM metrics_events
-                WHERE event_type = ? AND is_campus = 1 AND created_at >= ?
-                GROUP BY label
-                ORDER BY count DESC
-                LIMIT 10
-                """,
-                ("hostinfo", cutoff),
-            )
-        )
-
-        dns_filtering_breakdown = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT CASE dns_filtering
-                         WHEN 'active'       THEN 'Active'
-                         WHEN 'inactive'     THEN 'Inactive'
-                         WHEN 'inconclusive' THEN 'Unable to verify'
-                         ELSE 'Unknown'
-                       END AS label,
-                       COUNT(*) AS count
-                FROM metrics_events
-                WHERE event_type = ? AND is_campus = 1
-                      AND dns_filtering IS NOT NULL AND created_at >= ?
-                GROUP BY dns_filtering
-                ORDER BY count DESC
-                """,
-                ("dns_result", cutoff),
-            )
-        )
-
-        dns_geo_breakdown = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT COALESCE(NULLIF(TRIM(dns_geo), ''), 'Unknown') AS label, COUNT(*) AS count
-                FROM metrics_events
-                WHERE event_type = ? AND dns_geo IS NOT NULL AND created_at >= ?
-                GROUP BY label
-                ORDER BY count DESC
-                LIMIT 8
-                """,
-                ("dns_result", cutoff),
-            )
-        )
-
-        # Build all DNS lookup cards from one scan of the in-memory snapshot.
-        dns_lookup_groups = _count_by_query(
-            conn,
-            """
-            SELECT is_campus, dns_lookup_outcome, COUNT(*) AS count
-            FROM metrics_events
-            WHERE event_type = ? AND created_at >= ?
-            GROUP BY is_campus, dns_lookup_outcome
-            """,
-            ("dns_lookup", cutoff),
-        )
-        total_dns_lookups = sum(row["count"] for row in dns_lookup_groups)
-
-        origin_labels = {1: "On campus", 0: "Off campus"}
-        outcome_labels = {
-            "matching": "Matching answers",
-            "different": "Different answers",
-            "public_only": "Public view only",
-            "incomplete": "Incomplete or unavailable",
-        }
-        origin_counts: dict[str, int] = {}
-        outcome_counts: dict[str, int] = {}
-        for row in dns_lookup_groups:
-            origin = origin_labels.get(row["is_campus"], "Unknown")
-            outcome = outcome_labels.get(row["dns_lookup_outcome"], "Unknown")
-            origin_counts[origin] = origin_counts.get(origin, 0) + row["count"]
-            outcome_counts[outcome] = outcome_counts.get(outcome, 0) + row["count"]
-
-        dns_lookup_origin_breakdown = _with_percentages(
-            [
-                {"label": label, "count": count}
-                for label, count in sorted(
-                    origin_counts.items(), key=lambda item: (-item[1], item[0])
-                )
-            ]
-        )
-        dns_lookup_outcome_breakdown = _with_percentages(
-            [
-                {"label": label, "count": count}
-                for label, count in sorted(
-                    outcome_counts.items(), key=lambda item: (-item[1], item[0])
-                )
-            ]
-        )
-
-        page_view_breakdown = _with_percentages(
-            _count_by_query(
-                conn,
-                """
-                SELECT page AS label, COUNT(*) AS count
-                FROM page_views
-                WHERE created_at >= ?
-                GROUP BY page
-                ORDER BY count DESC
-                """,
-                (cutoff,),
-            )
-        )
+        page_counts: dict[str, int] = {}
+        if rollup_to is not None:
+            for val, n in conn.execute(
+                "SELECT val, SUM(n) FROM metrics_daily WHERE dim = 'page' "
+                "AND event_type = 'page_view' AND day >= ? AND day <= ? GROUP BY val",
+                (rollup_from, rollup_to),
+            ):
+                page_counts[val] = page_counts.get(val, 0) + n
+        for val, n in conn.execute(
+            "SELECT page, COUNT(*) FROM page_views WHERE created_at >= ? GROUP BY page",
+            (live_from,),
+        ):
+            page_counts[val] = page_counts.get(val, 0) + n
+        page_view_breakdown = _ranked(page_counts)
 
     finally:
         conn.close()
