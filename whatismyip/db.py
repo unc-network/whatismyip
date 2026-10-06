@@ -6,7 +6,7 @@ import threading
 import time
 from datetime import date, datetime, timedelta, timezone
 from datetime import time as dt_time
-from typing import Any
+from typing import Any, NamedTuple
 from zoneinfo import ZoneInfo
 
 from flask import current_app
@@ -332,6 +332,15 @@ _ROLLUP_SPECS: list[tuple[str, str, str, str]] = [
 # deployment has months of history to fold in; later passes finish the rest.
 _ROLLUP_MAX_DAYS_PER_PASS = 7
 
+
+class MaintenanceResult(NamedTuple):
+    """What one maintenance pass did, for logging and tests."""
+
+    days: int
+    events_pruned: int
+    page_views_pruned: int
+
+
 _rollup_lock = threading.Lock()
 _rollup_thread_running = False
 # How often the pending-day check may touch the database. The check itself is a
@@ -402,7 +411,7 @@ def _pending_rollup_days(conn: sqlite3.Connection, retention_days: int) -> list[
     return days
 
 
-def run_daily_maintenance() -> int:
+def run_daily_maintenance() -> MaintenanceResult:
     """Roll up every outstanding complete day, then drop data past retention.
 
     Rolling up a day touches only that day's rows — roughly a fortieth of what the
@@ -432,11 +441,15 @@ def run_daily_maintenance() -> int:
             datetime.now(METRICS_TIMEZONE).date() - timedelta(days=retention_days)
         ).isoformat()
         cutoff_utc = _day_bounds_utc(cutoff_day)[0]
-        conn.execute("DELETE FROM metrics_events WHERE created_at < ?", (cutoff_utc,))
-        conn.execute("DELETE FROM page_views WHERE created_at < ?", (cutoff_utc,))
+        events_pruned = conn.execute(
+            "DELETE FROM metrics_events WHERE created_at < ?", (cutoff_utc,)
+        ).rowcount
+        views_pruned = conn.execute(
+            "DELETE FROM page_views WHERE created_at < ?", (cutoff_utc,)
+        ).rowcount
         conn.execute("DELETE FROM metrics_daily WHERE day < ?", (cutoff_day,))
         conn.execute("DELETE FROM metrics_daily_done WHERE day < ?", (cutoff_day,))
-    return rolled
+    return MaintenanceResult(rolled, max(events_pruned, 0), max(views_pruned, 0))
 
 
 def _maintenance_due() -> bool:
@@ -474,12 +487,19 @@ def schedule_daily_maintenance() -> None:
         try:
             with app.app_context():
                 started = time.monotonic()
-                rolled = run_daily_maintenance()
-                if rolled:
+                result = run_daily_maintenance()
+                if result.days or result.events_pruned or result.page_views_pruned:
+                    # Report the prune as well as the rollup. Retention silently not
+                    # running was the bug this pass exists to fix, so a line that
+                    # only mentions the rollup would leave the half that regressed
+                    # just as invisible as before.
                     app.logger.info(
-                        "Metrics rollup: %d day(s) in %.1fs",
-                        rolled,
+                        "Metrics maintenance: rolled up %d day(s) in %.1fs; "
+                        "retention pruned %s event(s) and %s page view(s)",
+                        result.days,
                         time.monotonic() - started,
+                        f"{result.events_pruned:,}",
+                        f"{result.page_views_pruned:,}",
                     )
         except (
             Exception

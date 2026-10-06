@@ -234,7 +234,7 @@ def test_run_daily_maintenance_rolls_up_complete_days(app):
     _seed_days(app, 5)
     with app.app_context():
         rolled = run_daily_maintenance()
-    assert rolled > 0
+    assert rolled.days > 0
     with sqlite3.connect(app.config["METRICS_DB_PATH"]) as conn:
         assert conn.execute("SELECT COUNT(*) FROM metrics_daily").fetchone()[0] > 0
         assert conn.execute("SELECT COUNT(*) FROM metrics_daily_done").fetchone()[0] > 0

@@ -7,7 +7,7 @@ All notable changes to this project will be documented here. This project follow
 ### Added
 
 - **Pre-aggregated daily metrics** — completed days are folded once into a `metrics_daily` summary table, and the Site Statistics page sums those rows instead of re-reading the underlying events on every cold build. Today's partial day is still read live and merged in, so the figures shown are unchanged and stay correct even while a rollup is catching up.
-- **Daily maintenance pass** — one background task rolls up complete days and applies the retention policy. It runs in a short-lived thread rather than inside a request, so no visitor waits on it, and a fresh deployment folds in its entire retained history in a single pass.
+- **Daily maintenance pass** — one background task rolls up complete days and applies the retention policy, logging both the days rolled up and the number of rows pruned. It runs in a short-lived thread rather than inside a request, so no visitor waits on it, and a fresh deployment folds in its entire retained history in a single pass.
 
 ### Changed
 
