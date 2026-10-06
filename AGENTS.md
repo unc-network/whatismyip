@@ -129,7 +129,7 @@ Two open recommendations from the auditor (planned for a future release, not yet
 - Version is in `whatismyip/__init__.py` as `__version__`.
 - Follow semantic versioning: patch (x.x.N) for bug fixes, minor (x.N.0) for new features.
 - `CHANGELOG.md` follows Keep a Changelog conventions. Add an entry for every production push.
-- Current production version: **v1.10.4** (pushed 2026-07-29).
+- Current production version: **v1.11.4** (pushed 2026-10-01).
 
 ---
 

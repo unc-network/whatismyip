@@ -8,4 +8,10 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi             # stores config.toml and metrics.sqlite3; 1Gi is generous
+      # Stores config.toml and metrics.sqlite3. The metrics database is the only
+      # thing that grows: roughly 250 MB per 90 days of retention at ~5,000 lookups
+      # per day, since each page visit records several rows. Allow at least double
+      # the steady-state size — VACUUM writes a full temporary copy before replacing
+      # the original. Scale this with your traffic, or lower retention_days in
+      # data/config.toml to cap the growth instead.
+      storage: 2Gi

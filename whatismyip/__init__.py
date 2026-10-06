@@ -7,10 +7,10 @@ from flask import Flask, abort
 from flask_compress import Compress
 from flask_cors import CORS
 
-from whatismyip.db import _DEFAULT_METRICS_DB_PATH
+from whatismyip.db import _DEFAULT_METRICS_DB_PATH, ensure_metrics_store
 from whatismyip.site_config import load_site_config
 
-__version__ = "1.11.4"
+__version__ = "1.11.5"
 
 _APP_ROOT = os.path.join(os.path.dirname(__file__), "..")
 load_dotenv(os.path.join(_APP_ROOT, ".env"))
@@ -70,6 +70,20 @@ def create_app(test_config: dict | None = None) -> Flask:
         @app.route("/trigger-500")
         def trigger_500():
             abort(500)
+
+    # Prepare the metrics store during startup rather than on the first request that
+    # needs it. The one-time index migration can run for a while against PVC-backed
+    # storage, and absorbing that in a request means a user waits on it — long enough
+    # to exceed the OpenShift route's 30 s timeout and return 504. Doing it here moves
+    # the cost into the deployment window, before the readiness probe passes and the
+    # route starts sending traffic. Failure is not fatal: the lazy path in the write
+    # and dashboard functions still retries, so a transient storage problem delays
+    # metrics rather than preventing the application from serving.
+    with app.app_context():
+        try:
+            ensure_metrics_store()
+        except Exception as error:
+            app.logger.warning("Metrics store preparation deferred: %s", error)
 
     return app
 

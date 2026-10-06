@@ -197,3 +197,122 @@ def test_get_metrics_dashboard_uses_cache(app):
         second = get_metrics_dashboard()
 
     assert first is second
+
+
+# --- daily rollups and maintenance ---
+
+
+def _seed_days(app, days_back):
+    """Write one hostinfo + one page view per day, days_back..1 days ago."""
+    import sqlite3
+    from datetime import datetime, timedelta, timezone
+
+    path = app.config["METRICS_DB_PATH"]
+    with app.app_context():
+        ensure_metrics_store()
+    rows = []
+    for d in range(days_back, 0, -1):
+        ts = (datetime.now(timezone.utc) - timedelta(days=d, hours=6)).isoformat()
+        rows.append((ts, "hostinfo", 4, "Test ISP", 1, "Campus"))
+    with sqlite3.connect(path) as conn:
+        for ts, et, ipv, isp, campus, purpose in rows:
+            conn.execute(
+                "INSERT INTO metrics_events (created_at, event_type, ip_version, isp,"
+                " is_campus, network_purpose) VALUES (?,?,?,?,?,?)",
+                (ts, et, ipv, isp, campus, purpose),
+            )
+            conn.execute(
+                "INSERT INTO page_views (created_at, page) VALUES (?, 'Home')", (ts,)
+            )
+
+
+def test_run_daily_maintenance_rolls_up_complete_days(app):
+    import sqlite3
+
+    from whatismyip.db import run_daily_maintenance
+
+    _seed_days(app, 5)
+    with app.app_context():
+        rolled = run_daily_maintenance()
+    assert rolled.days > 0
+    with sqlite3.connect(app.config["METRICS_DB_PATH"]) as conn:
+        assert conn.execute("SELECT COUNT(*) FROM metrics_daily").fetchone()[0] > 0
+        assert conn.execute("SELECT COUNT(*) FROM metrics_daily_done").fetchone()[0] > 0
+
+
+def test_dashboard_matches_with_and_without_rollups(app):
+    """The merged read path must report the same numbers either way."""
+    import whatismyip.db as db_module
+    from whatismyip.db import run_daily_maintenance
+
+    _seed_days(app, 5)
+    with app.app_context():
+        db_module._metrics_cache["data"] = None
+        live_only = get_metrics_dashboard()
+        run_daily_maintenance()
+        db_module._metrics_cache["data"] = None
+        from_rollups = get_metrics_dashboard()
+
+    for key in (
+        "total_hostinfo",
+        "total_campus",
+        "daily_series",
+        "isp_breakdown",
+        "purpose_breakdown",
+        "page_view_breakdown",
+        "daily_page_views_series",
+    ):
+        assert live_only[key] == from_rollups[key], f"{key} differs"
+
+
+def test_maintenance_applies_retention(app):
+    import sqlite3
+    from datetime import datetime, timedelta, timezone
+
+    from whatismyip.db import run_daily_maintenance
+
+    path = app.config["METRICS_DB_PATH"]
+    with app.app_context():
+        ensure_metrics_store()
+    old = (datetime.now(timezone.utc) - timedelta(days=200)).isoformat()
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            "INSERT INTO metrics_events (created_at, event_type) VALUES (?, 'hostinfo')",
+            (old,),
+        )
+        conn.execute(
+            "INSERT INTO page_views (created_at, page) VALUES (?, 'Home')", (old,)
+        )
+    with app.app_context():
+        run_daily_maintenance()
+    with sqlite3.connect(path) as conn:
+        assert (
+            conn.execute(
+                "SELECT COUNT(*) FROM metrics_events WHERE created_at = ?", (old,)
+            ).fetchone()[0]
+            == 0
+        )
+        assert (
+            conn.execute(
+                "SELECT COUNT(*) FROM page_views WHERE created_at = ?", (old,)
+            ).fetchone()[0]
+            == 0
+        )
+
+
+def test_schedule_daily_maintenance_does_not_block(app):
+    import time
+
+    import whatismyip.db as db_module
+
+    _seed_days(app, 3)
+    with app.app_context():
+        db_module._last_maintenance_check = 0.0
+        start = time.perf_counter()
+        db_module.schedule_daily_maintenance()
+        elapsed = time.perf_counter() - start
+        for _ in range(50):
+            if not db_module._rollup_thread_running:
+                break
+            time.sleep(0.1)
+    assert elapsed < 0.5, "scheduling must not do the work inline"

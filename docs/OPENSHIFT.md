@@ -197,9 +197,14 @@ provider = "leaflet"    # free OpenStreetMap; use "google" with FLASK_GOOGLE_MAP
 ```
 
 The DNS rate and concurrency limits are enforced independently in each
-application process. If the deployment is expanded to multiple workers or
-replicas, apply a corresponding aggregate limit at the OpenShift ingress or
-institutional web application firewall.
+application process, as is the geolocation cache that keeps ip-api.com lookups
+under that service's 45 requests/minute ceiling. Running more than one process
+gives each its own copy and multiplies every one of those limits by the process
+count, so `gunicorn.conf.py` deliberately runs a single threaded worker: raise
+`threads` to serve more concurrent requests, not `workers`. If you do expand to
+multiple workers or replicas, apply a corresponding aggregate limit at the
+OpenShift ingress or institutional web application firewall, and expect a higher
+rate of ip-api.com throttling.
 
 ---
 

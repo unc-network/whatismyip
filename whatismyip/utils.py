@@ -5,6 +5,7 @@ Utility functions
 import ipaddress
 import json
 import re
+import threading
 import time
 from typing import Any
 
@@ -60,6 +61,12 @@ def get_client_address(
 _location_cache: dict[str, tuple[float, dict | None]] = {}
 _LOCATION_CACHE_TTL = 300  # seconds — ip-api.com data doesn't change that fast
 _LOCATION_CACHE_MAX = 1000  # entries — ~1 MB overhead at most
+# Guards eviction only. Under a threaded worker, two requests can clear the capacity
+# check together and race on the victim: picking it can raise RuntimeError (the dict
+# changed size mid-iteration) and removing it can raise KeyError (the loser deletes a
+# key that is already gone). Reads stay lock-free — a dict get is atomic, and a
+# duplicate ip-api call on a cache miss is harmless.
+_location_cache_lock = threading.Lock()
 
 
 def get_ip_location(ip_address: str) -> dict[str, Any] | None:
@@ -141,10 +148,14 @@ def get_ip_location(ip_address: str) -> dict[str, Any] | None:
         "lon": raw.get("lon"),
     }
 
-    # Store in cache; evict oldest entry (insertion-order) when at capacity
-    if len(_location_cache) >= _LOCATION_CACHE_MAX:
-        del _location_cache[next(iter(_location_cache))]
-    _location_cache[ip_address] = (time.monotonic(), result)
+    # Store in cache; evict oldest entry (insertion-order) when at capacity.
+    with _location_cache_lock:
+        while len(_location_cache) >= _LOCATION_CACHE_MAX:
+            oldest = next(iter(_location_cache), None)
+            if oldest is None:
+                break
+            _location_cache.pop(oldest, None)
+        _location_cache[ip_address] = (time.monotonic(), result)
     return result
 
 
