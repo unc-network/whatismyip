@@ -357,16 +357,19 @@ def _rollup_one_day(conn: sqlite3.Connection, day: str) -> None:
     start_utc, end_utc = _day_bounds_utc(day)
     conn.execute("DELETE FROM metrics_daily WHERE day = ?", (day,))
     for event_type, dim, expr, extra in _ROLLUP_SPECS:
-        conn.execute(
-            f"""
+        # expr and extra are literals from _ROLLUP_SPECS above, never request data.
+        # They are interpolated rather than written out per dimension so that this
+        # query and the live one in _merge_counts bucket values through the exact
+        # same expression — if the two ever spelled a value differently, rolled-up
+        # and live counts for the same bucket would stop adding together.
+        sql = f"""
             INSERT INTO metrics_daily (day, event_type, dim, val, n)
             SELECT ?, ?, ?, {expr}, COUNT(*)
             FROM metrics_events
             WHERE event_type = ? AND created_at >= ? AND created_at < ? {extra}
             GROUP BY {expr}
-            """,
-            (day, event_type, dim, event_type, start_utc, end_utc),
-        )
+        """  # nosec B608 - interpolated values are module constants, not user input
+        conn.execute(sql, (day, event_type, dim, event_type, start_utc, end_utc))
     conn.execute(
         """
         INSERT INTO metrics_daily (day, event_type, dim, val, n)
@@ -546,14 +549,14 @@ def _merge_counts(
         expr, extra = next(
             (e, x) for et, d, e, x in _ROLLUP_SPECS if d == dim and et == event_type
         )
-        for val, n in conn.execute(
-            f"""
+        # Same reasoning as _rollup_one_day: expr/extra come from _ROLLUP_SPECS, and
+        # sharing them is what keeps live buckets spelled like rolled-up ones.
+        sql = f"""
             SELECT {expr}, COUNT(*) FROM metrics_events
             WHERE event_type = ? AND created_at >= ? {extra}
             GROUP BY {expr}
-            """,
-            (event_type, live_from),
-        ):
+        """  # nosec B608 - interpolated values are module constants, not user input
+        for val, n in conn.execute(sql, (event_type, live_from)):
             counts[val] = counts.get(val, 0) + n
     return counts
 
