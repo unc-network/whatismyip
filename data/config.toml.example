@@ -158,6 +158,12 @@ window_days = 30
 # Keeps the database file from growing without bound. Set higher than window_days
 # to retain a buffer of historical data; set equal to window_days to keep only
 # what's displayed. Minimum recommended: window_days × 2.
+#
+# This is the main control on database size. Each visit records several rows, so a
+# site serving ~5,000 lookups/day reaches roughly 250 MB at 90 days of retention.
+# Lower this if the volume outgrows the storage provisioned in openshift/pvc.yaml;
+# dashboard query cost does not depend on it, since every query is bounded by
+# window_days, but the file still has to live somewhere and be backed up.
 retention_days = 90
 
 [campus]

@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.11.5] - 2026-10-06
+
+### Fixed
+
+- **Site Statistics load time and timeouts** — the dashboard no longer copies the entire metrics database into memory before querying it. That approach scaled with total file size rather than with the 30-day window on display, so at 367 MB it read every byte and peaked near 500 MB of memory per worker to render one page, intermittently exhausting the worker and timing out. The queries now run directly against the database file, cutting peak memory to roughly 60 MB with byte-identical results.
+
+### Changed
+
+- **Metrics database indexes** — the eight single-column indexes on `metrics_events` are replaced by one composite index on `(event_type, created_at)` matching how every dashboard query actually filters. Six of the old indexes were never chosen by the query planner while costing roughly 99 MB of file size and a B-tree write on every recorded event. Existing databases migrate automatically at startup; run `VACUUM` once afterwards to reclaim the freed space on disk.
+- **Daily chart aggregation** — the lookup and page-view series are now grouped by hour in SQL and converted to local dates in Python, rather than converting every matching row individually. Daylight-saving transitions fall on whole hours, so the results are unchanged.
+- **Gunicorn concurrency model** — `gunicorn.conf.py` now runs one threaded worker with an explicit request timeout, instead of inheriting the defaults of a single synchronous worker and a 30-second limit under which one slow request blocked all others and an overrun killed the worker before it could populate its cache. Concurrency is provided by threads rather than additional processes so that the geolocation cache, the DNS lookup rate limits, and the dashboard cache remain shared; running multiple processes would have given each its own copy and effectively multiplied every one of those limits by the process count.
+
+### Fixed
+
+- **Geolocation cache eviction under concurrent requests** — evicting the oldest entry at capacity could raise `KeyError` or `RuntimeError` when two requests reached the capacity check together. Eviction is now guarded; cache reads remain lock-free.
+
 ## [1.11.4] - 2026-10-01
 
 ### Changed

@@ -2,6 +2,7 @@
 
 import os
 import sqlite3
+import threading
 import time
 from datetime import datetime, timedelta, timezone
 from datetime import time as dt_time
@@ -15,9 +16,24 @@ _DEFAULT_METRICS_DB_PATH = os.path.join(
 )
 METRICS_TIMEZONE = ZoneInfo("America/New_York")
 
+# The one-time index migration in ensure_metrics_store holds an exclusive lock for
+# as long as it takes to rebuild the composite index — a full scan of the events
+# table on PVC-backed storage. Other gunicorn workers starting at the same moment
+# must wait that out rather than fail with "database is locked", so schema and
+# dashboard connections get a far longer busy timeout than sqlite3's 5 s default.
+# The per-event write paths deliberately keep the short default: a blocked metrics
+# insert should be dropped, not stall the request that triggered it.
+_SCHEMA_LOCK_TIMEOUT = 120.0
+_DASHBOARD_LOCK_TIMEOUT = 30.0
+
 _metrics_cache: dict = {"data": None, "ts": 0.0}
 _METRICS_CACHE_TTL = 1800  # seconds — complete-day data is stable until midnight
 _schema_initialized_for: str | None = None  # db path last initialized; None = never
+# Serializes first-run schema setup across threads. Without it, every thread that
+# arrives during the one-time index migration piles onto SQLite's write lock and then
+# redundantly repeats the DDL and the retention DELETE once it gets through. One
+# thread does the work; the rest wait on this and return immediately.
+_schema_lock = threading.Lock()
 
 
 def _db_path() -> str:
@@ -35,8 +51,17 @@ def ensure_metrics_store() -> None:
     path = _db_path()
     if _schema_initialized_for == path:
         return
+    with _schema_lock:
+        if _schema_initialized_for == path:  # another thread finished while we waited
+            return
+        _init_metrics_store(path)
+        _schema_initialized_for = path
+
+
+def _init_metrics_store(path: str) -> None:
+    """Create the schema, migrate indexes, and apply retention. Caller holds the lock."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with sqlite3.connect(path) as conn:
+    with sqlite3.connect(path, timeout=_SCHEMA_LOCK_TIMEOUT) as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS metrics_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,33 +126,41 @@ def ensure_metrics_store() -> None:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_page_views_created_at ON page_views(created_at)"
         )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_page_views_page ON page_views(page)"
-        )
 
-        for index_sql in [
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_created_at ON metrics_events(created_at)",
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_event_type ON metrics_events(event_type)",
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_ip_version ON metrics_events(ip_version)",
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_isp ON metrics_events(isp)",
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_org ON metrics_events(org)",
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_country ON metrics_events(country)",
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_country_code ON metrics_events(country_code)",
-            "CREATE INDEX IF NOT EXISTS idx_metrics_events_city ON metrics_events(city)",
+        # Every dashboard query filters on event_type plus a created_at window, so one
+        # composite index serves all of them, most as covering scans. The older
+        # single-column indexes were never chosen by the planner — it fell back to a
+        # temp B-tree for each GROUP BY regardless — while costing ~99 MB of file size
+        # and a B-tree write per insert, so drop them wherever they still exist.
+        # Drop before create so the new index builds into pages the old ones freed,
+        # rather than growing the file by its own size first and only then releasing
+        # theirs — that ordering matters on a space-constrained PVC.
+        for obsolete in [
+            "idx_metrics_events_created_at",
+            "idx_metrics_events_event_type",
+            "idx_metrics_events_ip_version",
+            "idx_metrics_events_isp",
+            "idx_metrics_events_org",
+            "idx_metrics_events_country",
+            "idx_metrics_events_country_code",
+            "idx_metrics_events_city",
+            "idx_page_views_page",
         ]:
-            conn.execute(index_sql)
+            conn.execute(f"DROP INDEX IF EXISTS {obsolete}")
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_metrics_events_type_created "
+            "ON metrics_events(event_type, created_at)"
+        )
 
     retention_days = current_app.config.get("METRICS_RETENTION_DAYS", 90)
     retention_cutoff = (
         datetime.now(timezone.utc) - timedelta(days=retention_days)
     ).isoformat()
-    with sqlite3.connect(path) as conn:
+    with sqlite3.connect(path, timeout=_SCHEMA_LOCK_TIMEOUT) as conn:
         conn.execute(
             "DELETE FROM metrics_events WHERE created_at < ?", (retention_cutoff,)
         )
         conn.execute("DELETE FROM page_views WHERE created_at < ?", (retention_cutoff,))
-
-    _schema_initialized_for = path
 
 
 def log_metrics_event(
@@ -223,6 +256,16 @@ def log_page_view(page: str) -> None:
         current_app.logger.warning("Page view logging skipped: %s", error)
 
 
+def _local_day(utc_hour: str) -> str:
+    """Convert a 'YYYY-MM-DDTHH' UTC bucket key to a local-timezone date string."""
+    return (
+        datetime.fromisoformat(f"{utc_hour}:00:00+00:00")
+        .astimezone(METRICS_TIMEZONE)
+        .date()
+        .isoformat()
+    )
+
+
 def _count_by_query(
     conn: sqlite3.Connection, query: str, params: tuple = ()
 ) -> list[dict[str, Any]]:
@@ -261,16 +304,18 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
         .isoformat()
     )
 
-    # Read the entire DB file into memory in one sequential pass before querying.
-    # On NFS-backed storage (OpenShift PVC) this trades ~11 separate lock/read
-    # cycles for a single 44 MB sequential read, cutting cold-load time significantly.
-    _nfs = sqlite3.connect(_db_path())
-    conn = sqlite3.connect(":memory:")
-    _nfs.backup(conn)
-    _nfs.close()
+    # Query the file directly, read-only. An earlier revision snapshotted the whole
+    # database into :memory: to collapse PVC round-trips, but that cost is linear in
+    # total file size rather than in the window being shown: at 367 MB it read every
+    # byte and peaked near 500 MB RSS per worker to render one page, and it held a
+    # shared lock across the copy, stalling concurrent metrics writes.
+    # idx_metrics_events_type_created lets each query touch only its slice instead.
+    conn = sqlite3.connect(
+        f"file:{_db_path()}?mode=ro", uri=True, timeout=_DASHBOARD_LOCK_TIMEOUT
+    )
     conn.row_factory = sqlite3.Row
 
-    with conn:
+    try:
         totals_row = conn.execute(
             """
             SELECT
@@ -286,27 +331,25 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
         total_campus = totals_row["campus"]
         total_remote = totals_row["remote"]
 
+        # Bucket by UTC hour in SQL, then convert at most 24 * days buckets to local
+        # dates in Python. US DST transitions land on whole hours, so this is exactly
+        # as accurate as converting every row, at a fraction of the Python work.
         daily_lookup_v4: dict[str, int] = {}
         daily_lookup_v6: dict[str, int] = {}
         for row in conn.execute(
             """
-            SELECT created_at, ip_version
+            SELECT substr(created_at, 1, 13) AS hour,
+                   CASE WHEN ip_version = 6 THEN 6 ELSE 4 END AS version,
+                   COUNT(*) AS count
             FROM metrics_events
             WHERE event_type = ? AND created_at >= ?
-            ORDER BY created_at
+            GROUP BY hour, version
             """,
             ("hostinfo", cutoff),
         ).fetchall():
-            day = (
-                datetime.fromisoformat(row["created_at"])
-                .astimezone(METRICS_TIMEZONE)
-                .date()
-                .isoformat()
-            )
-            if row["ip_version"] == 6:
-                daily_lookup_v6[day] = daily_lookup_v6.get(day, 0) + 1
-            else:
-                daily_lookup_v4[day] = daily_lookup_v4.get(day, 0) + 1
+            day = _local_day(row["hour"])
+            bucket = daily_lookup_v6 if row["version"] == 6 else daily_lookup_v4
+            bucket[day] = bucket.get(day, 0) + row["count"]
 
         daily_series = []
         for offset in range(days):
@@ -319,20 +362,17 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
         daily_page_view_lookup: dict[str, int] = {}
         for row in conn.execute(
             """
-            SELECT created_at
+            SELECT substr(created_at, 1, 13) AS hour, COUNT(*) AS count
             FROM page_views
             WHERE created_at >= ?
-            ORDER BY created_at
+            GROUP BY hour
             """,
             (cutoff,),
         ).fetchall():
-            day = (
-                datetime.fromisoformat(row["created_at"])
-                .astimezone(METRICS_TIMEZONE)
-                .date()
-                .isoformat()
+            day = _local_day(row["hour"])
+            daily_page_view_lookup[day] = (
+                daily_page_view_lookup.get(day, 0) + row["count"]
             )
-            daily_page_view_lookup[day] = daily_page_view_lookup.get(day, 0) + 1
 
         daily_page_views_series = [
             {
@@ -533,7 +573,8 @@ def get_metrics_dashboard(days: int | None = None) -> dict[str, Any]:
             )
         )
 
-    conn.close()
+    finally:
+        conn.close()
 
     result = {
         "window_days": days,
