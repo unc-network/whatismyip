@@ -135,7 +135,7 @@ def _init_metrics_store(path: str) -> None:
         # Drop before create so the new index builds into pages the old ones freed,
         # rather than growing the file by its own size first and only then releasing
         # theirs — that ordering matters on a space-constrained PVC.
-        for obsolete in [
+        obsolete_indexes = [
             "idx_metrics_events_created_at",
             "idx_metrics_events_event_type",
             "idx_metrics_events_ip_version",
@@ -145,12 +145,37 @@ def _init_metrics_store(path: str) -> None:
             "idx_metrics_events_country_code",
             "idx_metrics_events_city",
             "idx_page_views_page",
-        ]:
+        ]
+        existing = {
+            row[0]
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'index'"
+            )
+        }
+        # Report the one-time rebuild, which dominates startup the first time a
+        # pre-1.11.5 database is opened and is otherwise invisible in the logs.
+        migrating = bool(existing.intersection(obsolete_indexes)) or (
+            "idx_metrics_events_type_created" not in existing
+        )
+        if migrating:
+            current_app.logger.info(
+                "Metrics index migration starting (%d obsolete indexes to drop)",
+                len(existing.intersection(obsolete_indexes)),
+            )
+        started = time.monotonic()
+
+        for obsolete in obsolete_indexes:
             conn.execute(f"DROP INDEX IF EXISTS {obsolete}")
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_metrics_events_type_created "
             "ON metrics_events(event_type, created_at)"
         )
+
+        if migrating:
+            current_app.logger.info(
+                "Metrics index migration complete in %.1fs",
+                time.monotonic() - started,
+            )
 
     retention_days = current_app.config.get("METRICS_RETENTION_DAYS", 90)
     retention_cutoff = (
