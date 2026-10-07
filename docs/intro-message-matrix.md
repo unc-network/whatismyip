@@ -18,14 +18,15 @@ Fires if the primary (IPv4) API call fails. Report button stays disabled.
 
 ### Main status lines
 
-Set by `set_intro_text(is_campus, network_purpose)`. Called by both the IPv4 and IPv6 callbacks; the later callback updates in place, preserving any sub-lines already shown. Once a specific-purpose message (VPN, Wireless) has been set, a subsequent null-purpose call is ignored.
+Set by `set_intro_text(is_campus, network_purpose)`. Called by both the IPv4 and IPv6 callbacks; the later callback updates in place, preserving any sub-lines already shown. Once a specific-purpose message (VPN, Zero Trust Access, Wireless) has been set, a subsequent null-purpose call is ignored.
 
 | Condition | Message |
 | --- | --- |
 | `is_campus = false` | You are connected from off campus over the Internet. |
-| `is_campus = true`, purpose ≠ VPN/Wireless | You are connected to the campus network. |
+| `is_campus = true`, purpose ≠ VPN/Zero Trust Access/Wireless | You are connected to the campus network. |
 | `is_campus = true`, purpose = "Wireless" | You are connected to the campus wireless network. |
 | `is_campus = true`, purpose = "VPN" | You are connected through the campus VPN. |
+| `is_campus = true`, purpose = "Zero Trust Access" | You are connected through Zero Trust Access. |
 
 The off-campus variant also shows a Campus VPN card if `vpn_install_url` is configured.
 
@@ -39,8 +40,9 @@ Source: `renderNATResult()` via `checkNATType()` → `fetchExternalIPv4()` (ipif
 
 | Context | Message |
 | --- | --- |
-| `networkPurpose` truthy and ≠ "VPN" | Your internet traffic exits the campus network as `{x.x.x.x}`. |
+| `networkPurpose` truthy and ≠ "VPN" / "Zero Trust Access" | Your internet traffic exits the campus network as `{x.x.x.x}`. |
 | `networkPurpose` = "VPN" | Internet traffic bypasses the VPN tunnel and exits via `{x.x.x.x}`. |
+| `networkPurpose` = "Zero Trust Access" | Only campus applications are reached through Zero Trust Access; other internet traffic exits directly via `{x.x.x.x}`. |
 | `networkPurpose` falsy (off-campus) | Your internet traffic appears to use a different address (`{x.x.x.x}`) than your campus connection. |
 
 ---
@@ -77,6 +79,7 @@ Main line reflects whichever callback completes last (typically IPv6). NAT and m
 | IPv4-only, campus wired | Campus | Possible — exits as NAT IP | — single stack |
 | IPv4-only, campus wireless | Wireless | Possible — exits as NAT IP | — single stack |
 | IPv4-only, campus VPN | VPN | Possible — split-tunnel warning | — single stack |
+| IPv4-only, Zero Trust Access | Zero Trust Access | Possible — split-access note | — single stack |
 | IPv4-only, off-campus, iCloud/proxy active | Off-campus | Possible — if ipify differs | Proxy notice (via IPv6 error callback) |
 | IPv6-only, any connection | Campus / Wireless / VPN / Off-campus | No — IPv4 endpoint call fails (no IPv4 path) | — single stack |
 | IPv6-only, off-campus, iCloud/proxy active | Off-campus | No IPv4 path | Proxy notice (via IPv6 success callback, `reportDataIPv4` null) |
