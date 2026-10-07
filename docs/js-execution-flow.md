@@ -12,7 +12,7 @@ Before anything runs, these variables are declared at module scope. They act as 
 | --- | --- |
 | `reportDataIPv4` | Full API response from the **IPv4** endpoint. Null until that call succeeds. |
 | `reportDataIPv6` | Full API response from the **IPv6** endpoint. Null until that call succeeds. |
-| `reportNetworkPurpose` | Network purpose string (e.g. `"Wireless"`, `"VPN"`). Whichever callback completes last wins. |
+| `reportNetworkPurpose` | Network purpose string (e.g. `"Wireless"`, `"VPN"`, `"Zero Trust Access"`). Whichever callback completes last wins. |
 | `reportInternetIp` | External IP returned by ipify. Set only when the NAT sub-line fires. |
 | `proxyNoticeShown` | Flag preventing the iCloud/proxy sub-line from appearing twice. |
 | `ipv4Resolved` | Set to true when the IPv4 callback completes (success or error). |
@@ -49,7 +49,7 @@ get_dns_info()                   ← deferred via requestIdleCallback
 
 On success, in order:
 
-1. **`set_intro_text(is_campus, purpose)`** — always called. Updates `#intro-main-status` from the loading spinner to the real status line. If the element has already been set by the other callback with a specific purpose (VPN, Wireless), a null-purpose call from this side is ignored so the more specific message is preserved.
+1. **`set_intro_text(is_campus, purpose)`** — always called. Updates `#intro-main-status` from the loading spinner to the real status line. If the element has already been set by the other callback with a specific purpose (VPN, Zero Trust Access, Wireless), a null-purpose call from this side is ignored so the more specific message is preserved.
 
 2. **Address bar** — shows the IPv4 address in the top bar (if `default_version == 4`) or the second bar (if `default_version == 6`).
 
@@ -101,8 +101,9 @@ checkNATType(serverIp)
 - Returns if `externalIp` is null or matches `serverIp` (no NAT — paths agree).
 - Returns if `proxyNoticeShown` is true (both protocols have settled and a relay was detected).
 - Returns if either result (`reportDataIPv4` or `reportDataIPv6`) shows iCloud, Private Relay, Cloudflare WARP, or `proxy = true` — relay services rotate exit IPs between requests so the difference is not meaningful.
-- Otherwise populates and shows `#intro-sub-nat` with one of three messages based on `reportNetworkPurpose`:
+- Otherwise populates and shows `#intro-sub-nat` with one of four messages based on `reportNetworkPurpose`:
   - VPN → "Internet traffic bypasses the VPN tunnel and exits via `{ip}`."
+  - Zero Trust Access → "Only campus applications are reached through Zero Trust Access; other internet traffic exits directly via `{ip}`."
   - Campus/wireless → "Your internet traffic exits the campus network as `{ip}`."
   - Off-campus (falsy purpose) → "Your internet traffic appears to use a different address (`{ip}`) than your campus connection."
 

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.12.0] - 2026-10-07
+
+### Added
+
+- **Zero Trust Access detection** — addresses on networks whose Infoblox `Purpose` is `Zero Trust Access` (the zero trust application connectors) now get their own status line, "You are connected through Zero Trust Access.", in place of the generic campus message, and the downloaded report labels the connection the same way. The internet path check also recognizes these networks: when internet traffic leaves by a different address than the connector, the page explains that only campus applications go through Zero Trust Access and shows the address the rest of the traffic uses.
+
 ## [1.11.5] - 2026-10-06
 
 ### Added

@@ -214,6 +214,9 @@ function set_intro_text(is_campus, network_purpose) {
 		if (network_purpose == 'VPN') {
 			icon = 'fa-shield text-success';
 			msg  = 'You are connected through the campus VPN.';
+		} else if (network_purpose == 'Zero Trust Access') {
+			icon = 'fa-user-shield text-success';
+			msg  = 'You are connected through Zero Trust Access.';
 		} else if (network_purpose == 'Wireless') {
 			icon = 'fa-wifi text-success';
 			msg  = 'You are connected to the campus wireless network.';
@@ -284,6 +287,7 @@ function downloadReport() {
 	if (rPrimary.is_campus) {
 		var purpose = rPrimary.network && rPrimary.network.purpose;
 		if (purpose === 'VPN') statusMsg = 'Connected through the campus VPN';
+		else if (purpose === 'Zero Trust Access') statusMsg = 'Connected through Zero Trust Access';
 		else if (purpose === 'Wireless') statusMsg = 'Connected to the campus wireless network';
 		else statusMsg = 'Connected to the campus network';
 	} else {
@@ -957,6 +961,8 @@ function renderNATResult(serverIp, externalIp, networkPurpose) {
 	var natNote;
 	if (networkPurpose === 'VPN') {
 		natNote = `Internet traffic bypasses the VPN tunnel and exits via ${externalIp}.`;
+	} else if (networkPurpose === 'Zero Trust Access') {
+		natNote = `Only campus applications are reached through Zero Trust Access; other internet traffic exits directly via ${externalIp}.`;
 	} else if (networkPurpose) {
 		natNote = `Your internet traffic exits the campus network as ${externalIp}.`;
 	} else {
