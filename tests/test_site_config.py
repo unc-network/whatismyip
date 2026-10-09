@@ -149,3 +149,35 @@ max_concurrent_lookups = 20
     assert app.config["DNS_LOOKUP_RATE_LIMIT"] == 1
     assert app.config["DNS_LOOKUP_GLOBAL_RATE_LIMIT"] == 3000
     assert app.config["DNS_LOOKUP_MAX_CONCURRENT"] == 4
+
+
+def test_load_site_config_parses_network_notes(tmp_path):
+    cfg = tmp_path / "config.toml"
+    cfg.write_text("""[campus]
+networks = []
+
+[[network_notes]]
+networks = ["152.2.23.188/32", "not-a-cidr", "2001:db8::/32"]
+message = "You are on UNC-Setup."
+
+[[network_notes]]
+networks = ["198.85.230.136/29"]
+message = "  "
+""")
+    from whatismyip.site_config import load_site_config
+
+    app = create_app({"TESTING": True, "METRICS_DB_PATH": str(tmp_path / "m.sqlite3")})
+    with app.app_context():
+        import whatismyip.site_config as sc
+
+        original = sc.SITE_CONFIG_PATH
+        sc.SITE_CONFIG_PATH = str(cfg)
+        try:
+            load_site_config(app)
+        finally:
+            sc.SITE_CONFIG_PATH = original
+
+    notes = app.config["NETWORK_NOTES"]
+    assert [(str(net), msg) for net, msg in notes] == [
+        ("152.2.23.188/32", "You are on UNC-Setup.")
+    ]

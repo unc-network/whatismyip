@@ -147,6 +147,22 @@ description = "Unauthenticated guest network"
 usage = "For visitors without campus credentials — limited connectivity"
 expected = false
 
+# Network notes — an extra line of guidance shown under the home page status
+# message when the visitor's IPv4 address falls inside one of the listed
+# networks. Useful for addresses that many users share behind NAT, such as a
+# guest or onboarding SSID, where the generic status line can't say enough.
+# Each block takes a list of IPv4 CIDRs and a plain-text message (no HTML).
+# When several blocks match, the most specific network wins. The note also
+# appears in the printed report. Omit this section to show no notes.
+
+# [[network_notes]]
+# networks = ["192.0.2.10/32"]
+# message = "You are on the device setup network. Switch to eduroam once your device is registered."
+
+# [[network_notes]]
+# networks = ["198.51.100.136/29"]
+# message = "You are on the guest network. Some campus-only services are not available."
+
 [metrics]
 
 # Number of days shown in the dashboard charts and used for all aggregations

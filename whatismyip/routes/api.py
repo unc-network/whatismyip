@@ -27,6 +27,7 @@ from whatismyip.utils import (
     get_client_address,
     get_ip_location,
     get_nac_info,
+    get_network_note,
     is_campus_ip,
 )
 
@@ -473,6 +474,7 @@ def hostinfo() -> Response:
     ip = ipaddress.ip_address(str(data["client_address"]))
 
     data["is_campus"] = is_campus_ip(data["client_address"])
+    data["network_note"] = get_network_note(data["client_address"])
 
     ua = parse(data["user_agent"])
     data["user_device"] = {

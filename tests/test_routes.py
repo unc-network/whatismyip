@@ -514,3 +514,30 @@ def test_dns_lookup_rejects_when_all_query_slots_are_busy(app, client, monkeypat
 
     assert response.status_code == 503
     assert response.headers["Retry-After"] == "2"
+
+
+def test_hostinfo_returns_most_specific_network_note(app, client, monkeypatch):
+    import ipaddress
+
+    monkeypatch.delenv("CLIENT_ADDRESS", raising=False)
+    monkeypatch.delenv("CLIENT_ADDRESS_V4", raising=False)
+    monkeypatch.delenv("CLIENT_ADDRESS_V6", raising=False)
+    monkeypatch.delenv("FORWARDED_FOR", raising=False)
+    monkeypatch.setattr("whatismyip.routes.api.is_campus_ip", lambda ip: False)
+    monkeypatch.setattr(
+        "whatismyip.routes.api.log_metrics_event", lambda *a, **kw: None
+    )
+    monkeypatch.setattr("whatismyip.routes.api.resolver.query", _no_ptr)
+    monkeypatch.setattr("whatismyip.routes.api.get_ip_location", lambda ip: {})
+    app.config["NETWORK_NOTES"] = [
+        (ipaddress.ip_network("198.85.230.0/24"), "Broad note"),
+        (ipaddress.ip_network("198.85.230.136/29"), "You are on UNC-Guest."),
+    ]
+
+    inside = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "198.85.230.140"})
+    outside = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "198.85.230.10"})
+    unmatched = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
+
+    assert inside.get_json()["network_note"] == "You are on UNC-Guest."
+    assert outside.get_json()["network_note"] == "Broad note"
+    assert unmatched.get_json()["network_note"] is None

@@ -203,6 +203,17 @@ function checkProxyNotice() {
 	).removeClass('d-none');
 }
 
+// Site-configured note for the visitor's IPv4 network (config.toml [[network_notes]]).
+// Independent of the status logic above; inserted as text because it comes from config.
+function showNetworkNote(note) {
+	if (!note) return;
+	$('#intro-sub-note')
+		.empty()
+		.append('<i class="fa-solid fa-circle-exclamation me-1" aria-hidden="true"></i>')
+		.append(document.createTextNode(note))
+		.removeClass('d-none');
+}
+
 function showPrimaryLoadError() {
 	$('#intro_text').html('<div class="intro-status text-warning"><i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>Connection details could not be retrieved. <a href="javascript:void(0)" onclick="location.reload()">Refresh to try again.</a></div>');
 	$('#report-btn').prop('disabled', true);
@@ -347,6 +358,7 @@ function downloadReport() {
 		rpt('IPv4', reportConnectV4),
 		rpt('IPv6', reportConnectV6),
 		rpt('Internet Address', reportInternetIp ? reportInternetIp + ' (differs from campus address)' : null),
+		rpt('Network Note', reportDataIPv4.network_note),
 	]);
 
 	var dnsProvider = [reportDnsProviderGeo, reportDnsProviderIp].filter(Boolean).join(' — ');
@@ -524,6 +536,7 @@ function test_ipv4_url(default_version) {
 			//console.log("Host check from " + result["address"]);
 
 			set_intro_text(result['is_campus'], result['network']['purpose']);
+			showNetworkNote(result['network_note']);
 
 			if ( default_version == 4 ) {
 				$('#first_address_section').show();

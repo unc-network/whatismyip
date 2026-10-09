@@ -96,12 +96,12 @@ Note for dual-stack: the NAT check always runs on the IPv4 side regardless of wh
 
 ## Execution Sequence
 
-1. **Page load** — Initial HTML rendered server-side. `#intro-main-status` (showing spinner) and three hidden sub-line slots (`#intro-sub-nat`, `#intro-sub-mismatch`, `#intro-sub-proxy`) are already in the DOM.
+1. **Page load** — Initial HTML rendered server-side. `#intro-main-status` (showing spinner) and four hidden sub-line slots (`#intro-sub-nat`, `#intro-sub-mismatch`, `#intro-sub-proxy`, `#intro-sub-note`) are already in the DOM.
 
-2. **IPv4 callback** — `set_intro_text()` updates `#intro-main-status` from the spinner to the real status line. Stores result as `reportDataIPv4`. Calls `checkAddressMismatch()` — returns early because `reportDataIPv6` is not yet loaded. Also kicks off `checkNATType()` with the IPv4 `client_address`.
+2. **IPv4 callback** — `set_intro_text()` updates `#intro-main-status` from the spinner to the real status line. Stores result as `reportDataIPv4`. If the response carries a `network_note`, `showNetworkNote()` populates and shows `#intro-sub-note`. Calls `checkAddressMismatch()` — returns early because `reportDataIPv6` is not yet loaded. Also kicks off `checkNATType()` with the IPv4 `client_address`.
 
 3. **ipify (async, concurrent with IPv6 callback)** — `fetchExternalIPv4()` calls `api4.ipify.org`. If result differs from campus IPv4 address, `renderNATResult()` populates and shows `#intro-sub-nat`. Fires regardless of `default_version`.
 
 4. **IPv6 callback** — `set_intro_text()` updates `#intro-main-status` in-place (null-purpose call is ignored if IPv4 already set a specific-purpose message). Stores result as `reportDataIPv6`. Calls `checkAddressMismatch()` — now both are loaded; if campus status differs, populates `#intro-sub-mismatch`. Calls `checkProxyNotice()` — if IPv4 has also settled, runs the proxy check and may populate `#intro-sub-proxy`.
 
-5. **Final state** — Main line reflects the **last callback to complete** (either order is possible). Sub-line slots are visible only if populated; at most two can be visible at once (NAT + mismatch). Proxy and mismatch notices are mutually exclusive by logic.
+5. **Final state** — Main line reflects the **last callback to complete** (either order is possible). Sub-line slots are visible only if populated; at most two of the NAT, mismatch and proxy lines can be visible at once (NAT + mismatch). Proxy and mismatch notices are mutually exclusive by logic. The configured network note is independent and can appear with any of them.

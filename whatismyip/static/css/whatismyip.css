@@ -770,6 +770,20 @@ html[data-theme="dark"] .ip-copy-card:focus-visible {
   margin-bottom: 0.5rem;
 }
 
+/* Site-configured network note — a tinted callout so it reads apart from the muted sub-lines. */
+.intro-note {
+  width: fit-content;
+  color: var(--site-text);
+  background-color: var(--site-subtle-bg);
+  font-weight: 500;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.375rem;
+}
+
+.intro-note i {
+  color: var(--site-link);
+}
+
 /* NAC connection diagram — vertical/mobile-first */
 .nac-diagram {
   display: flex;

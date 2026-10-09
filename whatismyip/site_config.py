@@ -153,6 +153,10 @@ def load_site_config(app: Flask) -> None:
                 }
         app.config["SSID_INFO"] = ssid_map
 
+        app.config["NETWORK_NOTES"] = _parse_network_notes(
+            app, site_cfg.get("network_notes", [])
+        )
+
     except Exception as exc:
         app.logger.error(
             f"Failed to load {SITE_CONFIG_PATH}: {exc} — using built-in defaults."
@@ -170,6 +174,32 @@ def _parse_campus_networks(
         except ValueError:
             app.logger.warning(f"Skipping invalid campus network CIDR: {cidr!r}")
     return networks
+
+
+def _parse_network_notes(
+    app: Flask, entries: list[dict]
+) -> list[tuple[ipaddress.IPv4Network, str]]:
+    """Flatten [[network_notes]] blocks into (network, message) pairs.
+
+    Only IPv4 networks are accepted; notes are shown from the IPv4 result alone.
+    """
+    notes = []
+    for entry in entries:
+        message = str(entry.get("message", "")).strip()
+        if not message:
+            app.logger.warning(f"Skipping network note with no message: {entry!r}")
+            continue
+        for cidr in entry.get("networks", []):
+            try:
+                network = ipaddress.ip_network(cidr, strict=False)
+            except ValueError:
+                app.logger.warning(f"Skipping invalid network note CIDR: {cidr!r}")
+                continue
+            if network.version != 4:
+                app.logger.warning(f"Skipping non-IPv4 network note CIDR: {cidr!r}")
+                continue
+            notes.append((network, message))
+    return notes
 
 
 def _parse_resolver_address(app: Flask, value: object, label: str) -> str:
@@ -256,3 +286,4 @@ def _apply_defaults(app: Flask) -> None:
     app.config["VPN_INSTALL_URL"] = ""
     app.config["VPN_NETWORKS"] = []
     app.config["SSID_INFO"] = {}
+    app.config["NETWORK_NOTES"] = []
