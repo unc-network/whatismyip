@@ -30,6 +30,22 @@ def is_campus_ip(ip_address: str) -> bool:
     return any(ip in net for net in networks)
 
 
+def get_network_note(ip_address: str) -> str | None:
+    """
+    Return the configured note for the most specific network containing this address.
+    Notes are loaded from data/config.toml at startup via app.config["NETWORK_NOTES"].
+    """
+    notes = app.config.get("NETWORK_NOTES", [])
+    try:
+        ip = ipaddress.ip_address(ip_address)
+    except ValueError:
+        return None
+    matches = [(net, msg) for net, msg in notes if ip in net]
+    if not matches:
+        return None
+    return max(matches, key=lambda match: match[0].prefixlen)[1]
+
+
 def get_client_address(
     remote_address: str | None, forwarded_for: str | None
 ) -> str | None:

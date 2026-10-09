@@ -225,12 +225,13 @@ The NAT sub-line and the mismatch/proxy sub-lines are completely independent and
 
 ## Sub-line Slots
 
-Three hidden `<div>` slots are declared in the initial HTML beneath `#intro-main-status`. Each is populated and shown independently; ordering is fixed by their position in the DOM regardless of which callback fires first.
+Four hidden `<div>` slots are declared in the initial HTML beneath `#intro-main-status`. Each is populated and shown independently; ordering is fixed by their position in the DOM regardless of which callback fires first.
 
 | Slot ID | Source | When shown |
 | --- | --- | --- |
 | `#intro-sub-nat` | `renderNATResult()` via ipify (Phase 3) | IPv4 address differs from ipify, no relay detected |
 | `#intro-sub-mismatch` | `checkAddressMismatch()` (both success callbacks) | IPv4 and IPv6 disagree on `is_campus` |
 | `#intro-sub-proxy` | `checkProxyNotice()` (all four callback paths) | Both agree off-campus, relay/proxy detected |
+| `#intro-sub-note` | `showNetworkNote()` (IPv4 success callback) | IPv4 address matches a `[[network_notes]]` CIDR in `config.toml` |
 
-Mismatch and proxy are mutually exclusive by logic: `checkProxyNotice` skips if `is_campus` differs. The NAT slot is suppressed when a relay is detected (checks `proxyNoticeShown`, both results' isp/org for iCloud / Private Relay / Cloudflare WARP, and both proxy flags), so it won't appear alongside the proxy notice. In practice at most two slots are visible at once (NAT + mismatch).
+Mismatch and proxy are mutually exclusive by logic: `checkProxyNotice` skips if `is_campus` differs. The NAT slot is suppressed when a relay is detected (checks `proxyNoticeShown`, both results' isp/org for iCloud / Private Relay / Cloudflare WARP, and both proxy flags), so it won't appear alongside the proxy notice. In practice at most two slots are visible at once (NAT + mismatch). The note slot is independent of all three: it depends only on configuration and can appear alongside any of them.

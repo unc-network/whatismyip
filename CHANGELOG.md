@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.13.0] - 2026-10-09
+
+### Added
+
+- **Configurable network notes** — a new `[[network_notes]]` section in `config.toml` maps IPv4 networks to a line of plain-text guidance, shown as a highlighted callout at the bottom of the home page status block and in the printed report when the visitor's IPv4 address matches. It is meant for shared NAT addresses such as an onboarding or guest SSID, where the status line alone can't tell the visitor what that network is for. When several entries match, the most specific network wins. The note is independent of the other status lines and needs no Infoblox data, so it works for off-campus ranges and for deployments without Infoblox.
+
 ## [1.12.0] - 2026-10-07
 
 ### Added
