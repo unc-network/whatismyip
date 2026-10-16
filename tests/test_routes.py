@@ -53,6 +53,11 @@ def test_metrics_route_is_public_when_no_auth_configured(app, client, monkeypatc
     assert response.status_code == 200
     assert b"Site Statistics" in response.data
     assert b"DNS comparison lookups" in response.data
+    assert (
+        b'<meta name="keywords" content="site statistics, IP lookup statistics'
+        in response.data
+    )
+    assert b'<meta name="robots" content="noindex, follow">' in response.data
 
 
 def test_metrics_route_requires_auth_when_configured(app, client, monkeypatch):
@@ -95,7 +100,7 @@ def test_sitemap_includes_core_pages(client):
     assert b"whatismyip.unc.edu/" in response.data
     assert b"whatismyip.unc.edu/faq" in response.data
     assert b"whatismyip.unc.edu/about" in response.data
-    assert b"whatismyip.unc.edu/metrics" in response.data
+    assert b"whatismyip.unc.edu/metrics" not in response.data
     assert b"whatismyip.unc.edu/connectivity" in response.data
     assert b"whatismyip.unc.edu/dns-lookup" in response.data
 

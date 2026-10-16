@@ -1,7 +1,15 @@
 <!-- templates/404.html -->
 {% extends "base.html" %}
 
-{% block title %}Page Not Found{% endblock %}
+{% block title %}Page Not Found — What Is My IP?{% endblock %}
+{% block meta_description %}The requested page could not be found on the UNC Chapel Hill What Is My IP network diagnostic site.{% endblock %}
+{% block meta_keywords %}page not found, What Is My IP, UNC Chapel Hill{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+{% block og_title %}Page Not Found — What Is My IP?{% endblock %}
+{% block og_description %}The requested page could not be found on the UNC Chapel Hill What Is My IP network diagnostic site.{% endblock %}
+{% block og_url %}{{ site_url }}{{ request.path }}{% endblock %}
+{% block twitter_title %}Page Not Found — What Is My IP?{% endblock %}
+{% block twitter_description %}The requested page could not be found on the UNC Chapel Hill What Is My IP network diagnostic site.{% endblock %}
 {% block canonical %}{% endblock %}
 
 {% block content %}
