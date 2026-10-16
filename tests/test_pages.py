@@ -48,9 +48,25 @@ def test_dns_lookup_page_renders_when_enabled(app, client):
     app.config["DNS_LOOKUP_ENABLED"] = True
     response = client.get("/dns-lookup")
     assert response.status_code == 200
+    assert b"<title>DNS Lookup Tool" in response.data
+    assert b"Look up A, AAAA, CNAME, MX, TXT, NS, SOA, and PTR records" in response.data
     assert b"Answer comparison" in response.data
+    assert b"What this DNS lookup tool checks" in response.data
+    assert b'id="dns-about"' in response.data
+    assert b"Supported DNS record types" in response.data
+    assert b"Campus and public DNS comparison" in response.data
+    assert b'"@type": "WebApplication"' in response.data
+    assert b'"name": "UNC DNS Lookup Tool"' in response.data
     assert b"dns-select-icon" in response.data
     assert b'id="dns-share"' in response.data
+    assert b"Copy query link" in response.data
+    assert b"Copy results as text" in response.data
+    assert b"Copy result image" in response.data
+    assert b"Download PNG" in response.data
+    assert b"ClipboardItem" in response.data
+    assert b"createResultCanvas" in response.data
+    assert b"dnsAbout.hidden = true" in response.data
+    assert b"dnsAbout.hidden = false" in response.data
     assert b"URLSearchParams" in response.data
     assert b"DNS Lookup" in response.data
 

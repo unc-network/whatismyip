@@ -4,7 +4,7 @@ import os
 import sqlite3
 import threading
 import time
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from datetime import time as dt_time
 from typing import Any, NamedTuple
 from zoneinfo import ZoneInfo
@@ -255,7 +255,7 @@ def log_metrics_event(
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    datetime.now(timezone.utc).isoformat(),
+                    datetime.now(UTC).isoformat(),
                     event_type,
                     ip_version,
                     isp,
@@ -289,7 +289,7 @@ def log_page_view(page: str) -> None:
         with sqlite3.connect(_db_path()) as conn:
             conn.execute(
                 "INSERT INTO page_views (created_at, page) VALUES (?, ?)",
-                (datetime.now(timezone.utc).isoformat(), page),
+                (datetime.now(UTC).isoformat(), page),
             )
     except Exception as error:  # pragma: no cover - metrics must not break page loads
         current_app.logger.warning("Page view logging skipped: %s", error)
@@ -356,8 +356,8 @@ def _day_bounds_utc(day: str) -> tuple[str, str]:
         date.fromisoformat(day), dt_time.min, tzinfo=METRICS_TIMEZONE
     )
     return (
-        start.astimezone(timezone.utc).isoformat(),
-        (start + timedelta(days=1)).astimezone(timezone.utc).isoformat(),
+        start.astimezone(UTC).isoformat(),
+        (start + timedelta(days=1)).astimezone(UTC).isoformat(),
     )
 
 

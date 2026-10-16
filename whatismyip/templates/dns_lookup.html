@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}DNS Lookup — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block meta_description %}Compare campus split-horizon DNS answers with the public Internet DNS view, including remaining cache TTLs.{% endblock %}
-{% block og_title %}DNS Lookup — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block og_description %}Compare campus and public DNS answers, response status, latency, and remaining cache TTLs.{% endblock %}
+{% block title %}DNS Lookup Tool — Check DNS Records | UNC ITS{% endblock %}
+{% block meta_description %}Look up A, AAAA, CNAME, MX, TXT, NS, SOA, and PTR records. Compare UNC campus and public DNS answers, TTLs, status, and response time.{% endblock %}
+{% block og_title %}DNS Lookup Tool — Check DNS Records | UNC ITS{% endblock %}
+{% block og_description %}Look up DNS records and compare UNC campus and public answers, TTLs, response status, and query time.{% endblock %}
 {% block og_url %}{{ site_url }}/dns-lookup{% endblock %}
-{% block twitter_title %}DNS Lookup — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block twitter_description %}Compare campus and public DNS answers, response status, latency, and remaining cache TTLs.{% endblock %}
+{% block twitter_title %}DNS Lookup Tool — Check DNS Records | UNC ITS{% endblock %}
+{% block twitter_description %}Look up DNS records and compare UNC campus and public answers, TTLs, response status, and query time.{% endblock %}
 
 {% block content %}
 <div class="row mt-3 mb-3">
@@ -60,12 +60,31 @@
     <h2 id="dns-results-heading" class="h4 mb-0">Answer comparison</h2>
     <div class="d-flex align-items-center flex-wrap gap-2">
       <span id="dns-query-label" class="text-muted small"></span>
-      <button class="btn btn-sm dns-share-button" id="dns-share" type="button" hidden>
-        <i class="fa-solid fa-link me-1" aria-hidden="true"></i><span id="dns-share-label">Get link</span>
-      </button>
+      <div class="dns-share-menu" id="dns-share" hidden>
+        <button class="btn btn-sm dns-share-button" id="dns-share-toggle" type="button"
+                aria-expanded="false" aria-controls="dns-share-options">
+          <i class="fa-solid fa-share-nodes me-1" aria-hidden="true"></i>Share
+          <i class="fa-solid fa-chevron-down ms-1" aria-hidden="true"></i>
+        </button>
+        <div class="dns-share-options shadow" id="dns-share-options" role="group"
+             aria-label="Share DNS lookup results" hidden>
+          <button class="dns-share-option" id="dns-copy-link" type="button">
+            <i class="fa-solid fa-link" aria-hidden="true"></i><span>Copy query link</span>
+          </button>
+          <button class="dns-share-option" id="dns-copy-text" type="button">
+            <i class="fa-solid fa-copy" aria-hidden="true"></i><span>Copy results as text</span>
+          </button>
+          <button class="dns-share-option" id="dns-copy-image" type="button">
+            <i class="fa-solid fa-image" aria-hidden="true"></i><span>Copy result image</span>
+          </button>
+          <button class="dns-share-option" id="dns-download-image" type="button">
+            <i class="fa-solid fa-download" aria-hidden="true"></i><span>Download PNG</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
-  <span id="dns-share-status" class="visually-hidden" role="status" aria-live="polite"></span>
+  <div id="dns-share-status" class="dns-share-status small" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div id="dns-resolver-results" class="row g-3 mb-3"></div>
 
@@ -90,6 +109,56 @@
   <p class="text-muted small mt-2 mb-0"><i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>TTLs are the remaining cache lifetimes reported by each recursive resolver, so they may differ even when the answers match.</p>
 
 </section>
+
+<div class="row mb-5" id="dns-about">
+  <div class="col-lg-10">
+    <section aria-labelledby="dns-about-heading">
+      <h2 id="dns-about-heading" class="h4">What this DNS lookup tool checks</h2>
+      <p>Use this tool to look up the records that publish a domain's addresses, aliases, mail servers, name servers, verification data, and other DNS configuration. It reports each answer's remaining cache lifetime (TTL), response status, and query time.</p>
+
+      <h3 class="h5 mt-4">Supported DNS record types</h3>
+      <ul>
+        <li><strong>A and AAAA</strong> — IPv4 and IPv6 addresses for a domain name</li>
+        <li><strong>CNAME</strong> — aliases that point one name to another</li>
+        <li><strong>MX</strong> — mail servers responsible for receiving email</li>
+        <li><strong>TXT</strong> — text records commonly used for domain verification and email security</li>
+        <li><strong>NS and SOA</strong> — authoritative name servers and DNS zone information</li>
+        <li><strong>PTR</strong> — reverse DNS lookup from an IPv4 or IPv6 address to a host name</li>
+      </ul>
+
+      <h3 class="h5 mt-4">Campus and public DNS comparison</h3>
+      <p class="mb-0">From the UNC campus network or VPN, the same lookup is sent to the campus and public resolvers. Comparing their answers can reveal split-horizon DNS, cache differences, or records available only inside the campus network. Off campus, the tool shows the public Internet DNS view.</p>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "UNC DNS Lookup Tool",
+  "url": "{{ site_url }}/dns-lookup",
+  "description": "Look up DNS records and compare UNC campus and public answers, TTLs, response status, and query time.",
+  "applicationCategory": "NetworkingApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "provider": {
+    "@type": "Organization",
+    "name": "UNC Information Technology Services",
+    "url": "https://its.unc.edu"
+  },
+  "featureList": [
+    "A and AAAA address record lookup",
+    "CNAME, MX, TXT, NS, and SOA record lookup",
+    "Reverse DNS PTR lookup",
+    "Campus and public DNS answer comparison",
+    "DNS TTL, response status, and query-time reporting"
+  ]
+}
+</script>
 {% endblock %}
 
 {% block javascript %}
@@ -105,12 +174,20 @@
   var resultsSection = document.getElementById('dns-results');
   var resolverResults = document.getElementById('dns-resolver-results');
   var answerRows = document.getElementById('dns-answer-rows');
+  var dnsAbout = document.getElementById('dns-about');
   var queryLabel = document.getElementById('dns-query-label');
-  var shareButton = document.getElementById('dns-share');
-  var shareLabel = document.getElementById('dns-share-label');
+  var shareMenu = document.getElementById('dns-share');
+  var shareToggle = document.getElementById('dns-share-toggle');
+  var shareOptions = document.getElementById('dns-share-options');
+  var copyLinkButton = document.getElementById('dns-copy-link');
+  var copyTextButton = document.getElementById('dns-copy-text');
+  var copyImageButton = document.getElementById('dns-copy-image');
+  var downloadImageButton = document.getElementById('dns-download-image');
   var shareStatus = document.getElementById('dns-share-status');
   var endpoint = {{ url_for('api.dns_lookup') | tojson }};
   var shareUrl = '';
+  var lastResult = null;
+  var lookupCompletedAt = null;
   var shareResetTimer;
 
   function escapeHtml(value) {
@@ -179,14 +256,47 @@
     return '<span class="conn-badge-warning">Internet only</span>';
   }
 
+  function comparisonText(value) {
+    if (value === 'both') return 'Same answer';
+    if (value === 'internal_only') return 'Campus only';
+    return 'Internet only';
+  }
+
+  function ttlText(value) {
+    if (value === null || typeof value === 'undefined') return '—';
+    var seconds = Math.max(0, Math.floor(Number(value)));
+    return Number.isFinite(seconds) ? seconds + ' second' + (seconds === 1 ? '' : 's') : '—';
+  }
+
+  function lookupSummary(data) {
+    if (data.comparison.answers_truncated) return 'Answer output was truncated; comparison may be incomplete.';
+    if (data.comparison.comparable) {
+      return data.comparison.same_answers
+        ? 'Campus and Internet answers match.'
+        : 'Campus and Internet answers differ.';
+    }
+    if (!data.internal_included) return 'Internet DNS view only; campus access is required for comparison.';
+    return 'Complete comparison unavailable because one or more queries failed.';
+  }
+
+  function formattedLookupTime() {
+    if (!lookupCompletedAt) return '';
+    return new Intl.DateTimeFormat(undefined, {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', second: '2-digit', timeZoneName: 'short'
+    }).format(lookupCompletedAt);
+  }
+
   function render(data) {
+    lastResult = data;
+    lookupCompletedAt = new Date();
     queryLabel.textContent = data.query.type + ' ' + data.query.name;
     var url = new URL(window.location.pathname, window.location.origin);
     url.searchParams.set('name', nameInput.value.trim());
     url.searchParams.set('type', data.query.type);
     shareUrl = url.toString();
     window.history.replaceState({}, '', url.pathname + url.search);
-    shareButton.hidden = false;
+    shareMenu.hidden = false;
     resolverResults.innerHTML = data.results.map(renderResolver).join('');
 
     if (!data.internal_included) {
@@ -232,32 +342,348 @@
       status.innerHTML = '<span class="conn-badge-warning"><i class="fa-solid fa-triangle-exclamation me-1" aria-hidden="true"></i>A complete comparison is unavailable because one or more resolver queries failed.</span>';
     }
     resultsSection.hidden = false;
+    dnsAbout.hidden = true;
   }
 
-  function setShareFeedback(message, buttonText) {
+  function setShareFeedback(message) {
     window.clearTimeout(shareResetTimer);
     shareStatus.textContent = message;
-    shareLabel.textContent = buttonText;
     shareResetTimer = window.setTimeout(function () {
-      shareLabel.textContent = 'Get link';
-    }, 1800);
+      shareStatus.textContent = '';
+    }, 4000);
   }
 
-  shareButton.addEventListener('click', function () {
-    if (!shareUrl) return;
+  function setShareMenuOpen(open) {
+    shareOptions.hidden = !open;
+    shareToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
 
-    if (!navigator.clipboard || !window.isSecureContext) {
-      setShareFeedback('Unable to copy the DNS lookup link. Copy the address from the browser address bar instead.', 'Copy failed');
-      return;
+  function closeShareMenu() {
+    setShareMenuOpen(false);
+    shareToggle.focus();
+  }
+
+  function writeTextToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
     }
 
-    navigator.clipboard.writeText(shareUrl)
-      .then(function () {
-        setShareFeedback('DNS lookup link copied to the clipboard.', 'Link copied');
-      })
-      .catch(function () {
-        setShareFeedback('Unable to copy the DNS lookup link. Copy the address from the browser address bar instead.', 'Copy failed');
+    return new Promise(function (resolve, reject) {
+      var field = document.createElement('textarea');
+      field.value = text;
+      field.setAttribute('readonly', '');
+      field.style.position = 'fixed';
+      field.style.opacity = '0';
+      document.body.appendChild(field);
+      field.select();
+      try {
+        if (!document.execCommand('copy')) throw new Error('Copy command failed');
+        resolve();
+      } catch (error) {
+        reject(error);
+      } finally {
+        field.remove();
+      }
+    });
+  }
+
+  function buildTextSummary() {
+    var data = lastResult;
+    var lines = [
+      'DNS lookup results',
+      'Query: ' + data.query.type + ' ' + data.query.name,
+      'Checked: ' + formattedLookupTime(),
+      'Query link: ' + shareUrl,
+      'Result: ' + lookupSummary(data),
+      '',
+      'Resolvers:'
+    ];
+
+    if (!data.internal_included) {
+      lines.push('- Campus DNS: not included (campus network or VPN required)');
+    }
+    data.results.forEach(function (result) {
+      var state = resolverStatus(result)[1];
+      var details = [];
+      if (result.latency_ms !== null) details.push(result.latency_ms + ' ms');
+      if (result.negative_ttl !== null) details.push('negative cache TTL ' + ttlText(result.negative_ttl));
+      if (result.answers_truncated) details.push('answer display truncated');
+      if (result.error) details.push(result.error);
+      lines.push('- ' + result.label + ' (' + result.address + '): ' + state +
+        (details.length ? ' — ' + details.join('; ') : ''));
+    });
+
+    lines.push('', 'DNS answers:');
+    if (data.comparison.rows.length) {
+      data.comparison.rows.forEach(function (row) {
+        lines.push('- ' + row.type + ' ' + row.name + ' ' + row.data);
+        lines.push('  Campus TTL: ' + ttlText(row.internal_ttl) +
+          ' | Internet TTL: ' + ttlText(row.public_ttl) +
+          ' | ' + comparisonText(row.comparison));
       });
+    } else {
+      data.results.forEach(function (result) {
+        lines.push('- ' + result.label + ': ' + resolverStatus(result)[1] +
+          (result.error ? ' — ' + result.error : ''));
+      });
+    }
+
+    lines.push('', 'Generated by What Is My IP? — UNC Chapel Hill');
+    return lines.join('\n');
+  }
+
+  function canvasColor(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function wrapCanvasText(context, text, maxWidth) {
+    var lines = [];
+    var words = String(text).split(/\s+/);
+    var current = '';
+
+    words.forEach(function (word) {
+      var candidate = current ? current + ' ' + word : word;
+      if (context.measureText(candidate).width <= maxWidth) {
+        current = candidate;
+        return;
+      }
+      if (current) lines.push(current);
+      current = '';
+      while (context.measureText(word).width > maxWidth && word.length > 1) {
+        var end = 1;
+        while (end < word.length && context.measureText(word.slice(0, end + 1)).width <= maxWidth) end += 1;
+        lines.push(word.slice(0, end));
+        word = word.slice(end);
+      }
+      current = word;
+    });
+    if (current) lines.push(current);
+    return lines.length ? lines : [''];
+  }
+
+  function buildImageEntries() {
+    var data = lastResult;
+    var entries = [
+      { style: 'title', text: 'DNS Lookup Results' },
+      { style: 'query', text: data.query.type + ' ' + data.query.name },
+      { style: 'meta', text: 'Checked ' + formattedLookupTime() },
+      { style: 'meta', text: shareUrl },
+      { style: 'summary', text: lookupSummary(data) },
+      { style: 'heading', text: 'Resolvers' }
+    ];
+
+    if (!data.internal_included) {
+      entries.push({ style: 'body', text: 'Campus DNS — Not included (campus network or VPN required)' });
+    }
+    data.results.forEach(function (result) {
+      var details = [resolverStatus(result)[1]];
+      if (result.latency_ms !== null) details.push(result.latency_ms + ' ms');
+      if (result.negative_ttl !== null) details.push('negative cache TTL ' + ttlText(result.negative_ttl));
+      if (result.answers_truncated) details.push('answer display truncated');
+      if (result.error) details.push(result.error);
+      entries.push({
+        style: 'body',
+        text: result.label + ' (' + result.address + ') — ' + details.join(' · ')
+      });
+    });
+
+    entries.push({ style: 'heading', text: 'DNS answers' });
+    var rows = data.comparison.rows.slice(0, 30);
+    if (rows.length) {
+      rows.forEach(function (row) {
+        var answer = row.data.length > 500 ? row.data.slice(0, 499) + '…' : row.data;
+        entries.push({ style: 'record', text: row.type + '  ' + row.name });
+        entries.push({ style: 'mono', text: answer });
+        entries.push({
+          style: 'meta',
+          text: 'Campus TTL: ' + ttlText(row.internal_ttl) +
+            '   |   Internet TTL: ' + ttlText(row.public_ttl) +
+            '   |   ' + comparisonText(row.comparison)
+        });
+      });
+      if (data.comparison.rows.length > rows.length) {
+        entries.push({
+          style: 'notice',
+          text: (data.comparison.rows.length - rows.length) +
+            ' additional records omitted from the image. Copy the text summary for complete results.'
+        });
+      }
+    } else {
+      data.results.forEach(function (result) {
+        entries.push({
+          style: 'body',
+          text: result.label + ': ' + resolverStatus(result)[1] +
+            (result.error ? ' — ' + result.error : '')
+        });
+      });
+    }
+    entries.push({ style: 'footer', text: 'What Is My IP? · UNC Chapel Hill Information Technology Services' });
+    return entries;
+  }
+
+  function createResultCanvas() {
+    var width = 1200;
+    var padding = 56;
+    var maxTextWidth = width - (padding * 2);
+    var measureCanvas = document.createElement('canvas');
+    var measure = measureCanvas.getContext('2d');
+    var styles = {
+      title: { font: '700 38px "Open Sans", Arial, sans-serif', line: 48, before: 0, after: 4 },
+      query: { font: '700 26px "Open Sans", Arial, sans-serif', line: 36, before: 0, after: 4 },
+      heading: { font: '700 24px "Open Sans", Arial, sans-serif', line: 34, before: 30, after: 8 },
+      record: { font: '700 19px "Open Sans", Arial, sans-serif', line: 28, before: 18, after: 2 },
+      body: { font: '400 19px "Open Sans", Arial, sans-serif', line: 29, before: 6, after: 4 },
+      mono: { font: '400 18px ui-monospace, SFMono-Regular, Menlo, monospace', line: 27, before: 0, after: 3 },
+      meta: { font: '400 17px "Open Sans", Arial, sans-serif', line: 26, before: 0, after: 3 },
+      summary: { font: '600 19px "Open Sans", Arial, sans-serif', line: 29, before: 22, after: 12 },
+      notice: { font: '600 18px "Open Sans", Arial, sans-serif', line: 28, before: 18, after: 6 },
+      footer: { font: '400 16px "Open Sans", Arial, sans-serif', line: 24, before: 34, after: 0 }
+    };
+    var layout = [];
+    var height = padding;
+
+    buildImageEntries().forEach(function (entry) {
+      var style = styles[entry.style];
+      measure.font = style.font;
+      var lines = wrapCanvasText(measure, entry.text, maxTextWidth);
+      height += style.before + (lines.length * style.line) + style.after;
+      layout.push({ entry: entry, style: style, lines: lines });
+    });
+    height += padding;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = Math.min(height, 10000);
+    var context = canvas.getContext('2d');
+    var navy = canvasColor('--unc-navy');
+    var white = canvasColor('--unc-white');
+    var blue = canvasColor('--unc-carolina-blue');
+    var muted = canvasColor('--unc-old-well-basin');
+    var subtle = canvasColor('--unc-cloud');
+    var border = canvasColor('--unc-cornerstone');
+
+    context.fillStyle = white;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = navy;
+    context.fillRect(0, 0, 16, canvas.height);
+
+    var y = padding;
+    layout.some(function (item) {
+      y += item.style.before;
+      if (y + (item.lines.length * item.style.line) > canvas.height - padding) return true;
+      context.font = item.style.font;
+      context.fillStyle = item.entry.style === 'meta' || item.entry.style === 'footer' ? muted : navy;
+
+      if (item.entry.style === 'summary' || item.entry.style === 'notice') {
+        var blockHeight = (item.lines.length * item.style.line) + 20;
+        context.fillStyle = subtle;
+        context.fillRect(padding - 14, y - 10, maxTextWidth + 28, blockHeight);
+        context.strokeStyle = item.entry.style === 'summary' ? blue : border;
+        context.lineWidth = 4;
+        context.beginPath();
+        context.moveTo(padding - 14, y - 10);
+        context.lineTo(padding - 14, y - 10 + blockHeight);
+        context.stroke();
+        context.fillStyle = navy;
+      }
+
+      item.lines.forEach(function (line) {
+        context.fillText(line, padding, y + item.style.line - 6);
+        y += item.style.line;
+      });
+      y += item.style.after;
+      return false;
+    });
+    return canvas;
+  }
+
+  function resultImageBlob() {
+    var fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    return fontsReady.then(function () {
+      return new Promise(function (resolve, reject) {
+        createResultCanvas().toBlob(function (blob) {
+          if (blob) resolve(blob);
+          else reject(new Error('Unable to create image'));
+        }, 'image/png');
+      });
+    });
+  }
+
+  function imageFilename() {
+    var name = lastResult.query.name.replace(/\.$/, '').replace(/[^a-z0-9.-]+/gi, '-').slice(0, 80);
+    var date = lookupCompletedAt.toISOString().replace(/[:.]/g, '-');
+    return 'dns-lookup-' + name + '-' + lastResult.query.type.toLowerCase() + '-' + date + '.png';
+  }
+
+  function downloadBlob(blob) {
+    var link = document.createElement('a');
+    var objectUrl = URL.createObjectURL(blob);
+    link.href = objectUrl;
+    link.download = imageFilename();
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(function () { URL.revokeObjectURL(objectUrl); }, 1000);
+  }
+
+  shareToggle.addEventListener('click', function () {
+    setShareMenuOpen(shareOptions.hidden);
+  });
+
+  document.addEventListener('click', function (event) {
+    if (!shareMenu.hidden && !shareMenu.contains(event.target)) setShareMenuOpen(false);
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && !shareOptions.hidden) {
+      setShareMenuOpen(false);
+      shareToggle.focus();
+    }
+  });
+
+  copyLinkButton.addEventListener('click', function () {
+    closeShareMenu();
+    writeTextToClipboard(shareUrl)
+      .then(function () { setShareFeedback('Query link copied. Opening it runs a fresh lookup.'); })
+      .catch(function () { setShareFeedback('Unable to copy the query link. Copy it from the address bar instead.'); });
+  });
+
+  copyTextButton.addEventListener('click', function () {
+    closeShareMenu();
+    writeTextToClipboard(buildTextSummary())
+      .then(function () { setShareFeedback('DNS results copied as text.'); })
+      .catch(function () { setShareFeedback('Unable to copy the DNS results.'); });
+  });
+
+  copyImageButton.addEventListener('click', function () {
+    closeShareMenu();
+    setShareFeedback('Preparing result image…');
+    resultImageBlob().then(function (blob) {
+      if (!navigator.clipboard || !navigator.clipboard.write || !window.ClipboardItem || !window.isSecureContext) {
+        downloadBlob(blob);
+        setShareFeedback('Image copying is unavailable in this browser, so the PNG was downloaded instead.');
+        return;
+      }
+      return navigator.clipboard.write([new window.ClipboardItem({ 'image/png': blob })])
+        .then(function () { setShareFeedback('DNS result image copied.'); })
+        .catch(function () {
+          downloadBlob(blob);
+          setShareFeedback('The browser blocked image copying, so the PNG was downloaded instead.');
+        });
+    }).catch(function () {
+      setShareFeedback('Unable to create the DNS result image.');
+    });
+  });
+
+  downloadImageButton.addEventListener('click', function () {
+    closeShareMenu();
+    setShareFeedback('Preparing PNG…');
+    resultImageBlob()
+      .then(function (blob) {
+        downloadBlob(blob);
+        setShareFeedback('DNS result PNG downloaded.');
+      })
+      .catch(function () { setShareFeedback('Unable to create the DNS result image.'); });
   });
 
   form.addEventListener('submit', async function (event) {
@@ -265,6 +691,7 @@
     button.disabled = true;
     form.setAttribute('aria-busy', 'true');
     resultsSection.hidden = true;
+    dnsAbout.hidden = false;
     status.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1" aria-hidden="true"></i>Querying DNS resolvers…';
 
     try {
@@ -278,6 +705,7 @@
       if (!response.ok) throw new Error(data.error || 'The DNS query failed.');
       render(data);
     } catch (error) {
+      dnsAbout.hidden = false;
       status.innerHTML = '<div class="alert alert-danger mb-0" role="alert">' + escapeHtml(error.message) + '</div>';
     } finally {
       button.disabled = false;
