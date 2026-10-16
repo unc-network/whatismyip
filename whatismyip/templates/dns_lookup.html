@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}DNS Lookup — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block meta_description %}Compare campus split-horizon DNS answers with the public Internet DNS view, including remaining cache TTLs.{% endblock %}
-{% block og_title %}DNS Lookup — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block og_description %}Compare campus and public DNS answers, response status, latency, and remaining cache TTLs.{% endblock %}
+{% block title %}DNS Lookup Tool — Check DNS Records | UNC ITS{% endblock %}
+{% block meta_description %}Look up A, AAAA, CNAME, MX, TXT, NS, SOA, and PTR records. Compare UNC campus and public DNS answers, TTLs, status, and response time.{% endblock %}
+{% block og_title %}DNS Lookup Tool — Check DNS Records | UNC ITS{% endblock %}
+{% block og_description %}Look up DNS records and compare UNC campus and public answers, TTLs, response status, and query time.{% endblock %}
 {% block og_url %}{{ site_url }}/dns-lookup{% endblock %}
-{% block twitter_title %}DNS Lookup — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block twitter_description %}Compare campus and public DNS answers, response status, latency, and remaining cache TTLs.{% endblock %}
+{% block twitter_title %}DNS Lookup Tool — Check DNS Records | UNC ITS{% endblock %}
+{% block twitter_description %}Look up DNS records and compare UNC campus and public answers, TTLs, response status, and query time.{% endblock %}
 
 {% block content %}
 <div class="row mt-3 mb-3">
@@ -90,6 +90,56 @@
   <p class="text-muted small mt-2 mb-0"><i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>TTLs are the remaining cache lifetimes reported by each recursive resolver, so they may differ even when the answers match.</p>
 
 </section>
+
+<div class="row mb-5">
+  <div class="col-lg-10">
+    <section aria-labelledby="dns-about-heading">
+      <h2 id="dns-about-heading" class="h4">What this DNS lookup tool checks</h2>
+      <p>Use this tool to look up the records that publish a domain's addresses, aliases, mail servers, name servers, verification data, and other DNS configuration. It reports each answer's remaining cache lifetime (TTL), response status, and query time.</p>
+
+      <h3 class="h5 mt-4">Supported DNS record types</h3>
+      <ul>
+        <li><strong>A and AAAA</strong> — IPv4 and IPv6 addresses for a domain name</li>
+        <li><strong>CNAME</strong> — aliases that point one name to another</li>
+        <li><strong>MX</strong> — mail servers responsible for receiving email</li>
+        <li><strong>TXT</strong> — text records commonly used for domain verification and email security</li>
+        <li><strong>NS and SOA</strong> — authoritative name servers and DNS zone information</li>
+        <li><strong>PTR</strong> — reverse DNS lookup from an IPv4 or IPv6 address to a host name</li>
+      </ul>
+
+      <h3 class="h5 mt-4">Campus and public DNS comparison</h3>
+      <p class="mb-0">From the UNC campus network or VPN, the same lookup is sent to the campus and public resolvers. Comparing their answers can reveal split-horizon DNS, cache differences, or records available only inside the campus network. Off campus, the tool shows the public Internet DNS view.</p>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "UNC DNS Lookup Tool",
+  "url": "{{ site_url }}/dns-lookup",
+  "description": "Look up DNS records and compare UNC campus and public answers, TTLs, response status, and query time.",
+  "applicationCategory": "NetworkingApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "provider": {
+    "@type": "Organization",
+    "name": "UNC Information Technology Services",
+    "url": "https://its.unc.edu"
+  },
+  "featureList": [
+    "A and AAAA address record lookup",
+    "CNAME, MX, TXT, NS, and SOA record lookup",
+    "Reverse DNS PTR lookup",
+    "Campus and public DNS answer comparison",
+    "DNS TTL, response status, and query-time reporting"
+  ]
+}
+</script>
 {% endblock %}
 
 {% block javascript %}
