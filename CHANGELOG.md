@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.14.1] - 2026-10-16
+
+### Added
+
+- **Connectivity and speed-test structured data** — the Connectivity page now identifies its browser-based diagnostics as a `WebApplication`. The Speed Test page identifies itself as a UNC ITS-published `WebPage` whose `mainEntity` is the Ookla-provided speed-test application, clarifying ownership while describing each page's purpose.
+
+### Changed
+
+- **Page-specific search metadata** — Speed Test, Connectivity, DNS Lookup, FAQ, About, and Site Statistics now provide keywords tailored to their own content instead of inheriting the home-page terms. Connectivity's standard, Open Graph, Twitter, and structured-data descriptions now explain that its browser-based tests can identify possible network or DNS access failures.
+- **Accessible social previews** — the shared Open Graph and Twitter logo metadata now includes concise alternative text for assistive technology on supported social platforms.
+- **Indexing controls** — 404 and 500 responses now use accurate error-specific search and social metadata plus `noindex, nofollow`. The optionally public Site Statistics page remains accessible but now uses `noindex, follow` and is omitted from the sitemap.
+
 ## [1.14.0] - 2026-10-16
 
 ### Added

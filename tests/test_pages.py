@@ -1,5 +1,8 @@
 """Tests for pages blueprint — static pages, redirects, file serving, error handlers."""
 
+import json
+import re
+
 import pytest
 
 from whatismyip import create_app
@@ -15,6 +18,15 @@ def app(tmp_path):
 def client(app):
     with app.test_client() as c:
         yield c
+
+
+def _structured_data(response):
+    blocks = re.findall(
+        rb'<script type="application/ld\+json">\s*(.*?)\s*</script>',
+        response.data,
+        re.DOTALL,
+    )
+    return [json.loads(block) for block in blocks]
 
 
 # --- Trailing-slash redirects ---
@@ -42,6 +54,28 @@ def test_trailing_slash_redirects(client, path, location):
 def test_connectivity_page_renders(client):
     response = client.get("/connectivity")
     assert response.status_code == 200
+    assert b"Run browser-based connectivity tests" in response.data
+    assert (
+        b'<meta name="keywords" content="connectivity test, network diagnostics'
+        in response.data
+    )
+    structured_data = _structured_data(response)
+    assert structured_data[0]["@type"] == "WebApplication"
+    assert structured_data[0]["name"] == "UNC Connectivity Tests"
+    assert structured_data[0]["url"].endswith("/connectivity")
+
+
+def test_speedtest_page_renders(client):
+    response = client.get("/speedtest")
+    assert response.status_code == 200
+    assert (
+        b'<meta name="keywords" content="internet speed test, network speed test'
+        in response.data
+    )
+    structured_data = _structured_data(response)
+    assert structured_data[0]["@type"] == "WebPage"
+    assert structured_data[0]["mainEntity"]["@type"] == "WebApplication"
+    assert structured_data[0]["mainEntity"]["provider"]["name"] == "Ookla"
 
 
 def test_dns_lookup_page_renders_when_enabled(app, client):
@@ -50,6 +84,9 @@ def test_dns_lookup_page_renders_when_enabled(app, client):
     assert response.status_code == 200
     assert b"<title>DNS Lookup Tool" in response.data
     assert b"Look up A, AAAA, CNAME, MX, TXT, NS, SOA, and PTR records" in response.data
+    assert (
+        b'<meta name="keywords" content="DNS lookup, DNS record lookup' in response.data
+    )
     assert b"Answer comparison" in response.data
     assert b"What this DNS lookup tool checks" in response.data
     assert b'id="dns-about"' in response.data
@@ -69,6 +106,27 @@ def test_dns_lookup_page_renders_when_enabled(app, client):
     assert b"dnsAbout.hidden = false" in response.data
     assert b"URLSearchParams" in response.data
     assert b"DNS Lookup" in response.data
+
+
+@pytest.mark.parametrize(
+    ("path", "keywords"),
+    [
+        ("/faq", b"IP address FAQ, campus network help"),
+        ("/about", b"UNC IP address tool, UNC network diagnostics"),
+    ],
+)
+def test_informational_pages_use_specific_meta_keywords(client, path, keywords):
+    response = client.get(path)
+    assert response.status_code == 200
+    assert b'<meta name="keywords" content="' + keywords in response.data
+
+
+def test_pages_include_social_image_alt_text(client):
+    response = client.get("/about")
+    assert response.status_code == 200
+    expected = b"What Is My IP? logo: a laptop with a question mark"
+    assert b'<meta property="og:image:alt" content="' + expected in response.data
+    assert b'<meta name="twitter:image:alt" content="' + expected in response.data
 
 
 def test_dns_lookup_page_returns_404_when_disabled(app, client):
@@ -124,9 +182,15 @@ def test_404_handler_renders_template(client):
     response = client.get("/this-path-does-not-exist-at-all")
     assert response.status_code == 404
     assert b"404" in response.data
+    assert b'<meta name="robots" content="noindex, nofollow">' in response.data
+    assert b"The requested page could not be found" in response.data
+    assert b'<link rel="canonical"' not in response.data
 
 
 def test_500_handler_renders_template(client):
     response = client.get("/trigger-500")
     assert response.status_code == 500
     assert b"500" in response.data
+    assert b'<meta name="robots" content="noindex, nofollow">' in response.data
+    assert b"encountered an internal server error" in response.data
+    assert b'<link rel="canonical"' not in response.data

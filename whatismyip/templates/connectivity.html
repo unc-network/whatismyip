@@ -1,13 +1,40 @@
 {% extends "base.html" %}
 
 {% block title %}Connectivity Tests — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block meta_description %}Test whether your device can reach key campus and internet resources from your current network connection.{% endblock %}
+{% block meta_description %}Run browser-based connectivity tests to check access to UNC campus and internet resources and identify possible network or DNS access failures.{% endblock %}
+{% block meta_keywords %}connectivity test, network diagnostics, UNC campus network, internet connectivity, reachability test, DNS failure, campus resources{% endblock %}
 {% block og_title %}Connectivity Tests — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block og_description %}Test whether your device can reach key campus and internet resources from your current network connection.{% endblock %}
+{% block og_description %}Run browser-based connectivity tests to check access to UNC campus and internet resources and identify possible network or DNS access failures.{% endblock %}
 {% block og_url %}{{ site_url }}/connectivity{% endblock %}
 {% block twitter_title %}Connectivity Tests — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
-{% block twitter_description %}Test whether your device can reach key campus and internet resources from your current network connection.{% endblock %}
+{% block twitter_description %}Run browser-based connectivity tests to check access to UNC campus and internet resources and identify possible network or DNS access failures.{% endblock %}
 
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "UNC Connectivity Tests",
+  "url": "{{ site_url }}/connectivity",
+  "description": "Run browser-based connectivity tests to check access to UNC campus and Internet resources and identify possible network or DNS access failures.",
+  "applicationCategory": "NetworkingApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "provider": {
+    "@type": "Organization",
+    "name": "UNC Information Technology Services",
+    "url": "https://its.unc.edu"
+  },
+  "featureList": [
+    "Automatic campus and Internet resource reachability testing",
+    "Reachable and unreachable status reporting",
+    "On-demand connectivity retesting"
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="row mt-3 mb-1">

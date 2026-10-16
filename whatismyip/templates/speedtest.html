@@ -2,11 +2,51 @@
 
 {% block title %}Speed Test — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
 {% block meta_description %}Test your internet connection speed using Ookla Speedtest Custom. Select the UNC Chapel Hill server to measure your connection to the campus network.{% endblock %}
+{% block meta_keywords %}internet speed test, network speed test, Ookla Speedtest Custom, UNC Chapel Hill speed test, campus network, download speed, upload speed, latency{% endblock %}
 {% block og_title %}Speed Test — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
 {% block og_description %}Test your internet connection speed using Ookla Speedtest Custom. Select the UNC Chapel Hill server to measure your connection to the campus network.{% endblock %}
 {% block og_url %}{{ site_url }}/speedtest{% endblock %}
 {% block twitter_title %}Speed Test — What Is My IP? | UNC Chapel Hill ITS{% endblock %}
 {% block twitter_description %}Test your internet speed using Ookla Speedtest Custom with the UNC Chapel Hill server.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Speed Test — What Is My IP?",
+  "url": "{{ site_url }}/speedtest",
+  "description": "Test your Internet connection speed using Ookla Speedtest Custom and the UNC Chapel Hill test server.",
+  "isAccessibleForFree": true,
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "What Is My IP? — UNC Chapel Hill",
+    "url": "{{ site_url }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "UNC Information Technology Services",
+    "url": "https://its.unc.edu"
+  },
+  "mainEntity": {
+    "@type": "WebApplication",
+    "name": "Ookla Speedtest Custom — UNC Chapel Hill",
+    "url": "https://uncch.speedtestcustom.com",
+    "description": "Measure Internet connection speed and select the UNC Chapel Hill server to test connectivity to the campus network.",
+    "applicationCategory": "NetworkingApplication",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires JavaScript",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "provider": {
+      "@type": "Organization",
+      "name": "Ookla",
+      "url": "https://www.ookla.com"
+    }
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="row mt-3 mb-3">
