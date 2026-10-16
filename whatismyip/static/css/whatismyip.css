@@ -483,6 +483,63 @@ html[data-theme="dark"] .dns-share-button:focus-visible {
   outline-color: var(--unc-white);
 }
 
+.dns-share-menu {
+  position: relative;
+}
+
+.dns-share-options {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 20;
+  min-width: 15rem;
+  padding: 0.35rem;
+  color: var(--site-text);
+  background-color: var(--site-surface);
+  border: 1px solid var(--site-border);
+  border-radius: 0.35rem;
+}
+
+.dns-share-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  color: var(--site-text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 0.25rem;
+}
+
+.dns-share-option i {
+  width: 1.1rem;
+  color: var(--site-muted-text);
+  text-align: center;
+}
+
+.dns-share-option:hover,
+.dns-share-option:active {
+  color: var(--site-text);
+  background-color: var(--site-subtle-bg);
+}
+
+.dns-share-option:focus,
+.dns-share-option:focus-visible {
+  color: var(--site-text);
+  background-color: var(--site-subtle-bg);
+  outline: 3px solid var(--site-link);
+  outline-offset: -3px;
+  box-shadow: none;
+}
+
+.dns-share-status {
+  min-height: 1.5rem;
+  margin-top: 0.35rem;
+  color: var(--site-muted-text);
+}
+
 .dns-record-type {
   display: inline-block;
   min-width: 3.5rem;

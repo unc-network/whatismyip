@@ -205,14 +205,14 @@ def test_get_metrics_dashboard_uses_cache(app):
 def _seed_days(app, days_back):
     """Write one hostinfo + one page view per day, days_back..1 days ago."""
     import sqlite3
-    from datetime import datetime, timedelta, timezone
+    from datetime import UTC, datetime, timedelta
 
     path = app.config["METRICS_DB_PATH"]
     with app.app_context():
         ensure_metrics_store()
     rows = []
     for d in range(days_back, 0, -1):
-        ts = (datetime.now(timezone.utc) - timedelta(days=d, hours=6)).isoformat()
+        ts = (datetime.now(UTC) - timedelta(days=d, hours=6)).isoformat()
         rows.append((ts, "hostinfo", 4, "Test ISP", 1, "Campus"))
     with sqlite3.connect(path) as conn:
         for ts, et, ipv, isp, campus, purpose in rows:
@@ -267,14 +267,14 @@ def test_dashboard_matches_with_and_without_rollups(app):
 
 def test_maintenance_applies_retention(app):
     import sqlite3
-    from datetime import datetime, timedelta, timezone
+    from datetime import UTC, datetime, timedelta
 
     from whatismyip.db import run_daily_maintenance
 
     path = app.config["METRICS_DB_PATH"]
     with app.app_context():
         ensure_metrics_store()
-    old = (datetime.now(timezone.utc) - timedelta(days=200)).isoformat()
+    old = (datetime.now(UTC) - timedelta(days=200)).isoformat()
     with sqlite3.connect(path) as conn:
         conn.execute(
             "INSERT INTO metrics_events (created_at, event_type) VALUES (?, 'hostinfo')",

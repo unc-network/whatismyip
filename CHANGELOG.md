@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.14.0] - 2026-10-16
+
+### Added
+
+- **DNS lookup result sharing** — the result view now has a Share menu for copying the reusable query link, copying a support-ready plain-text summary, copying a branded result image, or downloading the image as a PNG. Text and images are generated entirely in the browser; no DNS results are stored server-side. Browsers that cannot copy PNG data fall back to downloading the image.
+- **DNS lookup structured data** — added `WebApplication` JSON-LD describing the supported record lookups, campus/public comparison, TTLs, response status, and query timing.
+
+### Changed
+
+- **DNS lookup search metadata and guidance** — the page title, description, Open Graph, and Twitter metadata now target DNS-record lookup intent. Crawlable guidance explains A, AAAA, CNAME, MX, TXT, NS, SOA, and PTR records plus the campus/public split-horizon comparison. The guidance is visible before and during a query, then hidden after successful results to keep the answer view focused; it returns if a query fails.
+- **Python UTC handling** — metrics timestamps and their tests now use the Python 3.12 `datetime.UTC` alias in place of `timezone.utc`, satisfying current Ruff `UP017` checks without changing stored timestamp behavior.
+
 ## [1.13.0] - 2026-10-09
 
 ### Added
