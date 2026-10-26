@@ -41,11 +41,13 @@ _dns_inflight = 0
 _DNS_RATE_MAX_CLIENTS = 4096
 
 _hostinfo_rate_lock = threading.Lock()
-_hostinfo_rate_buckets: dict[str, tuple[float, float]] = {}
+_hostinfo_rate_buckets: dict[str, tuple[float, float, float | None]] = {}
 _hostinfo_global_tokens: float | None = None
 _hostinfo_global_updated = 0.0
+_hostinfo_global_last_log: float | None = None
 _hostinfo_last_cleanup = 0.0
 _HOSTINFO_RATE_MAX_CLIENTS = 4096
+_HOSTINFO_RATE_LOG_INTERVAL = 60.0
 
 _SIMULATE_HOSTINFO = {
     4: {
@@ -418,12 +420,14 @@ _SIMULATE_HOSTINFO = {
 
 def _reset_hostinfo_rate_state() -> None:
     """Clear in-process limiter state (used when reloading or testing config)."""
-    global _hostinfo_global_tokens, _hostinfo_global_updated, _hostinfo_last_cleanup
+    global _hostinfo_global_tokens, _hostinfo_global_updated
+    global _hostinfo_global_last_log, _hostinfo_last_cleanup
 
     with _hostinfo_rate_lock:
         _hostinfo_rate_buckets.clear()
         _hostinfo_global_tokens = None
         _hostinfo_global_updated = 0.0
+        _hostinfo_global_last_log = None
         _hostinfo_last_cleanup = 0.0
 
 
@@ -434,7 +438,8 @@ def _hostinfo_rate_limited(client_address: str) -> int | None:
     poll continuously. State is deliberately bounded and process-local, matching
     the existing DNS safeguards and the single-worker Gunicorn configuration.
     """
-    global _hostinfo_global_tokens, _hostinfo_global_updated, _hostinfo_last_cleanup
+    global _hostinfo_global_tokens, _hostinfo_global_updated
+    global _hostinfo_global_last_log, _hostinfo_last_cleanup
 
     if not current_app.config.get("HOSTINFO_RATE_LIMIT_ENABLED", True):
         return None
@@ -447,9 +452,11 @@ def _hostinfo_rate_limited(client_address: str) -> int | None:
     now = time.monotonic()
 
     try:
-        key = str(ipaddress.ip_address(client_address))
+        client_key = str(ipaddress.ip_address(client_address))
     except ValueError:
-        key = "unknown"
+        client_key = "unknown"
+    key = client_key
+    log_scope = None
 
     with _hostinfo_rate_lock:
         if key not in _hostinfo_rate_buckets and len(_hostinfo_rate_buckets) >= (
@@ -465,7 +472,7 @@ def _hostinfo_rate_limited(client_address: str) -> int | None:
                 stale_before = now - max(60.0, refill_seconds)
                 stale = [
                     address
-                    for address, (_, updated) in _hostinfo_rate_buckets.items()
+                    for address, (_, updated, _) in _hostinfo_rate_buckets.items()
                     if updated <= stale_before
                 ]
                 for address in stale:
@@ -474,8 +481,8 @@ def _hostinfo_rate_limited(client_address: str) -> int | None:
             if len(_hostinfo_rate_buckets) >= (_HOSTINFO_RATE_MAX_CLIENTS - 1):
                 key = "overflow"
 
-        client_tokens, client_updated = _hostinfo_rate_buckets.get(
-            key, (float(client_capacity), now)
+        client_tokens, client_updated, client_last_log = _hostinfo_rate_buckets.get(
+            key, (float(client_capacity), now, None)
         )
         client_tokens = min(
             float(client_capacity),
@@ -501,14 +508,40 @@ def _hostinfo_rate_limited(client_address: str) -> int | None:
         if allowed:
             client_tokens -= 1.0
             global_tokens -= 1.0
+        elif global_wait > 0.0:
+            if (
+                _hostinfo_global_last_log is None
+                or now - _hostinfo_global_last_log >= _HOSTINFO_RATE_LOG_INTERVAL
+            ):
+                _hostinfo_global_last_log = now
+                log_scope = "global"
+        elif (
+            client_last_log is None
+            or now - client_last_log >= _HOSTINFO_RATE_LOG_INTERVAL
+        ):
+            client_last_log = now
+            log_scope = "client"
 
-        _hostinfo_rate_buckets[key] = (client_tokens, now)
+        _hostinfo_rate_buckets[key] = (client_tokens, now, client_last_log)
         _hostinfo_global_tokens = global_tokens
         _hostinfo_global_updated = now
 
     if allowed:
         return None
-    return max(1, math.ceil(max(client_wait, global_wait)))
+    retry_after = max(1, math.ceil(max(client_wait, global_wait)))
+    if log_scope == "global":
+        current_app.logger.warning(
+            "Hostinfo rate limit applied scope=global client=%s retry_after=%s",
+            client_key,
+            retry_after,
+        )
+    elif log_scope == "client":
+        current_app.logger.info(
+            "Hostinfo rate limit applied scope=client client=%s retry_after=%s",
+            client_key,
+            retry_after,
+        )
+    return retry_after
 
 
 @bp.route("/hostinfo")

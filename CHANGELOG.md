@@ -9,6 +9,7 @@ All notable changes to this project will be documented here. This project follow
 - **Hostinfo polling safeguards** — `/hostinfo` now uses a configurable, burst-tolerant token bucket with per-client and process-wide limits. Excess requests return `429` with `Retry-After` before DNS, geolocation, IPAM, NAC, or metrics work begins; in-process client state is capped and stale entries are removed lazily.
 - **Geolocation outage protection** — successful ip-api.com results use a configurable cache lifetime, failures are cached briefly, and repeated upstream failures open a process-wide circuit breaker. One recovery probe is permitted after the cooldown, with exponential cooldowns for continuing failures.
 - **Rate-limit recovery UI** — the home page recognizes `/hostinfo` HTTP 429 responses, honors `Retry-After`, and retries only the affected IPv4 or IPv6 lookup. Successful protocol results stay visible; after two automatic attempts an accessible Retry button replaces the previous misleading "Not supported" state. Downloaded reports now also keep connectivity results attached to the correct protocol when IPv6 served the page.
+- **Rate-limit observability** — `/hostinfo` records per-client throttling at info level and process-wide throttling at warning level, including the affected client and retry delay. Repeated events are suppressed for one minute so abusive polling cannot flood application logs.
 
 ### Changed
 
