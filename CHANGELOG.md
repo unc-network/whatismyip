@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [Unreleased]
+
+### Added
+
+- **Hostinfo polling safeguards** — `/hostinfo` now uses a configurable, burst-tolerant token bucket with per-client and process-wide limits. Excess requests return `429` with `Retry-After` before DNS, geolocation, IPAM, NAC, or metrics work begins; in-process client state is capped and stale entries are removed lazily.
+- **Geolocation outage protection** — successful ip-api.com results use a configurable cache lifetime, failures are cached briefly, and repeated upstream failures open a process-wide circuit breaker. One recovery probe is permitted after the cooldown, with exponential cooldowns for continuing failures.
+
+### Changed
+
+- **Geolocation request bounds** — ip-api.com requests now use separate configurable connect and read timeouts and handle all Requests transport errors, including connection timeouts, inside the geolocation helper.
+
 ## [1.14.1] - 2026-10-16
 
 ### Added

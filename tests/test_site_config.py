@@ -151,6 +151,52 @@ max_concurrent_lookups = 20
     assert app.config["DNS_LOOKUP_MAX_CONCURRENT"] == 4
 
 
+def test_load_site_config_applies_hostinfo_and_geolocation_limits(tmp_path):
+    cfg = tmp_path / "config.toml"
+    cfg.write_text("""[campus]
+networks = []
+[hostinfo]
+rate_limit_enabled = false
+requests_per_minute = 0
+burst = 500
+global_requests_per_minute = 20000
+[geolocation]
+cache_ttl_seconds = 30
+failure_cache_ttl_seconds = 600
+connect_timeout_seconds = 0
+read_timeout_seconds = 60
+circuit_breaker_failures = 0
+circuit_breaker_window_seconds = 500
+circuit_breaker_cooldown_seconds = 120
+circuit_breaker_max_cooldown_seconds = 30
+""")
+    from whatismyip.site_config import load_site_config
+
+    app = create_app({"TESTING": True, "METRICS_DB_PATH": str(tmp_path / "m.sqlite3")})
+    with app.app_context():
+        import whatismyip.site_config as sc
+
+        original = sc.SITE_CONFIG_PATH
+        sc.SITE_CONFIG_PATH = str(cfg)
+        try:
+            load_site_config(app)
+        finally:
+            sc.SITE_CONFIG_PATH = original
+
+    assert app.config["HOSTINFO_RATE_LIMIT_ENABLED"] is False
+    assert app.config["HOSTINFO_RATE_LIMIT"] == 1
+    assert app.config["HOSTINFO_RATE_BURST"] == 100
+    assert app.config["HOSTINFO_GLOBAL_RATE_LIMIT"] == 10000
+    assert app.config["GEOLOCATION_CACHE_TTL"] == 60
+    assert app.config["GEOLOCATION_FAILURE_CACHE_TTL"] == 300
+    assert app.config["GEOLOCATION_CONNECT_TIMEOUT"] == 0.1
+    assert app.config["GEOLOCATION_READ_TIMEOUT"] == 30
+    assert app.config["GEOLOCATION_CIRCUIT_FAILURES"] == 1
+    assert app.config["GEOLOCATION_CIRCUIT_WINDOW"] == 300
+    assert app.config["GEOLOCATION_CIRCUIT_COOLDOWN"] == 120
+    assert app.config["GEOLOCATION_CIRCUIT_MAX_COOLDOWN"] == 120
+
+
 def test_load_site_config_parses_network_notes(tmp_path):
     cfg = tmp_path / "config.toml"
     cfg.write_text("""[campus]

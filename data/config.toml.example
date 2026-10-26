@@ -63,6 +63,34 @@ global_queries_per_minute = 300
 max_concurrent_lookups = 4
 allowed_record_types = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "PTR"]
 
+[hostinfo]
+
+# Protect the public /hostinfo endpoint from clients that poll continuously.
+# The token bucket allows a short burst for page loads and manual refreshes,
+# then replenishes at requests_per_minute. The global limit is per application
+# process; add an ingress-level limit when running multiple workers or replicas.
+rate_limit_enabled = true
+requests_per_minute = 6
+burst = 8
+global_requests_per_minute = 120
+
+[geolocation]
+
+# Successful ip-api.com responses are cached by client IP. Failures use a shorter
+# cache so repeated polls do not retry a failing dependency on every request.
+cache_ttl_seconds = 3600
+failure_cache_ttl_seconds = 60
+connect_timeout_seconds = 1.0
+read_timeout_seconds = 2.0
+
+# After this many consecutive failures within the window, calls are suspended for
+# the cooldown. One recovery probe is allowed afterward; repeated failures double
+# the cooldown up to the configured maximum.
+circuit_breaker_failures = 3
+circuit_breaker_window_seconds = 30
+circuit_breaker_cooldown_seconds = 60
+circuit_breaker_max_cooldown_seconds = 300
+
 [map]
 
 # Map provider for displaying IP and campus building locations.

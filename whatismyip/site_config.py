@@ -98,6 +98,74 @@ def load_site_config(app: Flask) -> None:
             dns_section.get("max_concurrent_lookups", 4), 4, 1, 4
         )
 
+        hostinfo_section = site_cfg.get("hostinfo", {})
+        app.config["HOSTINFO_RATE_LIMIT_ENABLED"] = bool(
+            hostinfo_section.get("rate_limit_enabled", True)
+        )
+        app.config["HOSTINFO_RATE_LIMIT"] = _bounded_int(
+            hostinfo_section.get("requests_per_minute", 6), 6, 1, 600
+        )
+        app.config["HOSTINFO_RATE_BURST"] = _bounded_int(
+            hostinfo_section.get("burst", 8), 8, 1, 100
+        )
+        app.config["HOSTINFO_GLOBAL_RATE_LIMIT"] = _bounded_int(
+            hostinfo_section.get("global_requests_per_minute", 120),
+            120,
+            1,
+            10000,
+        )
+
+        geolocation_section = site_cfg.get("geolocation", {})
+        app.config["GEOLOCATION_CACHE_TTL"] = _bounded_float(
+            geolocation_section.get("cache_ttl_seconds", 3600),
+            3600,
+            60,
+            86400,
+        )
+        app.config["GEOLOCATION_FAILURE_CACHE_TTL"] = _bounded_float(
+            geolocation_section.get("failure_cache_ttl_seconds", 60),
+            60,
+            1,
+            300,
+        )
+        app.config["GEOLOCATION_CONNECT_TIMEOUT"] = _bounded_float(
+            geolocation_section.get("connect_timeout_seconds", 1.0),
+            1.0,
+            0.1,
+            10.0,
+        )
+        app.config["GEOLOCATION_READ_TIMEOUT"] = _bounded_float(
+            geolocation_section.get("read_timeout_seconds", 2.0),
+            2.0,
+            0.1,
+            30.0,
+        )
+        app.config["GEOLOCATION_CIRCUIT_FAILURES"] = _bounded_int(
+            geolocation_section.get("circuit_breaker_failures", 3), 3, 1, 20
+        )
+        app.config["GEOLOCATION_CIRCUIT_WINDOW"] = _bounded_float(
+            geolocation_section.get("circuit_breaker_window_seconds", 30),
+            30,
+            1,
+            300,
+        )
+        circuit_cooldown = _bounded_float(
+            geolocation_section.get("circuit_breaker_cooldown_seconds", 60),
+            60,
+            1,
+            900,
+        )
+        app.config["GEOLOCATION_CIRCUIT_COOLDOWN"] = circuit_cooldown
+        app.config["GEOLOCATION_CIRCUIT_MAX_COOLDOWN"] = max(
+            circuit_cooldown,
+            _bounded_float(
+                geolocation_section.get("circuit_breaker_max_cooldown_seconds", 300),
+                300,
+                circuit_cooldown,
+                3600,
+            ),
+        )
+
         map_provider = site_cfg.get("map", {}).get("provider", "leaflet")
         if map_provider not in ("google", "leaflet"):
             app.logger.warning(
@@ -268,6 +336,18 @@ def _apply_defaults(app: Flask) -> None:
     app.config["DNS_LOOKUP_RATE_LIMIT"] = 30
     app.config["DNS_LOOKUP_GLOBAL_RATE_LIMIT"] = 300
     app.config["DNS_LOOKUP_MAX_CONCURRENT"] = 4
+    app.config["HOSTINFO_RATE_LIMIT_ENABLED"] = True
+    app.config["HOSTINFO_RATE_LIMIT"] = 6
+    app.config["HOSTINFO_RATE_BURST"] = 8
+    app.config["HOSTINFO_GLOBAL_RATE_LIMIT"] = 120
+    app.config["GEOLOCATION_CACHE_TTL"] = 3600.0
+    app.config["GEOLOCATION_FAILURE_CACHE_TTL"] = 60.0
+    app.config["GEOLOCATION_CONNECT_TIMEOUT"] = 1.0
+    app.config["GEOLOCATION_READ_TIMEOUT"] = 2.0
+    app.config["GEOLOCATION_CIRCUIT_FAILURES"] = 3
+    app.config["GEOLOCATION_CIRCUIT_WINDOW"] = 30.0
+    app.config["GEOLOCATION_CIRCUIT_COOLDOWN"] = 60.0
+    app.config["GEOLOCATION_CIRCUIT_MAX_COOLDOWN"] = 300.0
     app.config["MAP_PROVIDER"] = "leaflet"
     app.config["SITE_NAME"] = ""
     app.config["SITE_CITY"] = ""
