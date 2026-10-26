@@ -328,6 +328,7 @@ def test_hostinfo_rate_limit_allows_burst_then_recovers(app, client, monkeypatch
     assert second.status_code == 200
     assert limited.status_code == 429
     assert limited.headers["Retry-After"] == "1"
+    assert limited.headers["Access-Control-Expose-Headers"] == "Retry-After"
     assert limited.cache_control.no_store is True
     assert limited.get_json()["retry_after"] == 1
     assert len(metric_events) == 2

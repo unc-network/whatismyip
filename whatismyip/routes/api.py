@@ -587,6 +587,7 @@ def hostinfo() -> Response:
             429,
         )
         response.headers["Retry-After"] = str(retry_after)
+        response.headers["Access-Control-Expose-Headers"] = "Retry-After"
         response.cache_control.no_store = True
         response.cache_control.private = True
         return response

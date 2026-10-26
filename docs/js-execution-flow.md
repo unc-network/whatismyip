@@ -81,7 +81,9 @@ On success, in order:
 
 16. **Report button enabled.**
 
-On error: marks the IPv4 bar "Not supported." If IPv4 was the default protocol (`default_version == 4`), calls `showPrimaryLoadError()`. Sets `ipv4Resolved = true` and calls `checkProxyNotice()` — if IPv6 has already settled, this triggers the proxy check with the full picture.
+On HTTP 429: reads `Retry-After` (falling back to the JSON `retry_after` value), marks IPv4 "Rate limited," and retries only the IPv4 request after the requested delay. It makes at most two automatic retries, then shows an accessible Retry button. A pending or exhausted rate-limit response does not mark IPv4 resolved, so proxy detection never treats temporary throttling as proof that IPv4 is unsupported. Any IPv6 result already received remains displayed.
+
+On other errors: marks the IPv4 bar "Not supported." If IPv4 was the default protocol (`default_version == 4`), calls `showPrimaryLoadError()`. Sets `ipv4Resolved = true` and calls `checkProxyNotice()` — if IPv6 has already settled, this triggers the proxy check with the full picture.
 
 ---
 
@@ -137,13 +139,15 @@ On success, in order:
 
 10. **`reportConnectV4/V6 = 'Supported'`** — updates connectivity status.
 
-On error: marks IPv6 bar "Not supported." If IPv6 was the default protocol (`default_version == 6`), calls `showPrimaryLoadError()`. Sets `ipv6Resolved = true` and calls `checkProxyNotice()` — if IPv4 has already settled, this triggers the proxy check using only the IPv4 result (single-stack IPv4 case).
+On HTTP 429: uses the same bounded retry flow as IPv4, retrying only the IPv6 request and preserving any successful IPv4 result. Until a retry succeeds or fails for a non-rate-limit reason, IPv6 remains unresolved rather than being labeled unsupported.
+
+On other errors: marks IPv6 bar "Not supported." If IPv6 was the default protocol (`default_version == 6`), calls `showPrimaryLoadError()`. Sets `ipv6Resolved = true` and calls `checkProxyNotice()` — if IPv4 has already settled, this triggers the proxy check using only the IPv4 result (single-stack IPv4 case).
 
 ---
 
 ## Coordination Functions
 
-`checkAddressMismatch` runs at the end of both success callbacks. `checkProxyNotice` runs at the end of all four callback paths (both success, both error) but gates on both resolved flags before doing any work.
+`checkAddressMismatch` runs at the end of both success callbacks. `checkProxyNotice` runs after both success callbacks and terminal non-rate-limit errors, but gates on both resolved flags before doing any work. Rate-limited protocols remain unresolved while automatic or manual recovery is still possible.
 
 ### `checkAddressMismatch()`
 

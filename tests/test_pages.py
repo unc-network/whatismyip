@@ -148,6 +148,16 @@ def test_pages_include_social_image_alt_text(client):
     assert b'<meta name="twitter:image:alt" content="' + expected in response.data
 
 
+def test_hostinfo_script_handles_rate_limit_retries(client):
+    response = client.get("/static/js/whatismyip.js")
+
+    assert response.status_code == 200
+    assert b"HOSTINFO_MAX_AUTO_RETRIES = 2" in response.data
+    assert b"getResponseHeader('Retry-After')" in response.data
+    assert b"Too many refreshes. Retrying connection details" in response.data
+    assert b"options.xhr.status !== 429" in response.data
+
+
 def test_dns_lookup_page_returns_404_when_disabled(app, client):
     app.config["DNS_LOOKUP_ENABLED"] = False
     assert client.get("/dns-lookup").status_code == 404
