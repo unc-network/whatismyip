@@ -121,6 +121,25 @@ def test_informational_pages_use_specific_meta_keywords(client, path, keywords):
     assert b'<meta name="keywords" content="' + keywords in response.data
 
 
+def test_faq_documents_hostinfo_rate_limit(client):
+    response = client.get("/faq")
+
+    assert response.status_code == 200
+    assert b"The endpoint is rate-limited" in response.data
+    assert b"Retry-After" in response.data
+    assert b"HTTP <code>429</code>" in response.data
+
+    faq_data = next(
+        block for block in _structured_data(response) if block["@type"] == "FAQPage"
+    )
+    api_question = next(
+        question
+        for question in faq_data["mainEntity"]
+        if question["name"] == "Is an API available?"
+    )
+    assert "Retry-After" in api_question["acceptedAnswer"]["text"]
+
+
 def test_pages_include_social_image_alt_text(client):
     response = client.get("/about")
     assert response.status_code == 200

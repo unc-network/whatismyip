@@ -12,6 +12,7 @@ All notable changes to this project will be documented here. This project follow
 ### Changed
 
 - **Geolocation request bounds** — ip-api.com requests now use separate configurable connect and read timeouts and handle all Requests transport errors, including connection timeouts, inside the geolocation helper.
+- **API FAQ guidance** — the direct `/hostinfo` API answer now tells automated clients to cache responses, avoid frequent polling, and honor `Retry-After` when rate limited.
 
 ## [1.14.1] - 2026-10-16
 
