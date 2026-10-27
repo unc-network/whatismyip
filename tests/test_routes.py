@@ -1,4 +1,3 @@
-import logging
 import sqlite3
 
 import dns.exception
@@ -302,9 +301,7 @@ def test_hostinfo_external_failures_degrade_gracefully(client, monkeypatch):
     assert response.get_json()["client_address"] == "10.0.0.1"
 
 
-def test_hostinfo_rate_limit_allows_burst_then_recovers(
-    app, client, monkeypatch, caplog
-):
+def test_hostinfo_rate_limit_allows_burst_then_recovers(app, client, monkeypatch):
     import whatismyip.routes.api as api_routes
 
     _stub_hostinfo_dependencies(monkeypatch)
@@ -322,7 +319,12 @@ def test_hostinfo_rate_limit_allows_burst_then_recovers(
         HOSTINFO_RATE_BURST=2,
         HOSTINFO_GLOBAL_RATE_LIMIT=1000,
     )
-    caplog.set_level(logging.INFO, logger=app.logger.name)
+    info_messages = []
+
+    def capture_info(message, *args):
+        info_messages.append(message % args if args else message)
+
+    monkeypatch.setattr(app.logger, "info", capture_info)
 
     first = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
     second = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
@@ -339,9 +341,7 @@ def test_hostinfo_rate_limit_allows_burst_then_recovers(
     assert len(metric_events) == 2
     assert limited_again.status_code == 429
     rate_logs = [
-        record.getMessage()
-        for record in caplog.records
-        if "Hostinfo rate limit applied" in record.getMessage()
+        message for message in info_messages if "Hostinfo rate limit applied" in message
     ]
     assert rate_logs == [
         "Hostinfo rate limit applied scope=client client=10.0.0.1 retry_after=1"
@@ -352,7 +352,7 @@ def test_hostinfo_rate_limit_allows_burst_then_recovers(
     assert recovered.status_code == 200
 
 
-def test_hostinfo_applies_process_wide_rate_limit(app, client, monkeypatch, caplog):
+def test_hostinfo_applies_process_wide_rate_limit(app, client, monkeypatch):
     import whatismyip.routes.api as api_routes
 
     _stub_hostinfo_dependencies(monkeypatch)
@@ -364,7 +364,12 @@ def test_hostinfo_applies_process_wide_rate_limit(app, client, monkeypatch, capl
         HOSTINFO_RATE_BURST=10,
         HOSTINFO_GLOBAL_RATE_LIMIT=1,
     )
-    caplog.set_level(logging.WARNING, logger=app.logger.name)
+    warning_messages = []
+
+    def capture_warning(message, *args):
+        warning_messages.append(message % args if args else message)
+
+    monkeypatch.setattr(app.logger, "warning", capture_warning)
 
     first = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
     limited = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.2"})
@@ -372,16 +377,9 @@ def test_hostinfo_applies_process_wide_rate_limit(app, client, monkeypatch, capl
     assert first.status_code == 200
     assert limited.status_code == 429
     assert limited.headers["Retry-After"] == "60"
-    rate_logs = [
-        record
-        for record in caplog.records
-        if "Hostinfo rate limit applied" in record.getMessage()
-    ]
-    assert len(rate_logs) == 1
-    assert rate_logs[0].levelno == logging.WARNING
-    assert rate_logs[0].getMessage() == (
+    assert warning_messages == [
         "Hostinfo rate limit applied scope=global client=10.0.0.2 retry_after=60"
-    )
+    ]
 
 
 # --- /api/dns-lookup tests ---
