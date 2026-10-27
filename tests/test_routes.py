@@ -327,9 +327,7 @@ def test_hostinfo_rate_limit_allows_burst_then_recovers(
     first = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
     second = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
     limited = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
-    limited_again = client.get(
-        "/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"}
-    )
+    limited_again = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
 
     assert first.status_code == 200
     assert second.status_code == 200
@@ -354,9 +352,7 @@ def test_hostinfo_rate_limit_allows_burst_then_recovers(
     assert recovered.status_code == 200
 
 
-def test_hostinfo_applies_process_wide_rate_limit(
-    app, client, monkeypatch, caplog
-):
+def test_hostinfo_applies_process_wide_rate_limit(app, client, monkeypatch, caplog):
     import whatismyip.routes.api as api_routes
 
     _stub_hostinfo_dependencies(monkeypatch)
