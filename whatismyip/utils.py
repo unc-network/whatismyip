@@ -72,17 +72,136 @@ def get_client_address(
     return client_address
 
 
-# Simple TTL cache for geolocation results: ip → (monotonic_time, result)
-# Caps ip-api.com calls to at most 1 per unique IP per TTL window.
+# TTL cache for geolocation results: ip → (expiry, result). ``None`` is cached
+# briefly so one failing address cannot retry the upstream service on every poll.
 _location_cache: dict[str, tuple[float, dict | None]] = {}
-_LOCATION_CACHE_TTL = 300  # seconds — ip-api.com data doesn't change that fast
 _LOCATION_CACHE_MAX = 1000  # entries — ~1 MB overhead at most
-# Guards eviction only. Under a threaded worker, two requests can clear the capacity
-# check together and race on the victim: picking it can raise RuntimeError (the dict
-# changed size mid-iteration) and removing it can raise KeyError (the loser deletes a
-# key that is already gone). Reads stay lock-free — a dict get is atomic, and a
-# duplicate ip-api call on a cache miss is harmless.
 _location_cache_lock = threading.Lock()
+
+# Process-wide circuit breaker. The application intentionally runs one threaded
+# worker, so this state is shared by all request threads without external storage.
+_location_breaker_lock = threading.Lock()
+_location_failure_times: list[float] = []
+_location_breaker_open_until = 0.0
+_location_breaker_cooldown = 0.0
+_location_breaker_probe_inflight = False
+
+
+def _reset_location_state() -> None:
+    """Clear in-process geolocation cache and breaker state for tests/reloads."""
+    global _location_breaker_open_until
+    global _location_breaker_cooldown
+    global _location_breaker_probe_inflight
+
+    with _location_cache_lock:
+        _location_cache.clear()
+    with _location_breaker_lock:
+        _location_failure_times.clear()
+        _location_breaker_open_until = 0.0
+        _location_breaker_cooldown = 0.0
+        _location_breaker_probe_inflight = False
+
+
+def _get_cached_location(ip_address: str, now: float) -> tuple[bool, dict | None]:
+    with _location_cache_lock:
+        cached = _location_cache.get(ip_address)
+        if cached is None:
+            return False, None
+        expires_at, data = cached
+        if expires_at > now:
+            return True, data
+        _location_cache.pop(ip_address, None)
+        return False, None
+
+
+def _cache_location(ip_address: str, data: dict | None, ttl: float) -> None:
+    expires_at = time.monotonic() + max(0.0, ttl)
+    with _location_cache_lock:
+        # Reinsert existing addresses so insertion order remains an approximation
+        # of age when capacity eviction is needed.
+        _location_cache.pop(ip_address, None)
+        while len(_location_cache) >= _LOCATION_CACHE_MAX:
+            oldest = next(iter(_location_cache), None)
+            if oldest is None:
+                break
+            _location_cache.pop(oldest, None)
+        _location_cache[ip_address] = (expires_at, data)
+
+
+def _begin_location_request(now: float) -> tuple[bool, bool]:
+    """Return ``(allowed, is_recovery_probe)`` for an upstream request."""
+    global _location_breaker_probe_inflight
+
+    with _location_breaker_lock:
+        if _location_breaker_open_until > now:
+            return False, False
+        if _location_breaker_open_until > 0.0:
+            if _location_breaker_probe_inflight:
+                return False, False
+            _location_breaker_probe_inflight = True
+            return True, True
+        return True, False
+
+
+def _record_location_success() -> bool:
+    """Close the breaker and return whether it had been open."""
+    global _location_breaker_open_until
+    global _location_breaker_cooldown
+    global _location_breaker_probe_inflight
+
+    with _location_breaker_lock:
+        was_open = (
+            _location_breaker_open_until > 0.0 or _location_breaker_probe_inflight
+        )
+        _location_failure_times.clear()
+        _location_breaker_open_until = 0.0
+        _location_breaker_cooldown = 0.0
+        _location_breaker_probe_inflight = False
+        return was_open
+
+
+def _record_location_failure(
+    now: float, is_probe: bool, forced_cooldown: float | None = None
+) -> float | None:
+    """Record a failure and return a newly opened breaker's cooldown."""
+    global _location_breaker_open_until
+    global _location_breaker_cooldown
+    global _location_breaker_probe_inflight
+
+    threshold = app.config.get("GEOLOCATION_CIRCUIT_FAILURES", 3)
+    window = app.config.get("GEOLOCATION_CIRCUIT_WINDOW", 30.0)
+    base_cooldown = app.config.get("GEOLOCATION_CIRCUIT_COOLDOWN", 60.0)
+    max_cooldown = app.config.get("GEOLOCATION_CIRCUIT_MAX_COOLDOWN", 300.0)
+
+    with _location_breaker_lock:
+        if forced_cooldown is not None:
+            cooldown = max(base_cooldown, float(forced_cooldown))
+            if is_probe:
+                cooldown = max(cooldown, _location_breaker_cooldown * 2.0)
+            cooldown = min(max_cooldown, cooldown)
+        elif is_probe:
+            cooldown = min(
+                max_cooldown,
+                max(base_cooldown, _location_breaker_cooldown * 2.0),
+            )
+        else:
+            # Other requests may already have failed while this one was in flight.
+            if _location_breaker_open_until > now:
+                return None
+            cutoff = now - window
+            _location_failure_times[:] = [
+                stamp for stamp in _location_failure_times if stamp > cutoff
+            ]
+            _location_failure_times.append(now)
+            if len(_location_failure_times) < threshold:
+                return None
+            cooldown = base_cooldown
+
+        _location_failure_times.clear()
+        _location_breaker_cooldown = cooldown
+        _location_breaker_open_until = now + cooldown
+        _location_breaker_probe_inflight = False
+        return cooldown
 
 
 def get_ip_location(ip_address: str) -> dict[str, Any] | None:
@@ -101,13 +220,16 @@ def get_ip_location(ip_address: str) -> dict[str, Any] | None:
         app.logger.debug(f"{ip_address} is not a global IP address")
         return None
 
-    # Return cached result if still fresh
-    cached = _location_cache.get(ip_address)
-    if cached is not None:
-        ts, data = cached
-        if time.monotonic() - ts < _LOCATION_CACHE_TTL:
-            app.logger.debug(f"ip_location cache hit for {ip_address}")
-            return data
+    now = time.monotonic()
+    cache_hit, cached = _get_cached_location(ip_address, now)
+    if cache_hit:
+        app.logger.debug(f"ip_location cache hit for {ip_address}")
+        return cached
+
+    request_allowed, is_probe = _begin_location_request(now)
+    if not request_allowed:
+        app.logger.debug("ip-api.com circuit breaker is open")
+        return None
 
     # Hit the remote API to get location information about this IP address.
     # We have a few different APIs to work with.
@@ -124,26 +246,93 @@ def get_ip_location(ip_address: str) -> dict[str, Any] | None:
     # Free for 30,000 IP lookups per month, no API key required.  SSL is available.
     # api_url = f"https://ipapi.co/{ip_address}/json/"
 
-    session = requests.Session()
+    success_ttl = app.config.get("GEOLOCATION_CACHE_TTL", 3600.0)
+    failure_ttl = app.config.get("GEOLOCATION_FAILURE_CACHE_TTL", 60.0)
+    connect_timeout = app.config.get("GEOLOCATION_CONNECT_TIMEOUT", 1.0)
+    read_timeout = app.config.get("GEOLOCATION_READ_TIMEOUT", 2.0)
+
     try:
-        response = session.get(api_url, timeout=3)
-    except requests.ReadTimeout as e:
-        app.logger.error(f"Location API failed {e}")
+        response = requests.get(
+            api_url,
+            timeout=(connect_timeout, read_timeout),
+        )
+    except requests.RequestException as error:
+        _cache_location(ip_address, None, failure_ttl)
+        cooldown = _record_location_failure(time.monotonic(), is_probe)
+        app.logger.warning(f"IP location request failed: {error}")
+        if cooldown is not None:
+            app.logger.warning(
+                f"ip-api.com circuit breaker opened for {cooldown:g} seconds"
+            )
         return None
 
     if response.status_code == 429:
-        ttl = response.headers.get("X-Ttl", "?")
+        raw_ttl = response.headers.get("X-Ttl")
+        try:
+            retry_after = float(raw_ttl) if raw_ttl is not None else None
+        except (TypeError, ValueError):
+            retry_after = None
+        _cache_location(ip_address, None, failure_ttl)
+        breaker_cooldown = retry_after or app.config.get(
+            "GEOLOCATION_CIRCUIT_COOLDOWN", 60.0
+        )
+        cooldown = _record_location_failure(
+            time.monotonic(), is_probe, forced_cooldown=breaker_cooldown
+        )
         app.logger.warning(
             f"ip-api.com rate limit hit — geolocation unavailable for {ip_address} "
-            f"(window resets in {ttl}s)"
+            f"(window resets in {raw_ttl or '?'}s; circuit open for {cooldown:g}s)"
         )
         return None
 
     if response.status_code != 200:
+        _cache_location(ip_address, None, failure_ttl)
+        cooldown = _record_location_failure(time.monotonic(), is_probe)
         app.logger.warning(f"ip_location query failed {response}")
+        if cooldown is not None:
+            app.logger.warning(
+                f"ip-api.com circuit breaker opened for {cooldown:g} seconds"
+            )
         return None
 
-    raw = response.json()
+    try:
+        raw = response.json()
+    except (requests.RequestException, ValueError) as error:
+        _cache_location(ip_address, None, failure_ttl)
+        cooldown = _record_location_failure(time.monotonic(), is_probe)
+        app.logger.warning(f"IP location response was invalid: {error}")
+        if cooldown is not None:
+            app.logger.warning(
+                f"ip-api.com circuit breaker opened for {cooldown:g} seconds"
+            )
+        return None
+
+    if not isinstance(raw, dict):
+        _cache_location(ip_address, None, failure_ttl)
+        cooldown = _record_location_failure(time.monotonic(), is_probe)
+        app.logger.warning("IP location response was not a JSON object")
+        if cooldown is not None:
+            app.logger.warning(
+                f"ip-api.com circuit breaker opened for {cooldown:g} seconds"
+            )
+        return None
+
+    if raw.get("status") == "fail":
+        _cache_location(ip_address, None, failure_ttl)
+        cooldown = _record_location_failure(time.monotonic(), is_probe)
+        app.logger.warning(
+            "ip-api.com rejected geolocation for %s: %s",
+            ip_address,
+            raw.get("message", "unknown error"),
+        )
+        if cooldown is not None:
+            app.logger.warning(
+                f"ip-api.com circuit breaker opened for {cooldown:g} seconds"
+            )
+        return None
+
+    if _record_location_success():
+        app.logger.info("ip-api.com circuit breaker closed after a successful probe")
     app.logger.debug(f"ip_location details: {raw}")
     # Normalize to a consistent structure regardless of which API is active.
     # ip-api.com uses "country"/"countryCode"; the fallback API uses "country_name"/"country_code2".
@@ -164,14 +353,7 @@ def get_ip_location(ip_address: str) -> dict[str, Any] | None:
         "lon": raw.get("lon"),
     }
 
-    # Store in cache; evict oldest entry (insertion-order) when at capacity.
-    with _location_cache_lock:
-        while len(_location_cache) >= _LOCATION_CACHE_MAX:
-            oldest = next(iter(_location_cache), None)
-            if oldest is None:
-                break
-            _location_cache.pop(oldest, None)
-        _location_cache[ip_address] = (time.monotonic(), result)
+    _cache_location(ip_address, result, success_ttl)
     return result
 
 

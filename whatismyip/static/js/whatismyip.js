@@ -22,6 +22,7 @@ var reportInternetIp = null;
 var proxyNoticeShown = false;
 var ipv4Resolved = false;
 var ipv6Resolved = false;
+var HOSTINFO_MAX_AUTO_RETRIES = 2;
 
 function buildNacDiagram(nac, userDevice) {
 	var es = nac.endSystem || {};
@@ -219,6 +220,88 @@ function showPrimaryLoadError() {
 	$('#report-btn').prop('disabled', true);
 }
 
+function getHostinfoRetryAfter(xhr) {
+	var headerValue = xhr.getResponseHeader('Retry-After');
+	var responseValue = xhr.responseJSON && xhr.responseJSON.retry_after;
+	var retryAfter = Number(headerValue || responseValue || 10);
+	if (!Number.isFinite(retryAfter) || retryAfter <= 0) retryAfter = 10;
+	return Math.min(60, Math.ceil(retryAfter));
+}
+
+function setHostinfoTesting(statusSelector) {
+	$(statusSelector).html('<i class="fa-solid fa-question" aria-hidden="true"></i> Testing');
+}
+
+function showHostinfoRetrying() {
+	$('#intro-main-status')
+		.empty()
+		.append('<i class="fa-solid fa-rotate fa-spin me-2" aria-hidden="true"></i>')
+		.append(document.createTextNode('Retrying connection details…'))
+		.removeClass('text-muted text-warning');
+}
+
+function handleHostinfoRateLimit(options) {
+	if (options.xhr.status !== 429) return false;
+
+	var retryAfter = getHostinfoRetryAfter(options.xhr);
+	var retriesExhausted = options.attempt >= HOSTINFO_MAX_AUTO_RETRIES;
+	var statusText = retriesExhausted
+		? ' Rate limited'
+		: ' Rate limited — retrying in ' + retryAfter + ' seconds';
+	var $protocolStatus = $(options.statusSelector)
+		.empty()
+		.append('<i class="fa-solid fa-clock text-warning" aria-hidden="true"></i>')
+		.append(document.createTextNode(statusText));
+
+	function retryNow(nextAttempt) {
+		setHostinfoTesting(options.statusSelector);
+		if (options.isPrimary) showHostinfoRetrying();
+		options.retry(nextAttempt);
+	}
+
+	if (retriesExhausted) {
+		var $retryButton = $('<button>', {
+			type: 'button',
+			class: 'btn btn-sm btn-outline-primary ms-2 py-0 px-2',
+			text: 'Retry'
+		}).on('click', function () {
+			retryNow(0);
+		});
+
+		if (options.isPrimary) {
+			$('#intro-main-status')
+				.empty()
+				.append('<i class="fa-solid fa-clock me-2" aria-hidden="true"></i>')
+				.append(document.createTextNode('Connection details are temporarily rate limited.'))
+				.append($retryButton)
+				.removeClass('text-muted')
+				.addClass('text-warning');
+			$('#report-btn').prop('disabled', true);
+		} else {
+			$protocolStatus.append($retryButton);
+		}
+		options.giveUp();
+		return true;
+	}
+
+	if (options.isPrimary) {
+		$('#intro-main-status')
+			.empty()
+			.append('<i class="fa-solid fa-clock me-2" aria-hidden="true"></i>')
+			.append(document.createTextNode(
+				'Too many refreshes. Retrying connection details in ' + retryAfter + ' seconds.'
+			))
+			.removeClass('text-muted')
+			.addClass('text-warning');
+		$('#report-btn').prop('disabled', true);
+	}
+
+	window.setTimeout(function () {
+		retryNow(options.attempt + 1);
+	}, retryAfter * 1000 + 250);
+	return true;
+}
+
 function set_intro_text(is_campus, network_purpose) {
 	var icon, msg;
 	if (is_campus) {
@@ -254,7 +337,7 @@ function set_intro_text(is_campus, network_purpose) {
 	if (network_purpose || !$('#intro-main-status').data('resolved')) {
 		$('#intro-main-status')
 			.html(`<i class="fa-solid ${icon} me-2" aria-hidden="true"></i>${msg}`)
-			.removeClass('text-muted')
+			.removeClass('text-muted text-warning')
 			.data('resolved', true);
 	}
 }
@@ -512,7 +595,8 @@ ${deviceSection}
 	}
 }
 
-function test_ipv4_url(default_version) {
+function test_ipv4_url(default_version, retryAttempt) {
+	retryAttempt = retryAttempt || 0;
 	// call the test url and display address information
 	var simulate_mode = $('#connect-test').data('simulate') || '';
 	var simulate = !!simulate_mode;
@@ -913,18 +997,29 @@ function test_ipv4_url(default_version) {
 			checkAddressMismatch();
 			checkProxyNotice();
 			if (!simulate) checkNATType(result['client_address']);
-			if (default_version == 4) reportConnectV4 = 'Supported';
-			else reportConnectV6 = 'Supported';
+			reportConnectV4 = 'Supported';
 			$('#report-btn').prop('disabled', false);
 		},
 		error: function (xhr, status, error) {
+			if (handleHostinfoRateLimit({
+				xhr: xhr,
+				attempt: retryAttempt,
+				statusSelector: '#connect-ipv4',
+				isPrimary: default_version == 4,
+				retry: function (nextAttempt) {
+					ipv4Resolved = false;
+					test_ipv4_url(default_version, nextAttempt);
+				},
+				giveUp: function () {
+					reportConnectV4 = 'Rate limited';
+				}
+			})) return;
+
 			$('#connect-ipv4').html('<i class="fa-solid fa-triangle-exclamation text-warning" aria-hidden="true"></i> Not supported');
 			if (default_version == 4) {
-				reportConnectV4 = 'Not detected';
 				showPrimaryLoadError();
-			} else {
-				reportConnectV6 = 'Not detected';
 			}
+			reportConnectV4 = 'Not detected';
 			ipv4Resolved = true;
 			checkProxyNotice();
 		}
@@ -1272,7 +1367,8 @@ function get_dns_info() {
 	}
 }
 
-function test_ipv6_url(default_version) {
+function test_ipv6_url(default_version, retryAttempt) {
+	retryAttempt = retryAttempt || 0;
 	// test secondary url
 	var simulate_mode = $('#connect-test').data('simulate') || '';
 	var simulate = !!simulate_mode;
@@ -1465,17 +1561,28 @@ function test_ipv6_url(default_version) {
 			ipv6Resolved = true;
 			checkAddressMismatch();
 			checkProxyNotice();
-			if (default_version == 4) reportConnectV6 = 'Supported';
-			else reportConnectV4 = 'Supported';
+			reportConnectV6 = 'Supported';
 		},
 		error: function (xhr, status, error) {
+			if (handleHostinfoRateLimit({
+				xhr: xhr,
+				attempt: retryAttempt,
+				statusSelector: '#connect-ipv6',
+				isPrimary: default_version == 6,
+				retry: function (nextAttempt) {
+					ipv6Resolved = false;
+					test_ipv6_url(default_version, nextAttempt);
+				},
+				giveUp: function () {
+					reportConnectV6 = 'Rate limited';
+				}
+			})) return;
+
 			$('#connect-ipv6').html('<i class="fa-solid fa-triangle-exclamation text-warning" aria-hidden="true"></i> Not supported');
 			if (default_version == 6) {
-				reportConnectV6 = 'Not detected';
 				showPrimaryLoadError();
-			} else {
-				reportConnectV4 = 'Not detected';
 			}
+			reportConnectV6 = 'Not detected';
 			ipv6Resolved = true;
 			checkProxyNotice();
 		}

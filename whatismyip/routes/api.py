@@ -1,6 +1,7 @@
 """API blueprint — /hostinfo and /dns-result endpoints."""
 
 import ipaddress
+import math
 import os
 import threading
 import time
@@ -38,6 +39,15 @@ _dns_rate_windows: dict[str, list[float]] = {}
 _dns_global_window: list[float] = []
 _dns_inflight = 0
 _DNS_RATE_MAX_CLIENTS = 4096
+
+_hostinfo_rate_lock = threading.Lock()
+_hostinfo_rate_buckets: dict[str, tuple[float, float, float | None]] = {}
+_hostinfo_global_tokens: float | None = None
+_hostinfo_global_updated = 0.0
+_hostinfo_global_last_log: float | None = None
+_hostinfo_last_cleanup = 0.0
+_HOSTINFO_RATE_MAX_CLIENTS = 4096
+_HOSTINFO_RATE_LOG_INTERVAL = 60.0
 
 _SIMULATE_HOSTINFO = {
     4: {
@@ -408,6 +418,132 @@ _SIMULATE_HOSTINFO = {
 }
 
 
+def _reset_hostinfo_rate_state() -> None:
+    """Clear in-process limiter state (used when reloading or testing config)."""
+    global _hostinfo_global_tokens, _hostinfo_global_updated
+    global _hostinfo_global_last_log, _hostinfo_last_cleanup
+
+    with _hostinfo_rate_lock:
+        _hostinfo_rate_buckets.clear()
+        _hostinfo_global_tokens = None
+        _hostinfo_global_updated = 0.0
+        _hostinfo_global_last_log = None
+        _hostinfo_last_cleanup = 0.0
+
+
+def _hostinfo_rate_limited(client_address: str) -> int | None:
+    """Return the number of seconds to retry in, or ``None`` when allowed.
+
+    A token bucket permits ordinary page-load bursts while limiting clients that
+    poll continuously. State is deliberately bounded and process-local, matching
+    the existing DNS safeguards and the single-worker Gunicorn configuration.
+    """
+    global _hostinfo_global_tokens, _hostinfo_global_updated
+    global _hostinfo_global_last_log, _hostinfo_last_cleanup
+
+    if not current_app.config.get("HOSTINFO_RATE_LIMIT_ENABLED", True):
+        return None
+
+    client_rate = current_app.config.get("HOSTINFO_RATE_LIMIT", 6)
+    client_capacity = current_app.config.get("HOSTINFO_RATE_BURST", 8)
+    global_rate = current_app.config.get("HOSTINFO_GLOBAL_RATE_LIMIT", 120)
+    client_refill = client_rate / 60.0
+    global_refill = global_rate / 60.0
+    now = time.monotonic()
+
+    try:
+        client_key = str(ipaddress.ip_address(client_address))
+    except ValueError:
+        client_key = "unknown"
+    key = client_key
+    log_scope = None
+
+    with _hostinfo_rate_lock:
+        if key not in _hostinfo_rate_buckets and len(_hostinfo_rate_buckets) >= (
+            _HOSTINFO_RATE_MAX_CLIENTS - 1
+        ):
+            # Once a bucket has been idle long enough to refill completely it no
+            # longer carries useful state. Evict those before sharing one bounded
+            # overflow bucket among any remaining new addresses.
+            # Scan at most once per minute so a flood of never-before-seen
+            # addresses cannot turn bounded memory into repeated O(n) work.
+            if now - _hostinfo_last_cleanup >= 60.0:
+                refill_seconds = client_capacity / client_refill
+                stale_before = now - max(60.0, refill_seconds)
+                stale = [
+                    address
+                    for address, (_, updated, _) in _hostinfo_rate_buckets.items()
+                    if updated <= stale_before
+                ]
+                for address in stale:
+                    _hostinfo_rate_buckets.pop(address, None)
+                _hostinfo_last_cleanup = now
+            if len(_hostinfo_rate_buckets) >= (_HOSTINFO_RATE_MAX_CLIENTS - 1):
+                key = "overflow"
+
+        client_tokens, client_updated, client_last_log = _hostinfo_rate_buckets.get(
+            key, (float(client_capacity), now, None)
+        )
+        client_tokens = min(
+            float(client_capacity),
+            client_tokens + max(0.0, now - client_updated) * client_refill,
+        )
+
+        if _hostinfo_global_tokens is None:
+            global_tokens = float(global_rate)
+        else:
+            global_tokens = min(
+                float(global_rate),
+                _hostinfo_global_tokens
+                + max(0.0, now - _hostinfo_global_updated) * global_refill,
+            )
+
+        client_wait = (
+            (1.0 - client_tokens) / client_refill if client_tokens < 1.0 else 0.0
+        )
+        global_wait = (
+            (1.0 - global_tokens) / global_refill if global_tokens < 1.0 else 0.0
+        )
+        allowed = client_wait == 0.0 and global_wait == 0.0
+        if allowed:
+            client_tokens -= 1.0
+            global_tokens -= 1.0
+        elif global_wait > 0.0:
+            if (
+                _hostinfo_global_last_log is None
+                or now - _hostinfo_global_last_log >= _HOSTINFO_RATE_LOG_INTERVAL
+            ):
+                _hostinfo_global_last_log = now
+                log_scope = "global"
+        elif (
+            client_last_log is None
+            or now - client_last_log >= _HOSTINFO_RATE_LOG_INTERVAL
+        ):
+            client_last_log = now
+            log_scope = "client"
+
+        _hostinfo_rate_buckets[key] = (client_tokens, now, client_last_log)
+        _hostinfo_global_tokens = global_tokens
+        _hostinfo_global_updated = now
+
+    if allowed:
+        return None
+    retry_after = max(1, math.ceil(max(client_wait, global_wait)))
+    if log_scope == "global":
+        current_app.logger.warning(
+            "Hostinfo rate limit applied scope=global client=%s retry_after=%s",
+            client_key,
+            retry_after,
+        )
+    elif log_scope == "client":
+        current_app.logger.info(
+            "Hostinfo rate limit applied scope=client client=%s retry_after=%s",
+            client_key,
+            retry_after,
+        )
+    return retry_after
+
+
 @bp.route("/hostinfo")
 def hostinfo() -> Response:
     """Return JSON structure with IP address information."""
@@ -465,13 +601,33 @@ def hostinfo() -> Response:
     else:
         data["client_address"] = client_address
 
+    if not data["client_address"]:
+        abort(400)
+    try:
+        ip = ipaddress.ip_address(str(data["client_address"]))
+    except ValueError:
+        abort(400)
+
+    retry_after = _hostinfo_rate_limited(str(ip))
+    if retry_after is not None:
+        response = make_response(
+            jsonify(
+                {
+                    "error": "Too many host information requests. Please try again shortly.",
+                    "retry_after": retry_after,
+                }
+            ),
+            429,
+        )
+        response.headers["Retry-After"] = str(retry_after)
+        response.headers["Access-Control-Expose-Headers"] = "Retry-After"
+        response.cache_control.no_store = True
+        response.cache_control.private = True
+        return response
+
     current_app.logger.info(
         f"Hostinfo view from {data['client_address']} with forwarded_for {tmp_forwarded_for}"
     )
-
-    if not data["client_address"]:
-        abort(400)
-    ip = ipaddress.ip_address(str(data["client_address"]))
 
     data["is_campus"] = is_campus_ip(data["client_address"])
     data["network_note"] = get_network_note(data["client_address"])

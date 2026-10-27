@@ -19,6 +19,15 @@ def client(app):
         yield c
 
 
+@pytest.fixture(autouse=True)
+def reset_hostinfo_rate_state():
+    import whatismyip.routes.api as api_routes
+
+    api_routes._reset_hostinfo_rate_state()
+    yield
+    api_routes._reset_hostinfo_rate_state()
+
+
 def _metrics_stub():
     return {
         "window_days": 30,
@@ -211,6 +220,15 @@ def _no_ptr(*a, **kw):
     raise dns.exception.DNSException()
 
 
+def _stub_hostinfo_dependencies(monkeypatch):
+    monkeypatch.delenv("CLIENT_ADDRESS", raising=False)
+    monkeypatch.delenv("CLIENT_ADDRESS_V4", raising=False)
+    monkeypatch.delenv("CLIENT_ADDRESS_V6", raising=False)
+    monkeypatch.delenv("FORWARDED_FOR", raising=False)
+    monkeypatch.setattr("whatismyip.routes.api.is_campus_ip", lambda ip: False)
+    monkeypatch.setattr("whatismyip.routes.api.resolver.query", _no_ptr)
+
+
 def test_hostinfo_off_campus_ip_returns_valid_json(client, monkeypatch):
     monkeypatch.delenv("CLIENT_ADDRESS", raising=False)
     monkeypatch.delenv("CLIENT_ADDRESS_V4", raising=False)
@@ -281,6 +299,87 @@ def test_hostinfo_external_failures_degrade_gracefully(client, monkeypatch):
     response = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
     assert response.status_code == 200
     assert response.get_json()["client_address"] == "10.0.0.1"
+
+
+def test_hostinfo_rate_limit_allows_burst_then_recovers(app, client, monkeypatch):
+    import whatismyip.routes.api as api_routes
+
+    _stub_hostinfo_dependencies(monkeypatch)
+    clock = [1000.0]
+    metric_events = []
+    monkeypatch.setattr(api_routes.time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(
+        api_routes,
+        "log_metrics_event",
+        lambda *args, **kwargs: metric_events.append((args, kwargs)),
+    )
+    app.config.update(
+        HOSTINFO_RATE_LIMIT_ENABLED=True,
+        HOSTINFO_RATE_LIMIT=60,
+        HOSTINFO_RATE_BURST=2,
+        HOSTINFO_GLOBAL_RATE_LIMIT=1000,
+    )
+    info_messages = []
+
+    def capture_info(message, *args):
+        info_messages.append(message % args if args else message)
+
+    monkeypatch.setattr(app.logger, "info", capture_info)
+
+    first = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
+    second = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
+    limited = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
+    limited_again = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert limited.status_code == 429
+    assert limited.headers["Retry-After"] == "1"
+    assert limited.headers["Access-Control-Expose-Headers"] == "Retry-After"
+    assert limited.cache_control.no_store is True
+    assert limited.get_json()["retry_after"] == 1
+    assert len(metric_events) == 2
+    assert limited_again.status_code == 429
+    rate_logs = [
+        message for message in info_messages if "Hostinfo rate limit applied" in message
+    ]
+    assert rate_logs == [
+        "Hostinfo rate limit applied scope=client client=10.0.0.1 retry_after=1"
+    ]
+
+    clock[0] += 1.0
+    recovered = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
+    assert recovered.status_code == 200
+
+
+def test_hostinfo_applies_process_wide_rate_limit(app, client, monkeypatch):
+    import whatismyip.routes.api as api_routes
+
+    _stub_hostinfo_dependencies(monkeypatch)
+    monkeypatch.setattr(api_routes.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(api_routes, "log_metrics_event", lambda *args, **kwargs: None)
+    app.config.update(
+        HOSTINFO_RATE_LIMIT_ENABLED=True,
+        HOSTINFO_RATE_LIMIT=60,
+        HOSTINFO_RATE_BURST=10,
+        HOSTINFO_GLOBAL_RATE_LIMIT=1,
+    )
+    warning_messages = []
+
+    def capture_warning(message, *args):
+        warning_messages.append(message % args if args else message)
+
+    monkeypatch.setattr(app.logger, "warning", capture_warning)
+
+    first = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.1"})
+    limited = client.get("/hostinfo", environ_base={"REMOTE_ADDR": "10.0.0.2"})
+
+    assert first.status_code == 200
+    assert limited.status_code == 429
+    assert limited.headers["Retry-After"] == "60"
+    assert warning_messages == [
+        "Hostinfo rate limit applied scope=global client=10.0.0.2 retry_after=60"
+    ]
 
 
 # --- /api/dns-lookup tests ---

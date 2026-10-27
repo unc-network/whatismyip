@@ -148,7 +148,7 @@
       "name": "Is an API available?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "This application is intended for browser-based use, but it is powered by an API that can be accessed directly at /hostinfo for dual stack detection. API responses and data structures may change over time without notice."
+        "text": "This application is intended for browser-based use, but it is powered by an API that can be accessed directly at /hostinfo for dual stack detection. The endpoint is rate-limited to protect the diagnostic service and its external data providers. Automated clients should cache responses, avoid frequent polling, and honor the Retry-After header when receiving HTTP 429. API responses, data structures, and limits may change over time without notice."
       }
     }
   ]
@@ -475,6 +475,10 @@
             <div class="accordion-body">
               <p>This application is intended for browser-based use, but it is powered by an API that can be accessed directly.
                 API responses and data structures may change over time without notice.
+              </p>
+              <p>The endpoint is rate-limited to protect the diagnostic service and its external data providers.
+                Automated clients should cache responses, avoid frequent polling, and honor the <code>Retry-After</code> header when receiving HTTP <code>429</code>.
+                Rate limits may change without notice.
               </p>
               <ul class="mb-0">
                 <li><a href="{{ site_url }}/hostinfo">Dual stack hostinfo</a> for dual stack detection</li>

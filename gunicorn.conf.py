@@ -12,11 +12,10 @@ capture_output = True  # Redirects stdout/stderr of application to error log
 # 30 s default timeout. That is what made /metrics time out: the dashboard build was
 # killed before it could populate its cache, so the next request started cold again.
 #
-# Adding processes would fix the serialization but silently triple three in-process
-# caps that the app relies on being global:
-#   * utils._location_cache, which is the only thing holding geolocation lookups
-#     under ip-api.com's hard 45 req/min limit
-#   * api._dns_rate_windows / _dns_inflight, the DNS lookup abuse controls
+# Adding processes would fix the serialization but silently multiply in-process
+# safeguards that the app relies on being global:
+#   * utils geolocation cache and circuit breaker, which protect ip-api.com
+#   * api hostinfo and DNS rate limits / concurrency controls
 #   * db._metrics_cache, which would rebuild the dashboard once per process
 # Threads keep all of that shared and correct. The code is already written for this
 # model — _dns_rate_lock is a threading.Lock and dns_lookup uses a ThreadPoolExecutor.
