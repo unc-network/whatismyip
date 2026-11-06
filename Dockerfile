@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12.16-slim
 
 WORKDIR /app
 
@@ -7,7 +7,8 @@ RUN useradd --system --no-create-home --shell /bin/false appuser
 
 # Install dependencies as a separate cached layer
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --no-cache-dir --upgrade pip==26.3 \
+    && python -m pip install --no-cache-dir --require-hashes -r requirements.txt
 
 # Copy application source
 COPY whatismyip/ whatismyip/

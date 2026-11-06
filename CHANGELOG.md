@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here. This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [1.15.1] - 2026-11-06
+
+### Changed
+
+- **Python dependency maintenance** — raised runtime dependency minimums to include published security fixes for DNS parsing, HTTP/TLS handling, Brotli decoding, certificate trust, and package installation. Runtime and development installs now use generated locks with exact versions and package hashes; `requirements.in` and `requirements-dev.in` contain the editable dependency inputs.
+- **Build and CI consistency** — Docker and GitLab CI now target Python 3.12.16. CI tools use a shared development lock with updated Black, pytest, Ruff, and pip, and the dependency audit checks the complete development lock, including runtime packages.
+- **Maintenance documentation** — documented lock regeneration and installation, corrected outdated Python prerequisites, and updated the project guide to reflect production v1.15.0.
+
 ## [1.15.0] - 2026-10-27
 
 ### Added

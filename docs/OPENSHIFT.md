@@ -101,6 +101,8 @@ oc new-app python~https://github.com/your-org/whatismyip.git \
 
 This creates an ImageStream, a BuildConfig, and a Deployment. OpenShift will build the image from your repository and deploy it automatically.
 
+Use a Python 3.12 builder image with current security patches (3.12.16 or later). S2I takes its Python runtime from the builder image selected by the BuildConfig; the version in the repository's Dockerfile applies to Docker builds. Source builds install the committed `requirements.txt` runtime lock, whose package hashes are enforced automatically by pip. See the [dependency maintenance instructions](../README.md#updating-python-dependencies) before updating the lock or rebuilding.
+
 Watch the build:
 ```bash
 oc logs -f buildconfig/whatismyip

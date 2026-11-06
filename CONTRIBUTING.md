@@ -6,7 +6,7 @@ Thank you for your interest in contributing to this project. Contributions from 
 
 ## Development setup
 
-**Requirements:** Python 3.10 or later, pip, and git.
+**Requirements:** Python 3.12 recommended (Python 3.11 minimum), pip, and git. CI and Docker use Python 3.12.16.
 
 ```bash
 git clone <your-fork-url>
@@ -15,8 +15,7 @@ cd whatismyip
 python -m venv env
 source env/bin/activate        # Windows: env\Scripts\activate
 
-pip install -r requirements.txt
-pip install black pytest        # dev tools
+python -m pip install --require-hashes -r requirements-dev.txt
 ```
 
 Copy the example config and edit it for your environment:
@@ -44,6 +43,8 @@ black .
 ```
 
 The CI pipeline runs `black --check` on every push and will fail if formatting is not applied.
+
+Python dependencies and CI tools are locked in `requirements.txt` and `requirements-dev.txt`. Edit the corresponding `.in` files and follow the [dependency update instructions](README.md#updating-python-dependencies) to regenerate both locks.
 
 ## Running tests
 

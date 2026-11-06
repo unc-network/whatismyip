@@ -1,4 +1,4 @@
-image: python:3.12
+image: python:3.12.16
 
 stages:
   - lint
@@ -6,13 +6,13 @@ stages:
   - test
   - tag
 
-# Shared pip cache — all jobs that install from requirements.txt benefit.
-# Keyed on the requirements file so a lock-file change busts the cache.
+# Shared pip cache, invalidated when either dependency lock changes.
 .pip_cache: &pip_cache
   cache:
     key:
       files:
         - requirements.txt
+        - requirements-dev.txt
     paths:
       - .cache/pip
     policy: pull-push
@@ -20,48 +20,43 @@ stages:
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
-ruff_lint:
-  stage: lint
+.python_job:
+  <<: *pip_cache
   before_script:
-    - pip install ruff
+    - python -m pip install --upgrade pip==26.3
+    - python -m pip install --require-hashes -r requirements-dev.txt
+
+ruff_lint:
+  extends: .python_job
+  stage: lint
   script:
     - ruff check .
-  cache: []
 
 black_formatting_check:
+  extends: .python_job
   stage: lint
   variables:
     WORKDIR: "."
-  before_script:
-    - pip install black==26.3.1
   script:
     - black "$WORKDIR" --check --verbose --diff --color
-  cache: []
 
 security_scan_pip_audit:
+  extends: .python_job
   stage: security_scan
-  <<: *pip_cache
-  before_script:
-    - pip install pip-audit
-    - pip install -r requirements.txt
   script:
-    - pip-audit -r requirements.txt
+    # The development lock includes the complete runtime lock and all CI tools.
+    - pip-audit --strict --require-hashes --disable-pip -r requirements-dev.txt
 
 security_scan_bandit:
+  extends: .python_job
   stage: security_scan
-  before_script:
-    - pip install bandit
   script:
     # -ll = medium severity and above; -ii = medium confidence and above
     - bandit -r whatismyip/ -ll -ii --exclude whatismyip/extreme.py
-  cache: []
 
 run_tests:
+  extends: .python_job
   stage: test
-  <<: *pip_cache
-  before_script:
-    - pip install pytest==9.0.3 pytest-cov
-    - pip install -r requirements.txt
   script:
     # extreme.py and utils.py are external-API clients; omit from threshold.
     - pytest tests/ -v --cov=whatismyip --cov-fail-under=50 --cov-report=term-missing --cov-config=.coveragerc

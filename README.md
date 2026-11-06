@@ -58,7 +58,7 @@ Each request passes through up to four enrichment stages: client IP from HTTP â†
 
 ## Prerequisites
 
-- Python 3.11+ (or 3.10 with `tomli` installed â€” handled automatically by `requirements.txt`)
+- Python 3.12 recommended; Python 3.11 is the minimum required by the application. The dependency locks are generated and tested on Python 3.12, and CI/Docker target 3.12.16.
 - pip / virtualenv
 
 ### DNS configuration for dual-stack detection
@@ -94,7 +94,7 @@ cd whatismyip
 
 python -m venv env
 source env/bin/activate          # Windows: env\Scripts\activate
-pip install -r requirements.txt
+python -m pip install --require-hashes -r requirements.txt
 
 cp .env.example .env             # edit .env with your values
 cp data/config.toml.example data/config.toml   # edit with your campus CIDR blocks
@@ -316,12 +316,30 @@ The building lookup (`get_nit_building`, `get_nit_building_by_id` in `utils.py`)
 ## Running tests
 
 ```bash
-pip install -r requirements.txt
-pip install pytest pytest-cov
+python -m pip install --require-hashes -r requirements-dev.txt
 
 pytest tests/
 pytest tests/ --cov=whatismyip --cov-report=term-missing   # with coverage
 ```
+
+## Updating Python dependencies
+
+`requirements.in` contains runtime dependency minimums. `requirements.txt` is the generated runtime lock, including transitive dependencies and package hashes; Docker and OpenShift source builds install this file. `requirements-dev.in` adds pinned development/CI tools and constrains runtime versions to the runtime lock. Its generated `requirements-dev.txt` includes both runtime packages and tools.
+
+Use Python 3.12 and the locked development environment to regenerate the locks after editing either input file. Generate the runtime lock first:
+
+```bash
+python -m piptools compile --upgrade --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url --no-emit-trusted-host --output-file=requirements.txt requirements.in
+python -m piptools compile --upgrade --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url --no-emit-trusted-host --output-file=requirements-dev.txt requirements-dev.in
+python -m pip install --require-hashes -r requirements-dev.txt
+python -m pip check
+pip-audit --strict --require-hashes --disable-pip -r requirements-dev.txt
+ruff check .
+black . --check
+pytest tests/ --cov=whatismyip --cov-fail-under=50 --cov-report=term-missing --cov-config=.coveragerc
+```
+
+Commit both input files and both regenerated locks together. Review version changes, audit the locks, and run the checks before rebuilding the application image. An existing production image retains its installed packages until it is rebuilt and deployed. A different Python minor version may require regenerated locks and separate validation.
 
 ---
 

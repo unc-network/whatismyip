@@ -1,0 +1,14 @@
+# Include runtime dependencies and keep their versions aligned with the runtime lock.
+-r requirements.in
+-c requirements.txt
+
+bandit==1.9.4
+black==26.10.1
+# Keep Windows CLI support in the shared lock when it is generated on macOS/Linux.
+colorama==0.4.6
+pip==26.3
+pip-audit==2.10.1
+pip-tools==7.6.2
+pytest==9.2.0
+pytest-cov==7.1.0
+ruff==0.17.4
