@@ -51,6 +51,24 @@ def test_trailing_slash_redirects(client, path, location):
 # --- Page content ---
 
 
+@pytest.mark.parametrize(
+    ("address", "rendered"),
+    [
+        ("192.0.2.10", "192.<wbr>0.<wbr>2.<wbr>10"),
+        ("2001:db8::10", "2001:<wbr>db8:<wbr>:<wbr>10"),
+        ("<svg/onload=alert`1`>", "&lt;svg/onload=alert`1`&gt;"),
+    ],
+)
+def test_home_address_escapes_headers_and_preserves_line_breaks(
+    client, monkeypatch, address, rendered
+):
+    for name in ("CLIENT_ADDRESS", "CLIENT_ADDRESS_V4", "FORWARDED_FOR"):
+        monkeypatch.delenv(name, raising=False)
+    response = client.get("/", headers={"X-Forwarded-For": address})
+    assert response.status_code == 200
+    assert f'class="ip-hero-text mb-0">{rendered}</h2>'.encode() in response.data
+
+
 def test_connectivity_page_renders(client):
     response = client.get("/connectivity")
     assert response.status_code == 200

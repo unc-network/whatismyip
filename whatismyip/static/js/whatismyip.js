@@ -7,6 +7,12 @@ function formatIPAddress(ip) {
 	return $('<span>').text(ip).html().replace(/([.:])/g, '$1<wbr>');
 }
 
+// Diagnostic data may come from public DNS or upstream APIs. Escape quotes too
+// because some of the trusted markup below places values in ARIA attributes.
+function escapeHostinfoHtml(value) {
+	return $('<span>').text(String(value)).html().replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 var reportDataIPv4 = null;
 var reportDataIPv6 = null;
 var reportNetworkPurpose = null;
@@ -644,11 +650,11 @@ function test_ipv4_url(default_version, retryAttempt) {
 				// uniqueNames = [...new Set(result['address_details']['names'])]
 				for (address_name of uniqueNames) {
 				// for (address_name of result['address_details']['names']) {
-					$('#addr1-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
+					$('#addr1-names').append($('<li class="list-group-item p-0">').text(address_name));
 				}
 			} else if ( result["ptr"] ) {
 				$('#addr1-names-row').show();
-				$('#addr1-names').append(`<li class="list-group-item p-0">${result["ptr"]}</li>`);
+				$('#addr1-names').append($('<li class="list-group-item p-0">').text(result["ptr"]));
 			}
 
 			if ( result['address_details']["mac"] ) {
@@ -763,17 +769,17 @@ function test_ipv4_url(default_version, retryAttempt) {
 			function nacCell(key, value) {
 				var warn = '';
 				if (key === 'ipAddress' && nacIp && value !== nacIp) {
-					warn = ` <i class="fa-solid fa-triangle-exclamation text-warning ms-1" role="img" aria-label="Warning: does not match detected IPv4 address (${nacIp})"></i>`;
+					warn = ` <i class="fa-solid fa-triangle-exclamation text-warning ms-1" role="img" aria-label="Warning: does not match detected IPv4 address (${escapeHostinfoHtml(nacIp)})"></i>`;
 				}
 				if (key === 'macAddress' && nacMac && value.toLowerCase() !== nacMac) {
-					warn = ` <i class="fa-solid fa-triangle-exclamation text-warning ms-1" role="img" aria-label="Warning: does not match MAC from IPAM (${result['address_details']['mac']})"></i>`;
+					warn = ` <i class="fa-solid fa-triangle-exclamation text-warning ms-1" role="img" aria-label="Warning: does not match MAC from IPAM (${escapeHostinfoHtml(result['address_details']['mac'])})"></i>`;
 				}
-				return value + warn;
+				return escapeHostinfoHtml(value) + warn;
 			}
 
 			var nacTbody = $('#nac-table tbody');
-			function escHtml(s) { return $('<span>').text(String(s)).html(); }
-			function nacRow(label, html) { nacTbody.append(`<tr><th>${label}</th><td>${html}</td></tr>`); }
+			function escHtml(s) { return escapeHostinfoHtml(s); }
+			function nacRow(label, html) { nacTbody.append(`<tr><th>${escHtml(label)}</th><td>${html}</td></tr>`); }
 
 			if (result['nac']['endSystem']) {
 				$('#nac-diagram-row').show();
@@ -902,7 +908,7 @@ function test_ipv4_url(default_version, retryAttempt) {
 					var rssiIcon = ms.rssi >= -65 ? 'fa-circle-check text-success' : ms.rssi >= -70 ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger';
 					var rssiCls  = ms.rssi >= -65 ? '' : ms.rssi >= -70 ? 'text-warning' : 'text-danger';
 					var rssiLabel = ms.rssi >= -65 ? 'Good' : ms.rssi >= -70 ? 'Fair' : 'Poor';
-					$('#meraki-rssi').html(`${ms.rssi} dBm &mdash; <i class="fa-solid ${rssiIcon} me-1" aria-hidden="true"></i><span class="${rssiCls}">${rssiLabel}</span>`);
+					$('#meraki-rssi').html(`${escHtml(ms.rssi)} dBm &mdash; <i class="fa-solid ${rssiIcon} me-1" aria-hidden="true"></i><span class="${rssiCls}">${rssiLabel}</span>`);
 					$('#meraki-rssi-row').show();
 					showMerakiCard = true;
 				}
@@ -910,7 +916,7 @@ function test_ipv4_url(default_version, retryAttempt) {
 					var snrIcon = ms.snr >= 25 ? 'fa-circle-check text-success' : ms.snr >= 15 ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger';
 					var snrCls  = ms.snr >= 25 ? '' : ms.snr >= 15 ? 'text-warning' : 'text-danger';
 					var snrLabel = ms.snr >= 25 ? 'Good' : ms.snr >= 15 ? 'Fair' : 'Poor';
-					$('#meraki-snr').html(`${ms.snr} dB &mdash; <i class="fa-solid ${snrIcon} me-1" aria-hidden="true"></i><span class="${snrCls}">${snrLabel}</span>`);
+					$('#meraki-snr').html(`${escHtml(ms.snr)} dB &mdash; <i class="fa-solid ${snrIcon} me-1" aria-hidden="true"></i><span class="${snrCls}">${snrLabel}</span>`);
 					$('#meraki-snr-row').show();
 					showMerakiCard = true;
 				}
@@ -952,7 +958,7 @@ function test_ipv4_url(default_version, retryAttempt) {
 			}
 			if (result['network']['dhcp_dns_servers'] && result['network']['dhcp_dns_servers'].length > 0) {
 				$('#net-config-v4-dns-row').show();
-				$('#net-config-v4-dns').html(result['network']['dhcp_dns_servers'].join('<br>'));
+				$('#net-config-v4-dns').html(result['network']['dhcp_dns_servers'].map(escapeHostinfoHtml).join('<br>'));
 				hasV4Config = true;
 			}
 			if (result['network']['dhcp_domain_name']) {
@@ -1169,7 +1175,7 @@ function append_dns_table_row(label, value, rowId = null, useHtmlValue = false) 
 	}
 
 	const cell = $('<td colspan="2"></td>');
-	cell.append(`<div class="fw-bold">${label}</div>`);
+	cell.append($('<div class="fw-bold">').text(label));
 	const valueContainer = $('<div class="dns-row-value text-break" style="white-space: pre-line;"></div>');
 	if (useHtmlValue) {
 		valueContainer.html(value);
@@ -1421,11 +1427,11 @@ function test_ipv6_url(default_version, retryAttempt) {
 				// uniqueNames = [...new Set(result['address_details']['names'])]
 				for (address_name of uniqueNames) {
 				// for (address_name of result['address_details']['names']) {
-					$('#addr2-names').append(`<li class="list-group-item p-0">${address_name}</li>`);
+					$('#addr2-names').append($('<li class="list-group-item p-0">').text(address_name));
 				}
 			} else if ( result["ptr"] ) {
 				$('#addr2-names-row').show();
-				$('#addr2-names').append(`<li class="list-group-item p-0">${result["ptr"]}</li>`);
+				$('#addr2-names').append($('<li class="list-group-item p-0">').text(result["ptr"]));
 			}
 
 			if ( result['address_details']["mac"] ) {
@@ -1517,7 +1523,7 @@ function test_ipv6_url(default_version, retryAttempt) {
 			}
 			if (result['network']['dhcp_dns_servers'] && result['network']['dhcp_dns_servers'].length > 0) {
 				$('#net-config-v6-dns-row').show();
-				$('#net-config-v6-dns').html(result['network']['dhcp_dns_servers'].join('<br>'));
+				$('#net-config-v6-dns').html(result['network']['dhcp_dns_servers'].map(escapeHostinfoHtml).join('<br>'));
 				hasV6Config = true;
 			}
 			if (result['network']['dhcp_domain_name']) {

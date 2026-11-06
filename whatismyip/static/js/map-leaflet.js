@@ -34,7 +34,9 @@ function initLeafletMap(lat, lon, zoom) {
 
 function placeLeafletMarker(lat, lon, title) {
 	var label = title || 'Location marker';
-	var marker = L.marker([lat, lon]).addTo(map).bindPopup(label);
+	var popup = document.createElement('span');
+	popup.textContent = label;
+	var marker = L.marker([lat, lon]).addTo(map).bindPopup(popup);
 	marker.on('add', function () {
 		var el = marker.getElement();
 		if (el) {

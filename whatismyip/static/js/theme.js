@@ -56,6 +56,7 @@
     const resolvedTheme = preference === 'system' ? getSystemTheme() : preference;
     document.documentElement.setAttribute('data-theme-preference', preference);
     document.documentElement.setAttribute('data-theme', resolvedTheme);
+    document.documentElement.setAttribute('data-mdb-theme', resolvedTheme);
     document.documentElement.style.colorScheme = resolvedTheme;
   }
 

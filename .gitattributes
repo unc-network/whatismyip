@@ -1,0 +1,16 @@
+# Preserve upstream distribution bytes for the browser asset hash inventory.
+whatismyip/static/css/*.css -text
+whatismyip/static/css/whatismyip.css text eol=lf
+whatismyip/static/css/unc-utility-bar.css text eol=lf
+whatismyip/static/css/*.map -text
+whatismyip/static/js/jquery.min.js -text
+whatismyip/static/js/chart.umd.min.js -text
+whatismyip/static/js/mdb.umd.min.js -text
+whatismyip/static/js/leaflet.min.js -text
+whatismyip/static/js/*.map -text
+whatismyip/static/licenses/* -text
+whatismyip/static/webfonts/*.woff2 -text
+
+# Leaflet's official stylesheet and license use CRLF line endings.
+whatismyip/static/css/leaflet.min.css whitespace=cr-at-eol
+whatismyip/static/licenses/leaflet.txt whitespace=cr-at-eol
