@@ -4,10 +4,20 @@ All notable changes to this project will be documented here. This project follow
 
 ## [1.15.1] - 2026-11-06
 
+### Fixed
+
+- **Diagnostic HTML escaping** — hostnames, PTR records, DNS-server lists, NAC fields and warning attributes, wireless signal values, and Leaflet popup labels now render upstream data as text. The initial server-rendered IP address also escapes request-derived values while preserving its line-break hints.
+
+### Added
+
+- **Browser dependency security checks** — added an exact-version inventory with SHA-256 hashes for the vendored assets and a GitLab CI check against OSV. The check fails on affected dependencies, asset mismatches, or unavailable/incomplete advisory responses; it requires no npm installation or frontend build.
+
 ### Changed
 
 - **MDB browser library maintenance** — upgraded the vendored MDB Free CSS and JavaScript from 6.4.2 to 9.3.0. The home-page details toggle and FAQ accordion now use MDB's component initialization attributes and the UMD bundle, preserving direct browser loading without a frontend build step.
 - **Other browser libraries** — upgraded jQuery from 3.7.1 to 4.0.0, Chart.js from 4.4.4 to 4.6.1, and Font Awesome Free from 6.7.2 to 7.3.1 using verified official distributions. Updated the icon CSS and WOFF2 fonts together, removed obsolete TTF fonts, and included upstream licenses and available JavaScript source maps. Leaflet remains at 1.9.4, the latest stable release.
+- **Leaflet distribution provenance** — replaced the CDN-generated minified copies with the official 1.9.4 JavaScript and CSS distributions and included the upstream license and source map, keeping the existing asset URLs.
+- **NAC client diagnostics** — replaced a constant-expression `eval` used for caller-name logging with direct stack inspection.
 - **Theme and accessibility compatibility** — the initial theme and subsequent theme changes now also set MDB's theme attribute. Dark-mode accordion arrows and keyboard focus indicators remain visible against the site's custom card surfaces; obsolete standalone dark stylesheets and superseded source maps were removed.
 - **Python dependency maintenance** — raised runtime dependency minimums to include published security fixes for DNS parsing, HTTP/TLS handling, Brotli decoding, certificate trust, and package installation. Runtime and development installs now use generated locks with exact versions and package hashes; `requirements.in` and `requirements-dev.in` contain the editable dependency inputs.
 - **Build and CI consistency** — Docker and GitLab CI now target Python 3.12.16. CI tools use a shared development lock with updated Black, pytest, Ruff, and pip, and the dependency audit checks the complete development lock, including runtime packages.

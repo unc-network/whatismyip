@@ -34,7 +34,6 @@ _MAC_RE = re.compile(r"^[0-9A-Fa-f]{2}(?:[:\-][0-9A-Fa-f]{2}){5}$")
 
 logger = None
 debug = False
-getframe_expr = "sys._getframe({}).f_code.co_name"  # is required to determinant the call of a routine
 
 
 #####################################################################################################
@@ -203,7 +202,7 @@ class XMC_NBI:
         logger.debug("query: %s" % query)
         return self._decode_response(
             self.session.post(self.nbiUrl, json={"query": query}),
-            eval(getframe_expr.format(2)),
+            sys._getframe(1).f_code.co_name,
         )
 
     #################################################################################################

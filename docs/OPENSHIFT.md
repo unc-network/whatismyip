@@ -63,6 +63,11 @@ oc create secret generic netsight \
   --from-literal=SECRET=your-secret
 ```
 
+The XMC endpoint should serve its complete TLS certificate chain, including
+intermediate certificates. Review certificate trust and client verification
+as part of configuring the integration. Keep installation-specific security
+findings in private operational records.
+
 **Building directory API:**
 ```bash
 oc create secret generic nit-public \
@@ -101,7 +106,36 @@ oc new-app python~https://github.com/your-org/whatismyip.git \
 
 This creates an ImageStream, a BuildConfig, and a Deployment. OpenShift will build the image from your repository and deploy it automatically.
 
-Use a Python 3.12 builder image with current security patches (3.12.16 or later). S2I takes its Python runtime from the builder image selected by the BuildConfig; the version in the repository's Dockerfile applies to Docker builds. Source builds install the committed `requirements.txt` runtime lock, whose package hashes are enforced automatically by pip. See the [dependency maintenance instructions](../README.md#updating-python-dependencies) before updating the lock or rebuilding.
+Use a maintained Python 3.12 builder image with current vendor security fixes.
+Red Hat backports fixes into its RPM releases, so compare the complete RPM
+version and release against Red Hat advisories rather than requiring the
+upstream patch version used by the repository's Dockerfile. S2I takes its
+Python runtime from the builder image selected by the BuildConfig. Source
+builds install the committed `requirements.txt` runtime lock, whose package
+hashes are enforced automatically by pip. See the [dependency maintenance
+instructions](../README.md#updating-python-dependencies) before updating the
+lock or rebuilding.
+
+Inspect the installed runtime and packages after deployment:
+
+```bash
+oc exec deployment/whatismyip -- python --version
+oc exec deployment/whatismyip -- rpm -q python3.12 python3.12-libs openssl-libs
+oc exec deployment/whatismyip -- python -m pip list --format=freeze
+```
+
+The Python dependency and browser-library audits in GitLab CI do not scan the
+builder's Python standard library or OS packages. Check the complete built
+image with a scanner that understands Red Hat advisories. An ImageChange
+trigger rebuilds when the cluster's builder ImageStreamTag changes; it does
+not guarantee that the tag itself has been refreshed from the vendor registry.
+The OpenShift webhook build also runs independently of the GitLab pipeline.
+
+Where the platform team manages builder images, application maintainers select
+a supported S2I tag and coordinate image updates with that team. Record
+installed package releases, image scan results, and installation-specific
+security follow-ups privately. Updating pip requirements does not update the
+builder's Python or OS RPMs.
 
 Watch the build:
 ```bash

@@ -1,0 +1,75 @@
+{
+  "packages": [
+    {
+      "name": "mdb-ui-kit",
+      "version": "9.3.0",
+      "files": {
+        "whatismyip/static/css/mdb.min.css": "bac703800abf7552e56315de66d46d318d4f57d0b11bb6b5ad63812cc64a4522",
+        "whatismyip/static/css/mdb.min.css.map": "5262ac394de5e679b3be4f4e2f7ca673ac5800f38634f660c7beda289200203d",
+        "whatismyip/static/css/mdb.rtl.min.css": "fb780fd06654b51635d118b76bbb7cbd1cf121d89d609f9216e16b7784ce7b0a",
+        "whatismyip/static/js/mdb.umd.min.js": "711296448f6ed975afd4510e5308437710645e9019384b580a1beb38ace7d8b5",
+        "whatismyip/static/js/mdb.umd.min.js.map": "046baff96665b9a6c3e4869d8f967597b727d217501e374d458220c6a37dc067"
+      }
+    },
+    {
+      "name": "jquery",
+      "version": "4.0.0",
+      "files": {
+        "whatismyip/static/js/jquery.min.js": "39a546ea9ad97f8bfaf5d3e0e8f8556adb415e470e59007ada9759dce472adaa",
+        "whatismyip/static/js/jquery.min.map": "7fd7f832c10dfc0962dca1ba015cdefa69a310741edf89d28914184bd5ba1ceb",
+        "whatismyip/static/licenses/jquery.txt": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+      }
+    },
+    {
+      "name": "chart.js",
+      "version": "4.6.1",
+      "files": {
+        "whatismyip/static/js/chart.umd.min.js": "87364cc2b2a76a6684929e7d6b80b18a897794db38400caff1fcf1791c6925d2",
+        "whatismyip/static/js/chart.umd.min.js.map": "b4b4e658a3a10695139f5f2ac2a31a0a0b04619cbdddc4e0793b97a8e9804321",
+        "whatismyip/static/licenses/chartjs.txt": "41a84aa2caba645f966a18d9c2056b73e6d3a81d80bc0046bc0011a2634d4cce"
+      }
+    },
+    {
+      "name": "leaflet",
+      "version": "1.9.4",
+      "files": {
+        "whatismyip/static/css/images/marker-icon-2x.png": "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528",
+        "whatismyip/static/css/images/marker-icon.png": "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437",
+        "whatismyip/static/css/images/marker-shadow.png": "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da",
+        "whatismyip/static/css/leaflet.min.css": "a7837102824184820dfa198d1ebcd109ff6d0ff9a2672a074b9a1b4d147d04c6",
+        "whatismyip/static/js/leaflet.js.map": "600a10dc5cd110de0699510d322afcbe01c7ca90b4c5f48adc20314c70aac753",
+        "whatismyip/static/js/leaflet.min.js": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a",
+        "whatismyip/static/licenses/leaflet.txt": "53e8dc25862014e4324741ca18fbe3611e11d42ef69f59f86ea8c5389647d4cb"
+      }
+    },
+    {
+      "name": "@fortawesome/fontawesome-free",
+      "version": "7.3.1",
+      "files": {
+        "whatismyip/static/css/all.css": "5abdb8615ede42769101febbd322bd8640c7cbfe9ab28650f7a8246930b08083",
+        "whatismyip/static/css/all.min.css": "e0b69df26e19596d4b81bf7eb0c54b6047e7221ec18d5d4d40c11eefd3ef8a4b",
+        "whatismyip/static/css/brands.css": "af2e900661ff931a30d0577eab72817cc175c7b6ca37e846c7e1dd54303f361e",
+        "whatismyip/static/css/brands.min.css": "a0cb780acb8abde232376e88205124fb6a9992c24f73fcdba8e5cdfc9e98c07f",
+        "whatismyip/static/css/fontawesome.css": "f84ea100b8bf5267f160dc5dcc6bc7563fe790e8bb98329342fdb747b63e0824",
+        "whatismyip/static/css/fontawesome.min.css": "405bfb2a5312e363b88650a68ed90b6c06c41d5cfa3cbf5c68251cafafb3c078",
+        "whatismyip/static/css/regular.css": "1dce7e3c97c033e7e8ee6f7721f6812a273d4d57a8639744d51f9f079759ad4a",
+        "whatismyip/static/css/regular.min.css": "8ce72fe73bcf1a93ae67cdae0f599a322f2f939ce6801863b86cb577e3d554d0",
+        "whatismyip/static/css/solid.css": "f9fb16c11d615f05a810deb12090ee8c7acd828e88edddb1286dacccc9760a65",
+        "whatismyip/static/css/solid.min.css": "01219b97103029774a3e8cb1b22803490beec1df828895dfd9c5fd0d4798da25",
+        "whatismyip/static/css/svg-with-js.css": "535a3da40ba9d3bf722dcb44b7654301249ab99294c5e92c1afaa06d1a6cd25f",
+        "whatismyip/static/css/svg-with-js.min.css": "41f0118f28df6b40db18deea2e04f2e7b3779625cb282a2b9c02c41a5d9819ff",
+        "whatismyip/static/css/v4-font-face.css": "32895c55aaee20ded92166c80462807313e73b9401a685ca70793b5deb592f4d",
+        "whatismyip/static/css/v4-font-face.min.css": "33290981f7b41ec7a8edb198c00941b84f3521aa3144d5dad2373af2221e1c59",
+        "whatismyip/static/css/v4-shims.css": "96b0b349d1d3ba17169f41cbb6a2be2d55d6945c6eeda2e0520d9e675bb23405",
+        "whatismyip/static/css/v4-shims.min.css": "1b5c5b035e37ff0a128238e2cf18eeb7df588cb440cb543ba3ff983a04953d72",
+        "whatismyip/static/css/v5-font-face.css": "4313eee00aaecdabcabb9b26ce5cd0f5e1e39dd23847e4fc974882d5e7f476bd",
+        "whatismyip/static/css/v5-font-face.min.css": "dfed7e31a076b182b9ca0cb1e545d93db01145f71927bf4e1147f83b13515c22",
+        "whatismyip/static/licenses/fontawesome-free.txt": "20c6f40715a567c97b80f6944beb8bb325835cab47ea7dcab89ee3b8e077eced",
+        "whatismyip/static/webfonts/fa-brands-400.woff2": "ff66d1cfb67dbe3da432bbe36572cabfa4eef0e591303c2cba111474ba1d15bc",
+        "whatismyip/static/webfonts/fa-regular-400.woff2": "f4722d10b9e1b41eefe3b51a026312ee1970edb7782f94b0080d3d475945734c",
+        "whatismyip/static/webfonts/fa-solid-900.woff2": "24e5fae26b41c08b2df81c91669f5aaae71d81a84a4713fc56b5c621b78dd456",
+        "whatismyip/static/webfonts/fa-v4compatibility.woff2": "c776ee1f1fe21cd72195e91de7afd5c9dbd007e9d06016254d65fbcc091398ca"
+      }
+    }
+  ]
+}

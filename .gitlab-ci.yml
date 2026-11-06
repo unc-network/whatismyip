@@ -54,6 +54,12 @@ security_scan_bandit:
     # -ll = medium severity and above; -ii = medium confidence and above
     - bandit -r whatismyip/ -ll -ii --exclude whatismyip/extreme.py
 
+security_scan_browser_libraries:
+  extends: .python_job
+  stage: security_scan
+  script:
+    - python scripts/audit_browser_libraries.py
+
 run_tests:
   extends: .python_job
   stage: test

@@ -2,6 +2,12 @@
 
 A Flask web application that shows UNC Chapel Hill users their IP address, campus network details, VPN status, DNS provider, and connectivity diagnostics. The tool is intended for institutional adaptation — other universities can fork it by editing `data/config.toml` and the branding sections of templates.
 
+The application is intentionally public on the Internet and serves substantial off-campus traffic. Preserve public access when making security changes. Treat request headers, DNS records, and upstream API data as untrusted; render diagnostic data as text. Dependency maintenance must check known advisories for both the Python locks and the vendored browser libraries. See `CONTRIBUTING.md` for the audit commands. A clean dependency audit does not replace application-code or deployed-image review.
+
+**Public repository:** keep deployment-specific security findings in private operational records. Do not commit installed runtime/RPM snapshots, deployment identifiers, certificate inspection results, or mappings between a live deployment and unresolved advisories. Source dependency locks, library inventories, and generic deployment guidance belong in the repository. Describe audit scope accurately; passing dependency checks does not establish that an entire deployment is free of vulnerabilities.
+
+**OpenShift ownership:** the platform team maintains the shared builder images. Application maintainers select the supported Python S2I tag and coordinate builder security updates with that team. Red Hat backports fixes, so assess complete RPM releases against vendor advisories rather than only `python --version`.
+
 ---
 
 ## Tech Stack
@@ -9,7 +15,7 @@ A Flask web application that shows UNC Chapel Hill users their IP address, campu
 - **Backend:** Python / Flask, Jinja2 templates, Gunicorn, deployed on OpenShift
 - **Frontend:** Vanilla JS with jQuery 4, MDB Bootstrap (Material Design Bootstrap), Font Awesome 7, Leaflet maps, Chart.js — **no build step, no bundler**. Edit `.js` and `.css` files directly.
 - **CSS:** `whatismyip/static/css/whatismyip.css` is the only custom stylesheet. All third-party CSS (MDB, Leaflet, Font Awesome) is vendored in `static/css/` and must not be edited.
-- **JS:** `whatismyip/static/js/whatismyip.js` is the only custom script. Everything else in `static/js/` is vendored.
+- **JS:** `whatismyip.js`, `theme.js`, `map-leaflet.js`, and `map-google.js` are custom scripts in `static/js/`. The library bundles are vendored official distributions; their versions and file hashes are recorded in `browser-libraries.json`.
 - **Database:** SQLite (`data/metrics.sqlite3`) for usage metrics only — not user data.
 
 ---
