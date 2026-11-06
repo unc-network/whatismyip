@@ -4,6 +4,14 @@
 
 The application uses a Flask blueprint structure. `whatismyip/__init__.py` contains the `create_app()` factory; routes are split across `whatismyip/routes/` (`main.py` for the home page, `api.py` for `/hostinfo`, `/dns-result`, and `/api/dns-lookup`, `pages.py` for static pages and error handlers, `metrics.py` for the dashboard). External API calls are organized by integration: `infoblox.py` (IPAM), `extreme.py` (XMC/NAC), `meraki.py` (Meraki Dashboard), `dns_lookup.py` (direct resolver queries and answer comparison), and `utils.py` (geolocation, building lookup, shared helpers). Metrics storage lives in `whatismyip/db.py` and site config loading in `whatismyip/site_config.py`.
 
+## Browser components
+
+MDB Free 9.3.0 is vendored from the official [`mdb-ui-kit` npm package](https://www.npmjs.com/package/mdb-ui-kit/v/9.3.0). The unmodified distribution files are `css/mdb.min.css`, its source map, `css/mdb.rtl.min.css`, and `js/mdb.umd.min.js` with its source map. There is no frontend build step; styling overrides belong in `whatismyip.css`.
+
+The UMD bundle automatically initializes elements marked with component-specific attributes. The FAQ accordion and home-page details button use `data-mdb-collapse-init` with `data-mdb-target`; the earlier `data-mdb-toggle="collapse"` attribute is obsolete. The shared mobile navbar uses its own toggle handler. The site's initial theme script and `theme.js` keep `data-theme` and `data-mdb-theme` synchronized, so both the custom palette and MDB components follow the same light/dark preference.
+
+MDB's current CSS includes both themes, replacing the older standalone dark stylesheets. When upgrading MDB, verify the npm package integrity, replace the distribution files together, review the [migration guide](https://mdbootstrap.com/docs/standard/getting-started/migration/) and [changelog](https://mdbootstrap.com/docs/standard/getting-started/changelog/), and verify accordion/details behavior, keyboard focus, navigation, and theme styling in a browser before deployment.
+
 ## Detection flow
 
 ### Step 1 — Client IP (from HTTP)

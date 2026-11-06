@@ -6,6 +6,8 @@ All notable changes to this project will be documented here. This project follow
 
 ### Changed
 
+- **MDB browser library maintenance** — upgraded the vendored MDB Free CSS and JavaScript from 6.4.2 to 9.3.0. The home-page details toggle and FAQ accordion now use MDB's component initialization attributes and the UMD bundle, preserving direct browser loading without a frontend build step.
+- **Theme and accessibility compatibility** — the initial theme and subsequent theme changes now also set MDB's theme attribute. Dark-mode accordion arrows and keyboard focus indicators remain visible against the site's custom card surfaces; obsolete standalone dark stylesheets and superseded source maps were removed.
 - **Python dependency maintenance** — raised runtime dependency minimums to include published security fixes for DNS parsing, HTTP/TLS handling, Brotli decoding, certificate trust, and package installation. Runtime and development installs now use generated locks with exact versions and package hashes; `requirements.in` and `requirements-dev.in` contain the editable dependency inputs.
 - **Build and CI consistency** — Docker and GitLab CI now target Python 3.12.16. CI tools use a shared development lock with updated Black, pytest, Ruff, and pip, and the dependency audit checks the complete development lock, including runtime packages.
 - **Maintenance documentation** — documented lock regeneration and installation, corrected outdated Python prerequisites, and updated the project guide to reflect production v1.15.0.
