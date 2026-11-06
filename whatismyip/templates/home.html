@@ -681,7 +681,7 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}?v={{ app_version }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.min.js') }}?v={{ app_version }}"></script>
 <script src="{{ url_for('static', filename='js/mdb.umd.min.js') }}?v={{ app_version }}"></script>
 {% if context['map_provider'] == 'leaflet' %}
 <script src="{{ url_for('static', filename='js/leaflet.min.js') }}?v={{ app_version }}"></script>

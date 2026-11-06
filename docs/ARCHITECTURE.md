@@ -6,6 +6,20 @@ The application uses a Flask blueprint structure. `whatismyip/__init__.py` conta
 
 ## Browser components
 
+Vendored browser libraries are served from `whatismyip/static/` without a frontend build step. Current versions and official distribution sources:
+
+| Library | Version | npm package |
+| --- | --- | --- |
+| MDB Free | 9.3.0 | [`mdb-ui-kit`](https://www.npmjs.com/package/mdb-ui-kit/v/9.3.0) |
+| jQuery | 4.0.0 | [`jquery`](https://www.npmjs.com/package/jquery/v/4.0.0) |
+| Chart.js | 4.6.1 | [`chart.js`](https://www.npmjs.com/package/chart.js/v/4.6.1) |
+| Font Awesome Free | 7.3.1 | [`@fortawesome/fontawesome-free`](https://www.npmjs.com/package/@fortawesome/fontawesome-free/v/7.3.1) |
+| Leaflet | 1.9.4 | [`leaflet`](https://www.npmjs.com/package/leaflet/v/1.9.4) |
+
+jQuery uses the full browser bundle, including AJAX, at `js/jquery.min.js`. The application uses explicit JSON AJAX requests and does not use the deprecated APIs removed in jQuery 4. Chart.js uses the standalone `js/chart.umd.min.js` bundle for the metrics dashboard. Font Awesome CSS and WOFF2 fonts must be replaced together; version 7 uses fixed-width icons by default and supports the existing icon names and style aliases. Preserve explicit accessible labels on buttons and links, and `aria-hidden` on decorative icons. Upstream licenses for these three libraries are in `static/licenses/`.
+
+For upgrades, verify each npm tarball against its registry integrity hash, copy unmodified distribution files and available source maps, and check the upstream migration notes. Verify cross-origin IPv4/IPv6 JSON requests, error/retry handling, icon rendering, and chart tooltips, legends, responsiveness, and theme changes. Leaflet 1.9.4 remains the latest stable release; do not replace it with a prerelease as routine maintenance.
+
 MDB Free 9.3.0 is vendored from the official [`mdb-ui-kit` npm package](https://www.npmjs.com/package/mdb-ui-kit/v/9.3.0). The unmodified distribution files are `css/mdb.min.css`, its source map, `css/mdb.rtl.min.css`, and `js/mdb.umd.min.js` with its source map. There is no frontend build step; styling overrides belong in `whatismyip.css`.
 
 The UMD bundle automatically initializes elements marked with component-specific attributes. The FAQ accordion and home-page details button use `data-mdb-collapse-init` with `data-mdb-target`; the earlier `data-mdb-toggle="collapse"` attribute is obsolete. The shared mobile navbar uses its own toggle handler. The site's initial theme script and `theme.js` keep `data-theme` and `data-mdb-theme` synchronized, so both the custom palette and MDB components follow the same light/dark preference.

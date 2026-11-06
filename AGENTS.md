@@ -7,7 +7,7 @@ A Flask web application that shows UNC Chapel Hill users their IP address, campu
 ## Tech Stack
 
 - **Backend:** Python / Flask, Jinja2 templates, Gunicorn, deployed on OpenShift
-- **Frontend:** Vanilla JS with jQuery, MDB Bootstrap (Material Design Bootstrap), Font Awesome 6, Leaflet maps, Chart.js — **no build step, no bundler**. Edit `.js` and `.css` files directly.
+- **Frontend:** Vanilla JS with jQuery 4, MDB Bootstrap (Material Design Bootstrap), Font Awesome 7, Leaflet maps, Chart.js — **no build step, no bundler**. Edit `.js` and `.css` files directly.
 - **CSS:** `whatismyip/static/css/whatismyip.css` is the only custom stylesheet. All third-party CSS (MDB, Leaflet, Font Awesome) is vendored in `static/css/` and must not be edited.
 - **JS:** `whatismyip/static/js/whatismyip.js` is the only custom script. Everything else in `static/js/` is vendored.
 - **Database:** SQLite (`data/metrics.sqlite3`) for usage metrics only — not user data.
